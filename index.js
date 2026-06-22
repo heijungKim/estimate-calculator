@@ -657,7 +657,7 @@ function hoorex_type(){
             append_html += "</tr>";	
             append_html += "<tr>";
             	append_html += "<th>완조립</th>";
-            	append_html += "<td><label><input type='radio' name='channel_complete' id='channel_complete_none' checked='checked'>없음</label><label><input type='radio' name='channel_complete' id='channel_complete_yes'>있음</label></td>";
+            	append_html += "<td><label><input type='radio' name='channel_complete' id='channel_complete_none' checked='checked'>없음</label><label><input type='radio' name='channel_complete' id='channel_complete_normal'>일반 완조립</label><label><input type='radio' name='channel_complete' id='channel_complete_premium'>고급 완조립</label></td>";
             append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
@@ -3637,8 +3637,10 @@ function chnnel_taka_cal(){ //채널 타카 계산
         ggachi_price = 0;
     }
 
-    if($("#channel_complete_yes").is(":checked")){ //완조립
-        complete_price = PRICES.ch_complete;
+    if($("#channel_complete_normal").is(":checked")){ //완조립 일반
+        complete_price = 100000;
+    }else if($("#channel_complete_premium").is(":checked")){ //완조립 고급
+        complete_price = 150000;
     }else{
         complete_price = 0;
     }
@@ -5643,7 +5645,7 @@ $(".save_btn").click(function(){
                     var _ledP = _ledUnit * _ledCnt;
 
                     // 완조립
-                    var _compP = ($("#channel_complete_yes").is(":checked")) ? 100000 : 0;
+                    var _compP = $("#channel_complete_normal").is(":checked") ? 100000 : ($("#channel_complete_premium").is(":checked") ? 150000 : 0);
 
                     // 추가금액
                     var _moreP = nv("#more_order_price") || 0;
@@ -5658,7 +5660,7 @@ $(".save_btn").click(function(){
                     if(_ledP > 0)
                         bd += "<span class='bd_item'>LED <em>"+_ledCnt+"개 × "+_fmt(_ledUnit)+"원 = "+_fmt(_ledP)+"원</em></span>";
                     if(_compP > 0)
-                        bd += "<span class='bd_item'>완조립 <em>100,000원</em></span>";
+                        bd += "<span class='bd_item'>완조립 <em>"+_fmt(_compP)+"원</em></span>";
                     if(_moreP > 0)
                         bd += "<span class='bd_item'>추가금액 <em>"+_fmt(_moreP)+"원</em></span>";
                     bd += "</span>";
