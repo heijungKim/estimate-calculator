@@ -526,6 +526,17 @@ input::placeholder {
     padding: 0 28px;
     background: #f7f8fa;
 }
+.order_info.sticky-active {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    border-top: none;
+    border-bottom: 1px solid #edf0f5;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+}
+.order_info_spacer { display: none; }
 
 .order_info_inner {
     display: flex;

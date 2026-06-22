@@ -5901,6 +5901,28 @@ $(function(){
 
     // 아카이브 목록 렌더링
     renderArchiveList();
+
+    // ── 견적 비용 스티키 ──────────────────────────────────────
+    (function(){
+        var $bar = $(".order_info");
+        var $sp  = $('<div class="order_info_spacer">').insertAfter($bar);
+        var on   = false;
+
+        $(window).on("scroll.orderSticky", function(){
+            var st      = $(window).scrollTop();
+            var trigger = on ? $sp.offset().top : $bar.offset().top;
+
+            if(!on && st >= trigger){
+                $sp.height($bar.outerHeight()).show();
+                $bar.addClass("sticky-active");
+                on = true;
+            } else if(on && st < $sp.offset().top){
+                $bar.removeClass("sticky-active");
+                $sp.hide();
+                on = false;
+            }
+        });
+    })();
 });
 
 function recalcCurrent(){
