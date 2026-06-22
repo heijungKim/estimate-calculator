@@ -38,6 +38,23 @@ var DEFAULT_PRICES = {
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
 
+// ── 단가 Firebase 연동 ──────────────────────────────────────
+var _pricesDoc = null;
+function _initPricesDoc() {
+    if (_pricesDoc) return;
+    try {
+        var cfg = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
+        if (!cfg || !cfg.apiKey || cfg.apiKey === 'YOUR_API_KEY') return;
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
+        _pricesDoc = firebase.firestore().collection('settings').doc('unit_prices');
+    } catch(e) {}
+}
+function savePricesToFirebase(data) {
+    _initPricesDoc();
+    if (!_pricesDoc) return;
+    _pricesDoc.set(data).catch(function(){});
+}
+
 function getSignDimensions() {
     var w, h;
     if($("#sigh_option03").is(":checked")) {
@@ -5787,10 +5804,28 @@ function list_sum_price(){
 
 // ── 단가 설정 패널 ──────────────────────────────────────
 $(function(){
-    // 입력값 초기화 (콤마 포함)
+    // 기본값으로 입력 필드 초기화
     Object.keys(DEFAULT_PRICES).forEach(function(key){
         $("#p_" + key).val(fmtNum(DEFAULT_PRICES[key]));
     });
+
+    // Firebase에 저장된 단가 로드 (비동기 - 패널이 닫혀 있는 동안 적용됨)
+    _initPricesDoc();
+    if (_pricesDoc) {
+        _pricesDoc.get()
+            .then(function(doc) {
+                if (!doc.exists) return;
+                var saved = doc.data();
+                Object.keys(DEFAULT_PRICES).forEach(function(key) {
+                    if (saved[key] !== undefined) {
+                        PRICES[key] = saved[key];
+                        $("#p_" + key).val(fmtNum(saved[key]));
+                    }
+                });
+                recalcCurrent();
+            })
+            .catch(function(){});
+    }
 
     // 단가 패널 입력 콤마 포맷 (정적 입력)
     $(document).on('input', '.price_panel input[type="text"]', function(){
@@ -5814,6 +5849,7 @@ $(function(){
     // 적용
     $("#btn_apply_prices").click(function(){
         applyPrices();
+        savePricesToFirebase(PRICES);
         recalcCurrent();
         $(this).text("✓ 적용됨").addClass("applied");
         var _btn = this;
@@ -5823,6 +5859,7 @@ $(function(){
     // 초기화
     $("#btn_reset_prices").click(function(){
         resetPrices();
+        savePricesToFirebase(DEFAULT_PRICES);
         recalcCurrent();
     });
 
