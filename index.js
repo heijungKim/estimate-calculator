@@ -28,6 +28,12 @@ var DEFAULT_PRICES = {
     ch_taka_got_30: 25000, ch_taka_got_40: 28000, ch_taka_got_50: 34000, ch_taka_got_60: 40000,
     ch_taka_got_70: 43000, ch_taka_got_80: 48000, ch_taka_got_90: 50000, ch_taka_got_100: 54000,
     ch_taka_got_110: 66000, ch_taka_got_120: 78000, ch_taka_got_130: 94000, ch_taka_got_140: 115000, ch_taka_got_150: 130000,
+    // 일체형 채널 - 영문 (글자당)
+    ch_ilche_eng_20: 0, ch_ilche_eng_25: 0, ch_ilche_eng_30: 0, ch_ilche_eng_35: 0, ch_ilche_eng_40: 0, ch_ilche_eng_45: 0, ch_ilche_eng_50: 0, ch_ilche_eng_55: 0, ch_ilche_eng_60: 0, ch_ilche_eng_65: 0, ch_ilche_eng_70: 0,
+    // 일체형 채널 - 한글 (글자당)
+    ch_ilche_kor_20: 0, ch_ilche_kor_25: 0, ch_ilche_kor_30: 0, ch_ilche_kor_35: 0, ch_ilche_kor_40: 0, ch_ilche_kor_45: 0, ch_ilche_kor_50: 0, ch_ilche_kor_55: 0, ch_ilche_kor_60: 0, ch_ilche_kor_65: 0, ch_ilche_kor_70: 0,
+    // 일체형 채널 - 고딕체 (글자당)
+    ch_ilche_got_20: 0, ch_ilche_got_25: 0, ch_ilche_got_30: 0, ch_ilche_got_35: 0, ch_ilche_got_40: 0, ch_ilche_got_45: 0, ch_ilche_got_50: 0, ch_ilche_got_55: 0, ch_ilche_got_60: 0, ch_ilche_got_65: 0, ch_ilche_got_70: 0,
     // 채널문자 LED (개당)
     ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
     // 채널문자 기타
@@ -1226,11 +1232,10 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_55'>55cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_65'>65cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
@@ -3566,31 +3571,38 @@ function chnnel_taka_cal(){ //채널 타카 계산
         _pricePrefix = "kor";
     }
 
-    var _sizeMap = {30:"30",40:"40",50:"50",60:"60",70:"70",80:"80",90:"90",100:"100",110:"110",120:"120",130:"130",140:"140",150:"150"};
     var _sz = null;
-    if($("#channel_size_30").is(":checked")) _sz="30";
-    else if($("#channel_size_40").is(":checked")) _sz="40";
-    else if($("#channel_size_50").is(":checked")) _sz="50";
-    else if($("#channel_size_60").is(":checked")) _sz="60";
-    else if($("#channel_size_70").is(":checked")) _sz="70";
-    else if($("#channel_size_80").is(":checked")) _sz="80";
-    else if($("#channel_size_90").is(":checked")) _sz="90";
-    else if($("#channel_size_100").is(":checked")) _sz="100";
-    else if($("#channel_size_110").is(":checked")) _sz="110";
-    else if($("#channel_size_120").is(":checked")) _sz="120";
-    else if($("#channel_size_130").is(":checked")) _sz="130";
-    else if($("#channel_size_140").is(":checked")) _sz="140";
-    else if($("#channel_size_150").is(":checked")) _sz="150";
-    if(_sz) chennel_width = PRICES["ch_taka_"+_pricePrefix+"_"+_sz]||0;else if($("#channel_size_160").is(":checked")){
-        chennel_width = 60000;
-    }else if($("#channel_size_170").is(":checked")){
-        chennel_width = 60000;
-    }else if($("#channel_size_180").is(":checked")){
-        chennel_width = 60000;
-    }else if($("#channel_size_190").is(":checked")){
-        chennel_width = 60000;
-    }else if($("#channel_size_200").is(":checked")){
-        chennel_width = 60000;
+    if($("#channel_option05").is(":checked")){
+        // 일체형 채널 (20~70cm)
+        if($("#channel_size_20").is(":checked")) _sz="20";
+        else if($("#channel_size_25").is(":checked")) _sz="25";
+        else if($("#channel_size_30").is(":checked")) _sz="30";
+        else if($("#channel_size_35").is(":checked")) _sz="35";
+        else if($("#channel_size_40").is(":checked")) _sz="40";
+        else if($("#channel_size_45").is(":checked")) _sz="45";
+        else if($("#channel_size_50").is(":checked")) _sz="50";
+        else if($("#channel_size_55").is(":checked")) _sz="55";
+        else if($("#channel_size_60").is(":checked")) _sz="60";
+        else if($("#channel_size_65").is(":checked")) _sz="65";
+        else if($("#channel_size_70").is(":checked")) _sz="70";
+        if(_sz) chennel_width = PRICES["ch_ilche_"+_pricePrefix+"_"+_sz]||0;
+    } else {
+        // 알루미늄 채널 등 (30~200cm)
+        if($("#channel_size_30").is(":checked")) _sz="30";
+        else if($("#channel_size_40").is(":checked")) _sz="40";
+        else if($("#channel_size_50").is(":checked")) _sz="50";
+        else if($("#channel_size_60").is(":checked")) _sz="60";
+        else if($("#channel_size_70").is(":checked")) _sz="70";
+        else if($("#channel_size_80").is(":checked")) _sz="80";
+        else if($("#channel_size_90").is(":checked")) _sz="90";
+        else if($("#channel_size_100").is(":checked")) _sz="100";
+        else if($("#channel_size_110").is(":checked")) _sz="110";
+        else if($("#channel_size_120").is(":checked")) _sz="120";
+        else if($("#channel_size_130").is(":checked")) _sz="130";
+        else if($("#channel_size_140").is(":checked")) _sz="140";
+        else if($("#channel_size_150").is(":checked")) _sz="150";
+        if(_sz) chennel_width = PRICES["ch_taka_"+_pricePrefix+"_"+_sz]||0;
+        else if($("#channel_size_160").is(":checked")||$("#channel_size_170").is(":checked")||$("#channel_size_180").is(":checked")||$("#channel_size_190").is(":checked")||$("#channel_size_200").is(":checked")) chennel_width = 60000;
     }
 
     if($("#channel_led_color_white").is(":checked")){
