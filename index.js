@@ -3542,7 +3542,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
     }else{
         _pricePrefix = "kor";
     }
-
+
     var _sz = null;
     if($("#channel_option05").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
@@ -5955,6 +5955,13 @@ $(function(){
         var val = parseInt(raw) || 0;
         var korEl = document.getElementById(this.id.replace('_eng_', '_kor_'));
         if(korEl) korEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
+    });
+    // 단가 자동 1.3배: 한글 입력 → 흘림체 자동 채우기 (알루미늄/일체형/에폭시)
+    $(document).on('input', '[id^="p_ch_taka_kor_"],[id^="p_ch_ilche_kor_"],[id^="p_ch_epox_kor_"]', function(){
+        var raw = this.value.replace(/[^0-9]/g, '');
+        var val = parseInt(raw) || 0;
+        var gotEl = document.getElementById(this.id.replace('_kor_', '_got_'));
+        if(gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
     });
     // 단가 자동 1.3배: 영문/한글 입력 → 흘림체 자동 채우기 (티타늄/스텐/갈바/갈바오사이)
     $(document).on('input', '[id^="p_ch_titan_eng_"],[id^="p_ch_sten_eng_"],[id^="p_ch_galva_eng_"],[id^="p_ch_gosa_eng_"]', function(){
