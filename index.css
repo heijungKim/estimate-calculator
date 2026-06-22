@@ -982,3 +982,213 @@ input::placeholder {
     background: #d63652;
     box-shadow: 0 6px 16px rgba(233,69,96,0.45);
 }
+
+/* ── 견적 저장 버튼 ── */
+.est_save_btn {
+    background: #0f3460;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(15,52,96,0.35);
+}
+.est_save_btn:hover {
+    background: #16213e;
+    box-shadow: 0 6px 18px rgba(15,52,96,0.45);
+    transform: translateY(-1px);
+}
+
+/* ── 저장 모달 버튼 ── */
+.modal_save_btn {
+    padding: 9px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    background: #0f3460;
+    color: #fff;
+    transition: background 0.18s;
+}
+.modal_save_btn:hover { background: #16213e; }
+
+/* ── 저장된 견적 목록 섹션 ── */
+.archive_section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 24px 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.archive_list {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.archive_empty {
+    text-align: center;
+    color: #aab0bb;
+    font-size: 14px;
+    padding: 24px 0;
+}
+
+.archive_item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 18px;
+    background: #f8f9fb;
+    border: 1.5px solid #eaedf2;
+    border-radius: 10px;
+    transition: border-color 0.18s, box-shadow 0.18s;
+}
+.archive_item:hover {
+    border-color: #bfc7d5;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.archive_item_left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+}
+
+.archive_name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.archive_meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.archive_item_right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.archive_view_btn {
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.archive_view_btn:hover { background: #d63652; }
+
+.archive_del_btn {
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+    color: #aaa;
+    border: 1.5px solid #dde1e9;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+.archive_del_btn:hover {
+    background: #fff5f5;
+    color: #e94560;
+    border-color: #fca5a5;
+}
+
+/* ── 내역 보기 모달 ── */
+.modal_lg {
+    width: 620px;
+    max-width: calc(100vw - 32px);
+}
+
+.modal_header_info { flex: 1; min-width: 0; }
+
+.detail_modal_date {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 3px;
+}
+
+.modal_body_scroll {
+    max-height: 52vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.detail_items_list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.detail_items_list li {
+    background: #f8f9fb;
+    border: 1px solid #eaedf2;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #333;
+    position: relative;
+}
+
+.detail_items_list li .number {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.detail_items_list .list_price {
+    font-weight: 700;
+    color: #e94560;
+}
+
+.detail_total_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #eaedf2;
+    padding-top: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.detail_total_val {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e94560;
+}
+
+.detail_total_val em { font-style: normal; }
+
+.detail_load_btn {
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f0f2f5;
+    color: #444;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.detail_load_btn:hover { background: #e2e6ee; }

@@ -5642,6 +5642,62 @@ $(function(){
 
     // 저장된 견적 목록 복원
     loadFromStorage();
+
+    // ── 견적 저장 버튼 ────────────────────────────────────────
+    $("#btn_save_estimate").click(function(){
+        if (!$("#total_price_wrap .total_list ul li").length) {
+            alert("저장할 견적 항목이 없습니다.");
+            return;
+        }
+        var today = new Date();
+        var d = today.getFullYear() + '-' +
+                ('0'+(today.getMonth()+1)).slice(-2) + '-' +
+                ('0'+today.getDate()).slice(-2);
+        $("#save_estimate_date").val(d);
+        $("#save_estimate_name").val('');
+        $("#save_name_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
+        setTimeout(function(){ $("#save_estimate_name").focus(); }, 220);
+    });
+
+    $("#save_name_close, #save_name_cancel").click(function(){
+        $("#save_name_modal").fadeOut(200);
+    });
+    $("#save_name_modal").click(function(e){ if(e.target===this) $(this).fadeOut(200); });
+
+    $("#save_name_confirm").click(function(){
+        var name = $.trim($("#save_estimate_name").val());
+        if (!name) { $("#save_estimate_name").focus(); return; }
+        saveEstimate(name, $("#save_estimate_date").val());
+        $("#save_name_modal").fadeOut(200);
+    });
+    $("#save_estimate_name").keypress(function(e){
+        if (e.which === 13) $("#save_name_confirm").click();
+    });
+
+    // ── 아카이브 목록 이벤트 (동적 바인딩) ───────────────────
+    $(document).on("click", ".archive_view_btn", function(){
+        showArchiveDetail($(this).data("id"));
+    });
+    $(document).on("click", ".archive_del_btn", function(){
+        deleteArchive($(this).data("id"));
+    });
+
+    // ── 내역 보기 모달 이벤트 ─────────────────────────────────
+    $("#detail_modal_close").click(function(){
+        $("#archive_detail_modal").fadeOut(200);
+    });
+    $("#archive_detail_modal").click(function(e){
+        if (e.target === this) $(this).fadeOut(200);
+    });
+    $("#detail_load_btn").click(function(){
+        loadArchiveToList($("#archive_detail_modal").data("current-id"));
+    });
+    $("#detail_print_btn").click(function(){
+        printFromArchive($("#archive_detail_modal").data("current-id"));
+    });
+
+    // 아카이브 목록 렌더링
+    renderArchiveList();
 });
 
 function recalcCurrent(){
@@ -5724,9 +5780,10 @@ function escHtml(s) {
 }
 
 // ── 견적 항목 데이터 추출 ───────────────────────────────────
-function getEstimateItems() {
+function getEstimateItems($src) {
     var items = [];
-    $(".total_list ul li").each(function(i) {
+    var $lis = $src ? $src.find("li") : $(".total_list ul li");
+    $lis.each(function(i) {
         var $li = $(this);
         var priceText = $li.find(".list_price").text().trim();
         var priceNum  = Number(priceText.replace(/[^0-9]/g, ''));
@@ -5772,15 +5829,8 @@ function closePrintModal() {
     $("#print_modal").fadeOut(200);
 }
 
-// ── 견적서 출력 ─────────────────────────────────────────────
-function doPrintEstimate() {
-    var customer = $("#print_customer").val().trim() || '　';
-    var manager  = $("#print_manager").val().trim();
-    var notes    = $("#print_notes").val().trim();
-
-    var items = getEstimateItems();
-    var totalNum = 0;
-    items.forEach(function(it){ totalNum += it.priceNum; });
+// ── 견적서 HTML 생성 (공통) ──────────────────────────────────
+function buildPrintDoc(items, totalNum, customer, manager, notes) {
     var totalFormatted = String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     var totalKorean    = numberToKorean(totalNum);
 
@@ -5806,10 +5856,10 @@ function doPrintEstimate() {
             '</tr>';
     }).join('');
 
-    var managerRow  = manager  ? '<div class="info-row"><span class="info-label">담 당 자</span><span>' + escHtml(manager) + '</span></div>' : '';
-    var notesBlock  = notes    ? '<div class="custom-notes"><strong>비고</strong><br>' + escHtml(notes).replace(/\n/g,'<br>') + '</div>' : '';
+    var managerRow = manager ? '<div class="info-row"><span class="info-label">담 당 자</span><span>' + escHtml(manager) + '</span></div>' : '';
+    var notesBlock = notes   ? '<div class="custom-notes"><strong>비고</strong><br>' + escHtml(notes).replace(/\n/g,'<br>') + '</div>' : '';
 
-    var html = '<!DOCTYPE html><html lang="ko"><head>' +
+    return '<!DOCTYPE html><html lang="ko"><head>' +
         '<meta charset="UTF-8"><title>견적서</title>' +
         '<style>' +
         '*{margin:0;padding:0;box-sizing:border-box}' +
@@ -5869,12 +5919,149 @@ function doPrintEstimate() {
         '</div>' +
         notesBlock +
         '</body></html>';
+}
 
+function openPrintWindow(html) {
     var win = window.open('', '_blank', 'width=960,height=1050,scrollbars=yes');
     if (!win) { alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요."); return; }
     win.document.open();
     win.document.write(html);
     win.document.close();
+}
+
+// ── 견적서 출력 ─────────────────────────────────────────────
+function doPrintEstimate() {
+    var customer = $("#print_customer").val().trim() || '　';
+    var manager  = $("#print_manager").val().trim();
+    var notes    = $("#print_notes").val().trim();
+    var items    = getEstimateItems();
+    var totalNum = 0;
+    items.forEach(function(it){ totalNum += it.priceNum; });
+    openPrintWindow(buildPrintDoc(items, totalNum, customer, manager, notes));
     closePrintModal();
+}
+// ─────────────────────────────────────────────────────────
+
+// ── 견적 아카이브 (저장/불러오기/내역보기) ──────────────────
+var ARCHIVE_KEY = 'estimate_archives_v1';
+
+function getArchives() {
+    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || []; }
+    catch(e) { return []; }
+}
+
+function setArchives(list) {
+    try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)); }
+    catch(e) {}
+}
+
+// 현재 견적 목록을 이름+날짜와 함께 저장
+function saveEstimate(name, date) {
+    var $ul = $("#total_price_wrap .total_list ul");
+    var $clone = $ul.clone();
+    $clone.find(".remove_btn").remove();
+
+    var totalNum = 0;
+    $ul.find("li").each(function(){
+        totalNum += Number($(this).find(".list_price").text().replace(/[^0-9]/g, ''));
+    });
+
+    var arc = {
+        id:            'est_' + Date.now(),
+        name:          name,
+        date:          date,
+        total:         totalNum,
+        totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+        itemCount:     $ul.find("li").length,
+        itemsHtml:     $clone.html()
+    };
+
+    var list = getArchives();
+    list.unshift(arc);
+    setArchives(list);
+    renderArchiveList();
+}
+
+// 아카이브 목록 렌더링
+function renderArchiveList() {
+    var list = getArchives();
+    var $el = $("#archive_list");
+
+    if (!list.length) {
+        $el.html('<p class="archive_empty">저장된 견적이 없습니다.</p>');
+        return;
+    }
+
+    var html = '';
+    list.forEach(function(arc) {
+        html +=
+            '<div class="archive_item" data-id="' + arc.id + '">' +
+                '<div class="archive_item_left">' +
+                    '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
+                    '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
+                        arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
+                    '</span>' +
+                '</div>' +
+                '<div class="archive_item_right">' +
+                    '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
+                    '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
+                '</div>' +
+            '</div>';
+    });
+    $el.html(html);
+}
+
+// 내역 보기 모달 열기
+function showArchiveDetail(id) {
+    var arc = getArchives().filter(function(a){ return a.id === id; })[0];
+    if (!arc) return;
+
+    $("#archive_detail_modal").data("current-id", id);
+    $("#detail_modal_title").text(arc.name);
+    $("#detail_modal_date").text(arc.date);
+    $("#detail_total_num").text(arc.totalFormatted);
+
+    // 항목 렌더
+    var $temp = $("<ul>").html(arc.itemsHtml);
+    $temp.find(".remove_btn").remove();
+    $temp.find("li").each(function(i){
+        $(this).find(".number").text((i+1) + ". ");
+    });
+    $("#detail_items_list").html($temp.html());
+
+    $("#archive_detail_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
+}
+
+// 아카이브 삭제
+function deleteArchive(id) {
+    if (!confirm("이 견적을 삭제하시겠습니까?")) return;
+    setArchives(getArchives().filter(function(a){ return a.id !== id; }));
+    renderArchiveList();
+}
+
+// 저장된 견적을 현재 목록으로 불러오기
+function loadArchiveToList(id) {
+    var arc = getArchives().filter(function(a){ return a.id === id; })[0];
+    if (!arc) return;
+
+    if ($("#total_price_wrap .total_list ul li").length > 0) {
+        if (!confirm("현재 견적 목록을 지우고 이 견적을 불러오시겠습니까?")) return;
+    }
+
+    $("#total_price_wrap .total_list ul").html(arc.itemsHtml);
+    list_sum_price();
+    list_delete_func();
+    $("#archive_detail_modal").fadeOut(200);
+    $("html,body").animate({ scrollTop: $("#total_price_wrap").offset().top - 20 }, 300);
+}
+
+// 저장된 견적 바로 출력
+function printFromArchive(id) {
+    var arc = getArchives().filter(function(a){ return a.id === id; })[0];
+    if (!arc) return;
+    var $temp = $("<ul>").html(arc.itemsHtml);
+    var items = getEstimateItems($temp);
+    openPrintWindow(buildPrintDoc(items, arc.total, arc.name, '', ''));
+    $("#archive_detail_modal").fadeOut(200);
 }
 // ─────────────────────────────────────────────────────────

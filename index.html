@@ -243,8 +243,68 @@
             </div>
             <div class="estimate_actions">
                 <button id="btn_clear_list" class="est_clear_btn">목록 초기화</button>
+                <button id="btn_save_estimate" class="est_save_btn">&#128190; 견적 저장</button>
                 <button id="btn_print_estimate" class="est_print_btn">&#128424; 견적서 출력</button>
             </div>
+        </div>
+
+        <!-- 저장된 견적 목록 -->
+        <div class="archive_section" id="archive_section">
+            <h2 class="total_title">
+                <span class="title-bar"></span>
+                저장된 견적 목록
+            </h2>
+            <div class="archive_list" id="archive_list">
+                <p class="archive_empty">저장된 견적이 없습니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 견적 저장 모달 -->
+<div class="modal_overlay" id="save_name_modal">
+    <div class="modal_box">
+        <div class="modal_header">
+            <h3>견적 저장</h3>
+            <button class="modal_close" id="save_name_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+            <div class="modal_field">
+                <label for="save_estimate_name">견적 이름</label>
+                <input type="text" id="save_estimate_name" placeholder="예: 홍길동 채널문자 견적" />
+            </div>
+            <div class="modal_field">
+                <label>저장 날짜</label>
+                <input type="text" id="save_estimate_date" readonly />
+            </div>
+        </div>
+        <div class="modal_footer">
+            <button id="save_name_cancel" class="modal_cancel_btn">취소</button>
+            <button id="save_name_confirm" class="modal_save_btn">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 견적 내역 보기 모달 -->
+<div class="modal_overlay" id="archive_detail_modal">
+    <div class="modal_box modal_lg">
+        <div class="modal_header">
+            <div class="modal_header_info">
+                <h3 id="detail_modal_title"></h3>
+                <p id="detail_modal_date" class="detail_modal_date"></p>
+            </div>
+            <button class="modal_close" id="detail_modal_close">&#215;</button>
+        </div>
+        <div class="modal_body modal_body_scroll">
+            <ul id="detail_items_list" class="detail_items_list"></ul>
+            <div class="detail_total_row">
+                <span class="detail_total_label">합 계</span>
+                <span class="detail_total_val">&#8361; <em id="detail_total_num">0</em> 원</span>
+            </div>
+        </div>
+        <div class="modal_footer">
+            <button id="detail_load_btn" class="detail_load_btn">현재 목록으로 불러오기</button>
+            <button id="detail_print_btn" class="modal_print_btn">견적서 출력</button>
         </div>
     </div>
 </div>
