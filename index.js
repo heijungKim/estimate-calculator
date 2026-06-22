@@ -5529,7 +5529,7 @@ $(".save_btn").click(function(){
                 }
             	total_html +="<br> / 완조립 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_complete']:checked").parent("label").text();
       			total_html +="<br> / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_text_form']:checked").parent("label").text();
-            	total_html +="<br> / 크기 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_size']:checked").parent("label").text()+" cm ";
+            	total_html +="<br> / 크기 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_size']:checked").parent("label").text();
             	total_html +="<br> / 트림 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_color']:checked").parent("label").text();
             	if($("#channel_trim_color_custom").is(":checked")){
             		total_html +="<br> / 트림 컬러색 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_custom_color']:checked").parent("label").text();
