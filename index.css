@@ -316,6 +316,16 @@ input::placeholder {
     border-color: #e94560;
     box-shadow: 0 0 0 2px rgba(233,69,96,0.1);
 }
+.ch_type_label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4a5568;
+    background: #edf0f5;
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin-bottom: 8px;
+    display: inline-block;
+}
 
 .price_actions {
     display: flex;
