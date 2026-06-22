@@ -5569,10 +5569,37 @@ function list_delete_func(){
     });
 }
 
+// " / " 구분자를 시각적 줄바꿈으로 변환 (한 번만 실행)
+function reformatLiDisplay($li) {
+    if ($li.hasClass("fmted")) return;
+    $li.addClass("fmted");
+
+    $li.contents().each(function() {
+        if (this.nodeType !== 3) return;          // 텍스트 노드만 처리
+        var txt = this.nodeValue;
+        if (txt.indexOf('/') === -1) return;
+
+        var parts = txt.split(/\s*\/\s*/);
+        var frag  = document.createDocumentFragment();
+        parts.forEach(function(p, i) {
+            if (i > 0) {
+                frag.appendChild(document.createElement('br'));
+                var sep = document.createElement('span');
+                sep.className   = 'li-sep';
+                sep.textContent = '/ ';
+                frag.appendChild(sep);
+            }
+            frag.appendChild(document.createTextNode(p));
+        });
+        $(this).replaceWith(frag);
+    });
+}
+
 function list_sum_price(){
     var total_price = 0;
 	  $(".total_list ul li").each(function(i){
         $(this).find(".number").text((i+1)+". ");
+        reformatLiDisplay($(this));
        if($(this).find(".remove_btn").length == 0){
        	$(this).append("<span class='remove_btn'></span>");
        }
@@ -6021,11 +6048,12 @@ function showArchiveDetail(id) {
     $("#detail_modal_date").text(arc.date);
     $("#detail_total_num").text(arc.totalFormatted);
 
-    // 항목 렌더
+    // 항목 렌더 (줄바꿈 포맷 포함)
     var $temp = $("<ul>").html(arc.itemsHtml);
     $temp.find(".remove_btn").remove();
     $temp.find("li").each(function(i){
         $(this).find(".number").text((i+1) + ". ");
+        reformatLiDisplay($(this));
     });
     $("#detail_items_list").html($temp.html());
 

@@ -675,7 +675,7 @@ input::placeholder {
     display: block;
     font-size: 13px;
     color: #6b7280;
-    line-height: 1.9;
+    line-height: 1.75;
     padding: 14px 50px 14px 18px;
     border-radius: 10px;
     margin-bottom: 8px;
@@ -684,6 +684,17 @@ input::placeholder {
     position: relative;
     transition: background 0.18s, border-color 0.18s;
 }
+
+/* 항목 구분자 (" / ") 줄바꿈 표시 */
+.total_list ul li .li-sep {
+    display: inline;
+    color: #c0c6d4;
+    font-size: 11px;
+    margin-right: 2px;
+    padding-left: 2px;
+}
+
+.total_list ul li br { display: block; }
 
 .total_list ul li:hover {
     background: #fff0f2;
@@ -824,6 +835,7 @@ input::placeholder {
 }
 
 .est_clear_btn,
+.est_save_btn,
 .est_print_btn {
     display: inline-flex;
     align-items: center;
@@ -1143,6 +1155,7 @@ input::placeholder {
     background: #f8f9fb;
     border: 1px solid #eaedf2;
     border-radius: 10px;
+    line-height: 1.75;
     padding: 12px 16px;
     font-size: 13px;
     line-height: 1.75;
@@ -1154,6 +1167,16 @@ input::placeholder {
     font-weight: 700;
     color: #1a1a2e;
 }
+
+.detail_items_list li .li-sep {
+    display: inline;
+    color: #bbb;
+    font-size: 11px;
+    margin-right: 2px;
+    padding-left: 2px;
+}
+
+.detail_items_list li br { display: block; }
 
 .detail_items_list .list_price {
     font-weight: 700;
