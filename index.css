@@ -30,34 +30,8 @@ body {
     width: 220px;
 }
 
-.sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 26px 18px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    white-space: nowrap;
-}
-.sidebar-logo .logo-icon {
-    color: #e94560;
-    font-size: 18px;
-    min-width: 20px;
-    text-align: center;
-}
-.sidebar-logo .logo-text {
-    font-size: 16px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.3px;
-    opacity: 0;
-    transition: opacity 0.15s 0.05s;
-}
-.sidebar:hover .sidebar-logo .logo-text {
-    opacity: 1;
-}
-
 .sidebar-nav {
-    padding: 12px 0;
+    padding-top: 116px;
     flex: 1;
 }
 
