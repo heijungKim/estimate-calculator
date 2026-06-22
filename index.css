@@ -535,6 +535,11 @@ input::placeholder {
     border-top: none;
     border-bottom: 1px solid #edf0f5;
     box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+    animation: stickySlideIn 0.2s ease;
+}
+@keyframes stickySlideIn {
+    from { transform: translateY(-100%); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
 }
 .order_info_spacer { display: none; }
 

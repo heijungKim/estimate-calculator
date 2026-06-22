@@ -5905,23 +5905,23 @@ $(function(){
     // ── 견적 비용 스티키 ──────────────────────────────────────
     (function(){
         var $bar = $(".order_info");
+        if (!$bar.length) return;
         var $sp  = $('<div class="order_info_spacer">').insertAfter($bar);
         var on   = false;
 
         $(window).on("scroll.orderSticky", function(){
-            var st      = $(window).scrollTop();
-            var trigger = on ? $sp.offset().top : $bar.offset().top;
-
-            if(!on && st >= trigger){
+            var st = $(window).scrollTop();
+            if (!on && st > 5) {
                 $sp.height($bar.outerHeight()).show();
                 $bar.addClass("sticky-active");
                 on = true;
-            } else if(on && st < $sp.offset().top){
+            } else if (on && st <= 5) {
                 $bar.removeClass("sticky-active");
                 $sp.hide();
                 on = false;
             }
         });
+        $(window).trigger("scroll.orderSticky");
     })();
 });
 
