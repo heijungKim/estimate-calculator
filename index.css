@@ -528,18 +528,18 @@ input::placeholder {
 }
 .order_info.sticky-active {
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
     z-index: 200;
-    border-top: none;
-    border-bottom: 1px solid #edf0f5;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.13);
-    animation: stickySlideIn 0.2s ease;
+    border-top: 1px solid #edf0f5;
+    border-bottom: none;
+    box-shadow: 0 -2px 16px rgba(0,0,0,0.13);
+    animation: stickySlideUp 0.2s ease;
 }
-@keyframes stickySlideIn {
-    from { transform: translateY(-100%); opacity: 0; }
-    to   { transform: translateY(0);     opacity: 1; }
+@keyframes stickySlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
 }
 .order_info_spacer { display: none; }
 

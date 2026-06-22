@@ -5902,7 +5902,7 @@ $(function(){
     // 아카이브 목록 렌더링
     renderArchiveList();
 
-    // ── 견적 비용 스티키 ──────────────────────────────────────
+    // ── 견적 비용 스티키 (하단 고정) ──────────────────────────
     (function(){
         var $bar = $(".order_info");
         if (!$bar.length) return;
@@ -5911,14 +5911,19 @@ $(function(){
 
         $(window).on("scroll.orderSticky", function(){
             var st = $(window).scrollTop();
-            if (!on && st > 5) {
-                $sp.height($bar.outerHeight()).show();
-                $bar.addClass("sticky-active");
-                on = true;
-            } else if (on && st <= 5) {
-                $bar.removeClass("sticky-active");
-                $sp.hide();
-                on = false;
+            if (!on) {
+                var barTop = $bar.offset().top;
+                if (st > barTop) {
+                    $sp.height($bar.outerHeight()).show();
+                    $bar.addClass("sticky-active");
+                    on = true;
+                }
+            } else {
+                if (st <= $sp.offset().top) {
+                    $bar.removeClass("sticky-active");
+                    $sp.hide();
+                    on = false;
+                }
             }
         });
         $(window).trigger("scroll.orderSticky");
