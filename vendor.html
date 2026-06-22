@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>업체 관리 - 간판 관리</title>
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="vendor.css" />
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <span class="logo-icon">&#9632;</span>
+        <span class="logo-text">간판 관리</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">&#9998;</span>
+            <span>견적 계산기</span>
+        </a>
+        <a href="vendor.html" class="nav-item active">
+            <span class="nav-icon">&#9679;</span>
+            <span>업체 관리</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <span class="logo-icon">&#9632;</span>
+            <span class="logo-text">업체 관리</span>
+        </div>
+        <p class="header-sub">거래 업체를 등록하고 관리하세요</p>
+    </div>
+</header>
+
+<div class="vendor-wrap">
+
+    <!-- 업체 등록 폼 -->
+    <div class="vendor-card" id="vendor_form_card">
+        <div class="vendor-card-title">
+            <span class="title-bar"></span>
+            <span id="form_title_text">업체 등록</span>
+        </div>
+        <form id="vendor_form" autocomplete="off">
+            <div class="vendor-form-grid">
+                <div class="form-field required">
+                    <label for="v_name">업체명</label>
+                    <input type="text" id="v_name" placeholder="업체명을 입력하세요" />
+                </div>
+                <div class="form-field">
+                    <label for="v_owner">대표자명</label>
+                    <input type="text" id="v_owner" placeholder="대표자 이름" />
+                </div>
+                <div class="form-field">
+                    <label for="v_phone">연락처</label>
+                    <input type="text" id="v_phone" placeholder="010-0000-0000" />
+                </div>
+                <div class="form-field">
+                    <label for="v_email">이메일</label>
+                    <input type="text" id="v_email" placeholder="example@email.com" />
+                </div>
+                <div class="form-field full">
+                    <label for="v_address">주소</label>
+                    <input type="text" id="v_address" placeholder="업체 주소" />
+                </div>
+                <div class="form-field full">
+                    <label for="v_memo">메모</label>
+                    <textarea id="v_memo" rows="3" placeholder="특이사항 또는 메모"></textarea>
+                </div>
+            </div>
+            <div class="vendor-form-actions">
+                <button type="button" id="btn_cancel_edit" class="btn-cancel" style="display:none;">취소</button>
+                <button type="submit" id="btn_submit" class="btn-submit">&#10003; 등록하기</button>
+            </div>
+            <p id="form_error" class="form-error"></p>
+        </form>
+    </div>
+
+    <!-- 업체 목록 -->
+    <div class="vendor-card">
+        <div class="vendor-card-title">
+            <span class="title-bar"></span>
+            등록된 업체 목록
+            <span class="vendor-count" id="vendor_count">0개</span>
+        </div>
+        <div id="vendor_list_area">
+            <p class="vendor-empty" id="vendor_empty_msg">등록된 업체가 없습니다.</p>
+        </div>
+    </div>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="vendor.js"></script>
+</body>
+</html>
