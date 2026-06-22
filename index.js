@@ -130,11 +130,31 @@ function nv(sel) {
 function fmtNum(n) {
     return n >= 1000 ? Number(n).toLocaleString('ko-KR') : String(n);
 }
-// 입력 이벤트용 콤마 포맷터
+// 입력 이벤트용 콤마 포맷터 (커서 위치 보정)
 function formatCommaInput(el) {
-    var raw = String(el.value).replace(/[^0-9]/g, '');
+    var oldVal = el.value;
+    var selStart = el.selectionStart;
+
+    // 포맷 전 커서 앞에 있는 순수 숫자 개수
+    var digitsBefore = oldVal.slice(0, selStart).replace(/[^0-9]/g, '').length;
+
+    var raw = oldVal.replace(/[^0-9]/g, '');
     if (!raw) { el.value = ''; return; }
-    el.value = Number(raw).toLocaleString('ko-KR');
+    var newVal = Number(raw).toLocaleString('ko-KR');
+    el.value = newVal;
+
+    // 새 문자열에서 digitsBefore 번째 숫자 뒤로 커서 복원
+    var newPos = newVal.length;
+    if (digitsBefore === 0) {
+        newPos = 0;
+    } else {
+        var counted = 0;
+        for (var i = 0; i < newVal.length; i++) {
+            if (/[0-9]/.test(newVal[i])) counted++;
+            if (counted === digitsBefore) { newPos = i + 1; break; }
+        }
+    }
+    el.setSelectionRange(newPos, newPos);
 }
 
 function applyPrices() {
