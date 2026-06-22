@@ -31,25 +31,21 @@ var DEFAULT_PRICES = {
     // 티타늄골드채널 - 영문 (글자당)
     ch_titan_eng_20: 0, ch_titan_eng_25: 0, ch_titan_eng_30: 0, ch_titan_eng_35: 0, ch_titan_eng_40: 0, ch_titan_eng_45: 0, ch_titan_eng_50: 0, ch_titan_eng_60: 0, ch_titan_eng_70: 0, ch_titan_eng_80: 0, ch_titan_eng_90: 0, ch_titan_eng_100: 0,
     // 티타늄골드채널 - 한글 (글자당)
-    ch_titan_kor_20: 0, ch_titan_kor_25: 0, ch_titan_kor_30: 0, ch_titan_kor_35: 0, ch_titan_kor_40: 0, ch_titan_kor_45: 0, ch_titan_kor_50: 0, ch_titan_kor_60: 0, ch_titan_kor_70: 0, ch_titan_kor_80: 0, ch_titan_kor_90: 0, ch_titan_kor_100: 0,
     // 티타늄골드채널 - 고딕체 (글자당)
     ch_titan_got_20: 0, ch_titan_got_25: 0, ch_titan_got_30: 0, ch_titan_got_35: 0, ch_titan_got_40: 0, ch_titan_got_45: 0, ch_titan_got_50: 0, ch_titan_got_60: 0, ch_titan_got_70: 0, ch_titan_got_80: 0, ch_titan_got_90: 0, ch_titan_got_100: 0,
     // 스텐채널 - 영문 (글자당)
     ch_sten_eng_20: 0, ch_sten_eng_25: 0, ch_sten_eng_30: 0, ch_sten_eng_35: 0, ch_sten_eng_40: 0, ch_sten_eng_45: 0, ch_sten_eng_50: 0, ch_sten_eng_60: 0, ch_sten_eng_70: 0, ch_sten_eng_80: 0, ch_sten_eng_90: 0, ch_sten_eng_100: 0,
     // 스텐채널 - 한글 (글자당)
-    ch_sten_kor_20: 0, ch_sten_kor_25: 0, ch_sten_kor_30: 0, ch_sten_kor_35: 0, ch_sten_kor_40: 0, ch_sten_kor_45: 0, ch_sten_kor_50: 0, ch_sten_kor_60: 0, ch_sten_kor_70: 0, ch_sten_kor_80: 0, ch_sten_kor_90: 0, ch_sten_kor_100: 0,
     // 스텐채널 - 고딕체 (글자당)
     ch_sten_got_20: 0, ch_sten_got_25: 0, ch_sten_got_30: 0, ch_sten_got_35: 0, ch_sten_got_40: 0, ch_sten_got_45: 0, ch_sten_got_50: 0, ch_sten_got_60: 0, ch_sten_got_70: 0, ch_sten_got_80: 0, ch_sten_got_90: 0, ch_sten_got_100: 0,
     // 갈바채널 ×1.3 - 영문 (글자당)
     ch_galva_eng_30: 0, ch_galva_eng_35: 0, ch_galva_eng_40: 0, ch_galva_eng_45: 0, ch_galva_eng_50: 0, ch_galva_eng_60: 0, ch_galva_eng_70: 0, ch_galva_eng_80: 0, ch_galva_eng_90: 0, ch_galva_eng_100: 0,
     // 갈바채널 ×1.3 - 한글 (글자당)
-    ch_galva_kor_30: 0, ch_galva_kor_35: 0, ch_galva_kor_40: 0, ch_galva_kor_45: 0, ch_galva_kor_50: 0, ch_galva_kor_60: 0, ch_galva_kor_70: 0, ch_galva_kor_80: 0, ch_galva_kor_90: 0, ch_galva_kor_100: 0,
     // 갈바채널 ×1.3 - 고딕체 (글자당)
     ch_galva_got_30: 0, ch_galva_got_35: 0, ch_galva_got_40: 0, ch_galva_got_45: 0, ch_galva_got_50: 0, ch_galva_got_60: 0, ch_galva_got_70: 0, ch_galva_got_80: 0, ch_galva_got_90: 0, ch_galva_got_100: 0,
     // 갈바오사이채널 ×1.3 - 영문 (글자당)
     ch_gosa_eng_30: 0, ch_gosa_eng_35: 0, ch_gosa_eng_40: 0, ch_gosa_eng_45: 0, ch_gosa_eng_50: 0, ch_gosa_eng_60: 0, ch_gosa_eng_70: 0, ch_gosa_eng_80: 0, ch_gosa_eng_90: 0, ch_gosa_eng_100: 0,
     // 갈바오사이채널 ×1.3 - 한글 (글자당)
-    ch_gosa_kor_30: 0, ch_gosa_kor_35: 0, ch_gosa_kor_40: 0, ch_gosa_kor_45: 0, ch_gosa_kor_50: 0, ch_gosa_kor_60: 0, ch_gosa_kor_70: 0, ch_gosa_kor_80: 0, ch_gosa_kor_90: 0, ch_gosa_kor_100: 0,
     // 갈바오사이채널 ×1.3 - 고딕체 (글자당)
     ch_gosa_got_30: 0, ch_gosa_got_35: 0, ch_gosa_got_40: 0, ch_gosa_got_45: 0, ch_gosa_got_50: 0, ch_gosa_got_60: 0, ch_gosa_got_70: 0, ch_gosa_got_80: 0, ch_gosa_got_90: 0, ch_gosa_got_100: 0,
     // 일체형 채널 - 영문 (글자당)
@@ -58,6 +54,10 @@ var DEFAULT_PRICES = {
     ch_ilche_kor_20: 0, ch_ilche_kor_25: 0, ch_ilche_kor_30: 0, ch_ilche_kor_35: 0, ch_ilche_kor_40: 0, ch_ilche_kor_45: 0, ch_ilche_kor_50: 0, ch_ilche_kor_55: 0, ch_ilche_kor_60: 0, ch_ilche_kor_65: 0, ch_ilche_kor_70: 0,
     // 일체형 채널 - 고딕체 (글자당)
     ch_ilche_got_20: 0, ch_ilche_got_25: 0, ch_ilche_got_30: 0, ch_ilche_got_35: 0, ch_ilche_got_40: 0, ch_ilche_got_45: 0, ch_ilche_got_50: 0, ch_ilche_got_55: 0, ch_ilche_got_60: 0, ch_ilche_got_65: 0, ch_ilche_got_70: 0,
+		// 에폭시채널 (글자당)
+		ch_epox_eng_20: 0, ch_epox_eng_25: 0, ch_epox_eng_30: 0, ch_epox_eng_35: 0, ch_epox_eng_40: 0, ch_epox_eng_45: 0, ch_epox_eng_50: 0, ch_epox_eng_55: 0, ch_epox_eng_60: 0, ch_epox_eng_65: 0, ch_epox_eng_70: 0,
+		ch_epox_kor_20: 0, ch_epox_kor_25: 0, ch_epox_kor_30: 0, ch_epox_kor_35: 0, ch_epox_kor_40: 0, ch_epox_kor_45: 0, ch_epox_kor_50: 0, ch_epox_kor_55: 0, ch_epox_kor_60: 0, ch_epox_kor_65: 0, ch_epox_kor_70: 0,
+		ch_epox_got_20: 0, ch_epox_got_25: 0, ch_epox_got_30: 0, ch_epox_got_35: 0, ch_epox_got_40: 0, ch_epox_got_45: 0, ch_epox_got_50: 0, ch_epox_got_55: 0, ch_epox_got_60: 0, ch_epox_got_65: 0, ch_epox_got_70: 0,
     // 채널문자 LED (개당)
     ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
     // 채널문자 기타
@@ -1078,7 +1078,15 @@ function hoorex_type(){
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
 			append_html += "</tr>";	
-		}else if($("#channel_option04").is(":checked")){ // 갈바오사이
+		}else if($("#channel_option04").is(":checked")){ // 에폭시채널
+			append_html += "<tr>";
+				append_html += "<th>입체 높이</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3_5' checked='checked'>3.5cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
@@ -1091,38 +1099,23 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30' checked='checked'>30cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_20' checked='checked'>20cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_25'>25cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30'>30cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_55'>55cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
+					append_html += "<label><input type='radio' name='channel_size' id='channel_size_65'>65cm</label>";
 					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_110'>110cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_120'>120cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_130'>130cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_140'>140cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_150'>150cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_160'>160cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_170'>170cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_180'>180cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_190'>190cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_200'>200cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_210'>210cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_220'>220cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_230'>230cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_240'>240cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_250'>250cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_300'>300cm</label>";
-					//append_html += "<label><input type='radio' name='channel_size' id='channel_size_custom'>직접입력</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>입체색상</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1150,26 +1143,6 @@ function hoorex_type(){
 				append_html += "<td><span>0개</span></td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>추가작업</th>";
-				append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>까지발부착</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option02'>트러스부착</label></td>";
-			append_html += "</tr>";	
-			append_html += "<tr class='channel_more_order_option01 add_row'>";
-				append_html += "<th>까치발 크기</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05' checked='checked'>5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>12cm</label>";
-				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr class='channel_more_order_option02 add_row'>";
-				append_html += "<th>트러스 종류</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option02_type' id='channel_more_order_option02_type01' checked='checked'>아연각파이프</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option02_type' id='channel_more_order_option02_type02'>스텐각파이프</label>";
-				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
 				append_html += "<th>수량</th>";
 				append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
 			append_html += "</tr>";
@@ -1194,12 +1167,11 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
-			append_html += "</tr>";		
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
-
+			append_html += "</tr>";
 		}else if($("#channel_option05").is(":checked")){ // 2PC일체형
 			append_html += "<tr>";
 				append_html += "<th>입체 높이</th>";
@@ -3570,7 +3542,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
     }else{
         _pricePrefix = "kor";
     }
-
+
     var _sz = null;
     if($("#channel_option05").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
@@ -3585,6 +3557,19 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_65").is(":checked")) _sz="65";
         else if($("#channel_size_70").is(":checked")) _sz="70";
         if(_sz) chennel_width = PRICES["ch_ilche_"+_pricePrefix+"_"+_sz]||0;
+    } else if($("#channel_option04").is(":checked")){
+        if($("#channel_size_20").is(":checked")) _sz="20";
+        else if($("#channel_size_25").is(":checked")) _sz="25";
+        else if($("#channel_size_30").is(":checked")) _sz="30";
+        else if($("#channel_size_35").is(":checked")) _sz="35";
+        else if($("#channel_size_40").is(":checked")) _sz="40";
+        else if($("#channel_size_45").is(":checked")) _sz="45";
+        else if($("#channel_size_50").is(":checked")) _sz="50";
+        else if($("#channel_size_55").is(":checked")) _sz="55";
+        else if($("#channel_size_60").is(":checked")) _sz="60";
+        else if($("#channel_size_65").is(":checked")) _sz="65";
+        else if($("#channel_size_70").is(":checked")) _sz="70";
+        if(_sz) chennel_width = PRICES["ch_epox_"+_pricePrefix+"_"+_sz]||0;
     } else if($("#channel_option02").is(":checked")){
         if($("#channel_size_30").is(":checked")) _sz="30";
         else if($("#channel_size_35").is(":checked")) _sz="35";
@@ -3596,7 +3581,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_galva_"+_pricePrefix+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_galva_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
     } else if($("#channel_option03").is(":checked")){
         if($("#channel_size_30").is(":checked")) _sz="30";
         else if($("#channel_size_35").is(":checked")) _sz="35";
@@ -3608,7 +3593,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_gosa_"+_pricePrefix+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_gosa_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
     } else if($("#channel_option06").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3622,7 +3607,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_sten_"+_pricePrefix+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_sten_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
     } else if($("#channel_option07").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3636,7 +3621,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_titan_"+_pricePrefix+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_titan_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
     } else {
         if($("#channel_size_30").is(":checked")) _sz="30";
         else if($("#channel_size_40").is(":checked")) _sz="40";
