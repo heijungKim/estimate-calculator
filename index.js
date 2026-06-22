@@ -5970,16 +5970,46 @@ function doPrintEstimate() {
 // ─────────────────────────────────────────────────────────
 
 // ── 견적 아카이브 (저장/불러오기/내역보기) ──────────────────
+// Firebase Firestore를 우선 사용하고, 미설정 시 localStorage로 fallback
 var ARCHIVE_KEY = 'estimate_archives_v1';
+var _archivesDoc = null;
 
-function getArchives() {
-    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || []; }
-    catch(e) { return []; }
+function _initFirestore() {
+    if (_archivesDoc) return;
+    try {
+        var cfg = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
+        if (!cfg || !cfg.apiKey || cfg.apiKey === 'YOUR_API_KEY') return;
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
+        _archivesDoc = firebase.firestore().collection('estimates').doc('archive_list');
+    } catch(e) {}
 }
 
-function setArchives(list) {
-    try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)); }
-    catch(e) {}
+function getArchives(cb) {
+    _initFirestore();
+    if (_archivesDoc) {
+        _archivesDoc.get()
+            .then(function(doc) { cb(doc.exists ? (doc.data().list || []) : []); })
+            .catch(function() {
+                try { cb(JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || []); } catch(e) { cb([]); }
+            });
+    } else {
+        try { cb(JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || []); } catch(e) { cb([]); }
+    }
+}
+
+function setArchives(list, cb) {
+    _initFirestore();
+    if (_archivesDoc) {
+        _archivesDoc.set({ list: list })
+            .then(function() { if (cb) cb(); })
+            .catch(function() {
+                try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)); } catch(e) {}
+                if (cb) cb();
+            });
+    } else {
+        try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)); } catch(e) {}
+        if (cb) cb();
+    }
 }
 
 // 현재 견적 목록을 이름+날짜와 함께 저장
@@ -5994,102 +6024,112 @@ function saveEstimate(name, date) {
     });
 
     var arc = {
-        id:            'est_' + Date.now(),
-        name:          name,
-        date:          date,
-        total:         totalNum,
+        id:             'est_' + Date.now(),
+        name:           name,
+        date:           date,
+        total:          totalNum,
         totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-        itemCount:     $ul.find("li").length,
-        itemsHtml:     $clone.html()
+        itemCount:      $ul.find("li").length,
+        itemsHtml:      $clone.html()
     };
 
-    var list = getArchives();
-    list.unshift(arc);
-    setArchives(list);
-    renderArchiveList();
+    getArchives(function(list) {
+        list.unshift(arc);
+        setArchives(list, function() { renderArchiveList(); });
+    });
 }
 
 // 아카이브 목록 렌더링
 function renderArchiveList() {
-    var list = getArchives();
+    _initFirestore();
     var $el = $("#archive_list");
-
-    if (!list.length) {
-        $el.html('<p class="archive_empty">저장된 견적이 없습니다.</p>');
-        return;
+    if (_archivesDoc) {
+        $el.html('<p class="archive_empty">불러오는 중…</p>');
     }
-
-    var html = '';
-    list.forEach(function(arc) {
-        html +=
-            '<div class="archive_item" data-id="' + arc.id + '">' +
-                '<div class="archive_item_left">' +
-                    '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
-                    '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
-                        arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
-                    '</span>' +
-                '</div>' +
-                '<div class="archive_item_right">' +
-                    '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
-                    '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
-                '</div>' +
-            '</div>';
+    getArchives(function(list) {
+        if (!list.length) {
+            $el.html('<p class="archive_empty">저장된 견적이 없습니다.</p>');
+            return;
+        }
+        var html = '';
+        list.forEach(function(arc) {
+            html +=
+                '<div class="archive_item" data-id="' + arc.id + '">' +
+                    '<div class="archive_item_left">' +
+                        '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
+                        '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
+                            arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
+                        '</span>' +
+                    '</div>' +
+                    '<div class="archive_item_right">' +
+                        '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
+                        '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
+                    '</div>' +
+                '</div>';
+        });
+        $el.html(html);
     });
-    $el.html(html);
 }
 
 // 내역 보기 모달 열기
 function showArchiveDetail(id) {
-    var arc = getArchives().filter(function(a){ return a.id === id; })[0];
-    if (!arc) return;
+    getArchives(function(list) {
+        var arc = list.filter(function(a){ return a.id === id; })[0];
+        if (!arc) return;
 
-    $("#archive_detail_modal").data("current-id", id);
-    $("#detail_modal_title").text(arc.name);
-    $("#detail_modal_date").text(arc.date);
-    $("#detail_total_num").text(arc.totalFormatted);
+        $("#archive_detail_modal").data("current-id", id);
+        $("#detail_modal_title").text(arc.name);
+        $("#detail_modal_date").text(arc.date);
+        $("#detail_total_num").text(arc.totalFormatted);
 
-    // 항목 렌더 (줄바꿈 포맷 포함)
-    var $temp = $("<ul>").html(arc.itemsHtml);
-    $temp.find(".remove_btn").remove();
-    $temp.find("li").each(function(i){
-        $(this).find(".number").text((i+1) + ". ");
-        reformatLiDisplay($(this));
+        var $temp = $("<ul>").html(arc.itemsHtml);
+        $temp.find(".remove_btn").remove();
+        $temp.find("li").each(function(i){
+            $(this).find(".number").text((i+1) + ". ");
+            reformatLiDisplay($(this));
+        });
+        $("#detail_items_list").html($temp.html());
+        $("#archive_detail_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
     });
-    $("#detail_items_list").html($temp.html());
-
-    $("#archive_detail_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
 }
 
 // 아카이브 삭제
 function deleteArchive(id) {
     if (!confirm("이 견적을 삭제하시겠습니까?")) return;
-    setArchives(getArchives().filter(function(a){ return a.id !== id; }));
-    renderArchiveList();
+    getArchives(function(list) {
+        setArchives(list.filter(function(a){ return a.id !== id; }), function() {
+            renderArchiveList();
+        });
+    });
 }
 
 // 저장된 견적을 현재 목록으로 불러오기
 function loadArchiveToList(id) {
-    var arc = getArchives().filter(function(a){ return a.id === id; })[0];
-    if (!arc) return;
+    getArchives(function(list) {
+        var arc = list.filter(function(a){ return a.id === id; })[0];
+        if (!arc) return;
 
-    if ($("#total_price_wrap .total_list ul li").length > 0) {
-        if (!confirm("현재 견적 목록을 지우고 이 견적을 불러오시겠습니까?")) return;
-    }
+        if ($("#total_price_wrap .total_list ul li").length > 0) {
+            if (!confirm("현재 견적 목록을 지우고 이 견적을 불러오시겠습니까?")) return;
+        }
 
-    $("#total_price_wrap .total_list ul").html(arc.itemsHtml);
-    list_sum_price();
-    list_delete_func();
-    $("#archive_detail_modal").fadeOut(200);
-    $("html,body").animate({ scrollTop: $("#total_price_wrap").offset().top - 20 }, 300);
+        $("#total_price_wrap .total_list ul").html(arc.itemsHtml);
+        list_sum_price();
+        list_delete_func();
+        $("#archive_detail_modal").fadeOut(200);
+        $("html,body").animate({ scrollTop: $("#total_price_wrap").offset().top - 20 }, 300);
+    });
 }
 
 // 저장된 견적 바로 출력
 function printFromArchive(id) {
-    var arc = getArchives().filter(function(a){ return a.id === id; })[0];
-    if (!arc) return;
-    var $temp = $("<ul>").html(arc.itemsHtml);
-    var items = getEstimateItems($temp);
-    openPrintWindow(buildPrintDoc(items, arc.total, arc.name, '', ''));
-    $("#archive_detail_modal").fadeOut(200);
+    getArchives(function(list) {
+        var arc = list.filter(function(a){ return a.id === id; })[0];
+        if (!arc) return;
+        var $temp = $("<ul>").html(arc.itemsHtml);
+        var items = getEstimateItems($temp);
+        openPrintWindow(buildPrintDoc(items, arc.total, arc.name, '', ''));
+        $("#archive_detail_modal").fadeOut(200);
+    });
 }
 // ─────────────────────────────────────────────────────────
