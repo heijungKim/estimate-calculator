@@ -5435,6 +5435,28 @@ $(".save_btn").click(function(){
             		total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
                 }
 
+            	(function(){
+                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                    var tw=nv("#sigh_row")/1000, tv=nv("#sigh_vertical")/1000;
+                    if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
+                    else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
+                    var dUnit=$("#sigh_display_01").is(":checked")?PRICES.sign01_flex_print:$("#sigh_display_02").is(":checked")?PRICES.sign01_flex_sheet:PRICES.sign01_tension_none;
+                    var displayP=Math.floor(tw*tv*dUnit);
+                    var colorP=0;
+                    if($("#sigh_frame_color_custom").is(":checked")) colorP=Math.floor(Math.round(tw*tv)*PRICES.sign_color_paint_nol);
+                    else if($("#sigh_frame_color_stan").is(":checked")) colorP=Math.floor((tw*2+tv*2)*PRICES.sign_sten_molding);
+                    var angleCnt=$("#sigh_angle_yes").is(":checked")?(Number($("#sigh_angle_count").val())||0):0;
+                    var angleUnit=getAnglePrice(1), angleP=angleCnt*angleUnit;
+                    var backdropP=getBackdropPrice(), deungbakP=getDeungbakPrice(), moreP=nv("#more_order_price");
+                    var bd="<span class='price_breakdown'>";
+                    if(displayP>0) bd+="<span class='bd_item'>화면작업 <em>"+_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm × "+_fmt(dUnit)+"원 = "+_fmt(displayP)+"원</em></span>";
+                    if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
+                    if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
+                    if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
+                    if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
+                    if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
+                    bd+="</span>"; total_html+=bd;
+                })();
             	total_html +="/ 견적 비용 : <span class='list_price'>";
             	total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }else if($("#sigh_option02").is(":checked")){ //조명
@@ -5474,6 +5496,31 @@ $(".save_btn").click(function(){
             		total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
                 }
 
+            	(function(){
+                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                    var tw=nv("#sigh_row")/1000, tv=nv("#sigh_vertical")/1000;
+                    if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
+                    else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
+                    var dUnit=$("#sigh_display_01").is(":checked")?PRICES.sign02_flex_print:$("#sigh_display_02").is(":checked")?PRICES.sign02_flex_sheet:PRICES.sign02_tension_none;
+                    var displayP=Math.floor(tw*tv*dUnit);
+                    var colorP=0;
+                    if($("#sigh_frame_color_custom").is(":checked")){ var len=$("#sigh_option_row").is(":checked")?tw:tv; colorP=Math.round(len)<=5?50000:Math.floor(len*PRICES.sign_color_paint_light); }
+                    else if($("#sigh_frame_color_stan").is(":checked")) colorP=Math.floor((tw*2+tv*2)*20000);
+                    var ledCnt=$("#sigh_light_led").is(":checked")?(Number($("#sigh_light_led_count").val())||0):0;
+                    var ledP=ledCnt*4500;
+                    var angleCnt=$("#sigh_angle_yes").is(":checked")?(Number($("#sigh_angle_count").val())||0):0;
+                    var angleUnit=getAnglePrice(1), angleP=angleCnt*angleUnit;
+                    var backdropP=getBackdropPrice(), deungbakP=getDeungbakPrice(), moreP=nv("#more_order_price");
+                    var bd="<span class='price_breakdown'>";
+                    if(displayP>0) bd+="<span class='bd_item'>화면작업 <em>"+_fmt(displayP)+"원</em></span>";
+                    if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
+                    if(ledCnt>0&&ledP>0) bd+="<span class='bd_item'>LED <em>"+ledCnt+"개 × 4,500원 = "+_fmt(ledP)+"원</em></span>";
+                    if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
+                    if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
+                    if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
+                    if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
+                    bd+="</span>"; total_html+=bd;
+                })();
             	total_html +="/ 견적 비용 : <span class='list_price'>";
             	total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }else if($("#sigh_option03").is(":checked")){ //돌출
@@ -5511,6 +5558,36 @@ $(".save_btn").click(function(){
             	total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
                 }
 
+            	(function(){
+                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                    var tv=nv("#sigh_vertical")/1000; if(tv>0&&tv<1.5)tv=1.5;
+                    var tw=0, baseUnit=0;
+                    if($("#sigh_angle_width_800").is(":checked")){tw=0.8;baseUnit=70000;}
+                    else if($("#sigh_angle_width_900").is(":checked")){tw=0.9;baseUnit=75000;}
+                    else if($("#sigh_angle_width_1000").is(":checked")){tw=1.0;baseUnit=80000;}
+                    else if($("#sigh_angle_width_1100").is(":checked")){tw=1.1;baseUnit=85000;}
+                    else if($("#sigh_angle_width_1200").is(":checked")){tw=1.2;baseUnit=90000;}
+                    var baseP=Math.floor(tv*baseUnit);
+                    var wUnit=0;
+                    if($("#sigh_display_01").is(":checked")) wUnit=$("#sigh_display_type01").is(":checked")?8000:7000;
+                    else if($("#sigh_display_02").is(":checked")) wUnit=10000;
+                    var woorexP=Math.floor(Math.max(tw,1)*tv*wUnit*2);
+                    var ledCnt=$("#sigh_light_led").is(":checked")?(Number($("#sigh_light_led_count").val())||0):0;
+                    var ledP=ledCnt*4500;
+                    var colorP=$("#sigh_frame_color_stan").is(":checked")?Math.floor(((tw*2+tv*2)*20000)*2):0;
+                    var baltongP=$("#sigh_baltong_ubolt").is(":checked")?30000:$("#sigh_baltong_stan").is(":checked")?100000:0;
+                    var backdropP=getBackdropPrice(), deungbakP=getDeungbakPrice(), moreP=nv("#more_order_price");
+                    var bd="<span class='price_breakdown'>";
+                    if(baseP>0) bd+="<span class='bd_item'>기본가 <em>"+_fmt(Math.round(tv*1000))+"mm × "+_fmt(baseUnit)+"원 = "+_fmt(baseP)+"원</em></span>";
+                    if(woorexP>0) bd+="<span class='bd_item'>화면작업(앞뒤) <em>"+_fmt(woorexP)+"원</em></span>";
+                    if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
+                    if(ledCnt>0&&ledP>0) bd+="<span class='bd_item'>LED <em>"+ledCnt+"개 × 4,500원 = "+_fmt(ledP)+"원</em></span>";
+                    if(baltongP>0) bd+="<span class='bd_item'>시공발통 <em>"+_fmt(baltongP)+"원</em></span>";
+                    if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
+                    if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
+                    if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
+                    bd+="</span>"; total_html+=bd;
+                })();
             	total_html +="/ 견적 비용 : <span class='list_price'>";
             	total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }
