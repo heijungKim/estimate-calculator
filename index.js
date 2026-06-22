@@ -24,35 +24,35 @@ var DEFAULT_PRICES = {
     ch_taka_kor_30: 25000, ch_taka_kor_40: 28000, ch_taka_kor_50: 34000, ch_taka_kor_60: 40000,
     ch_taka_kor_70: 43000, ch_taka_kor_80: 48000, ch_taka_kor_90: 50000, ch_taka_kor_100: 54000,
     ch_taka_kor_110: 66000, ch_taka_kor_120: 78000, ch_taka_kor_130: 94000, ch_taka_kor_140: 115000, ch_taka_kor_150: 130000,
-    // 알루미늄 채널 - 고딕체 (글자당)
+    // 알루미늄 채널 - 흘림체 (글자당)
     ch_taka_got_30: 25000, ch_taka_got_40: 28000, ch_taka_got_50: 34000, ch_taka_got_60: 40000,
     ch_taka_got_70: 43000, ch_taka_got_80: 48000, ch_taka_got_90: 50000, ch_taka_got_100: 54000,
     ch_taka_got_110: 66000, ch_taka_got_120: 78000, ch_taka_got_130: 94000, ch_taka_got_140: 115000, ch_taka_got_150: 130000,
     // 티타늄골드채널 - 영문 (글자당)
     ch_titan_eng_20: 0, ch_titan_eng_25: 0, ch_titan_eng_30: 0, ch_titan_eng_35: 0, ch_titan_eng_40: 0, ch_titan_eng_45: 0, ch_titan_eng_50: 0, ch_titan_eng_60: 0, ch_titan_eng_70: 0, ch_titan_eng_80: 0, ch_titan_eng_90: 0, ch_titan_eng_100: 0,
     // 티타늄골드채널 - 한글 (글자당)
-    // 티타늄골드채널 - 고딕체 (글자당)
+    // 티타늄골드채널 - 흘림체 (글자당)
     ch_titan_got_20: 0, ch_titan_got_25: 0, ch_titan_got_30: 0, ch_titan_got_35: 0, ch_titan_got_40: 0, ch_titan_got_45: 0, ch_titan_got_50: 0, ch_titan_got_60: 0, ch_titan_got_70: 0, ch_titan_got_80: 0, ch_titan_got_90: 0, ch_titan_got_100: 0,
     // 스텐채널 - 영문 (글자당)
     ch_sten_eng_20: 0, ch_sten_eng_25: 0, ch_sten_eng_30: 0, ch_sten_eng_35: 0, ch_sten_eng_40: 0, ch_sten_eng_45: 0, ch_sten_eng_50: 0, ch_sten_eng_60: 0, ch_sten_eng_70: 0, ch_sten_eng_80: 0, ch_sten_eng_90: 0, ch_sten_eng_100: 0,
     // 스텐채널 - 한글 (글자당)
-    // 스텐채널 - 고딕체 (글자당)
+    // 스텐채널 - 흘림체 (글자당)
     ch_sten_got_20: 0, ch_sten_got_25: 0, ch_sten_got_30: 0, ch_sten_got_35: 0, ch_sten_got_40: 0, ch_sten_got_45: 0, ch_sten_got_50: 0, ch_sten_got_60: 0, ch_sten_got_70: 0, ch_sten_got_80: 0, ch_sten_got_90: 0, ch_sten_got_100: 0,
     // 갈바채널 ×1.3 - 영문 (글자당)
     ch_galva_eng_30: 0, ch_galva_eng_35: 0, ch_galva_eng_40: 0, ch_galva_eng_45: 0, ch_galva_eng_50: 0, ch_galva_eng_60: 0, ch_galva_eng_70: 0, ch_galva_eng_80: 0, ch_galva_eng_90: 0, ch_galva_eng_100: 0,
     // 갈바채널 ×1.3 - 한글 (글자당)
-    // 갈바채널 ×1.3 - 고딕체 (글자당)
+    // 갈바채널 ×1.3 - 흘림체 (글자당)
     ch_galva_got_30: 0, ch_galva_got_35: 0, ch_galva_got_40: 0, ch_galva_got_45: 0, ch_galva_got_50: 0, ch_galva_got_60: 0, ch_galva_got_70: 0, ch_galva_got_80: 0, ch_galva_got_90: 0, ch_galva_got_100: 0,
     // 갈바오사이채널 ×1.3 - 영문 (글자당)
     ch_gosa_eng_30: 0, ch_gosa_eng_35: 0, ch_gosa_eng_40: 0, ch_gosa_eng_45: 0, ch_gosa_eng_50: 0, ch_gosa_eng_60: 0, ch_gosa_eng_70: 0, ch_gosa_eng_80: 0, ch_gosa_eng_90: 0, ch_gosa_eng_100: 0,
     // 갈바오사이채널 ×1.3 - 한글 (글자당)
-    // 갈바오사이채널 ×1.3 - 고딕체 (글자당)
+    // 갈바오사이채널 ×1.3 - 흘림체 (글자당)
     ch_gosa_got_30: 0, ch_gosa_got_35: 0, ch_gosa_got_40: 0, ch_gosa_got_45: 0, ch_gosa_got_50: 0, ch_gosa_got_60: 0, ch_gosa_got_70: 0, ch_gosa_got_80: 0, ch_gosa_got_90: 0, ch_gosa_got_100: 0,
     // 일체형 채널 - 영문 (글자당)
     ch_ilche_eng_20: 0, ch_ilche_eng_25: 0, ch_ilche_eng_30: 0, ch_ilche_eng_35: 0, ch_ilche_eng_40: 0, ch_ilche_eng_45: 0, ch_ilche_eng_50: 0, ch_ilche_eng_55: 0, ch_ilche_eng_60: 0, ch_ilche_eng_65: 0, ch_ilche_eng_70: 0,
     // 일체형 채널 - 한글 (글자당)
     ch_ilche_kor_20: 0, ch_ilche_kor_25: 0, ch_ilche_kor_30: 0, ch_ilche_kor_35: 0, ch_ilche_kor_40: 0, ch_ilche_kor_45: 0, ch_ilche_kor_50: 0, ch_ilche_kor_55: 0, ch_ilche_kor_60: 0, ch_ilche_kor_65: 0, ch_ilche_kor_70: 0,
-    // 일체형 채널 - 고딕체 (글자당)
+    // 일체형 채널 - 흘림체 (글자당)
     ch_ilche_got_20: 0, ch_ilche_got_25: 0, ch_ilche_got_30: 0, ch_ilche_got_35: 0, ch_ilche_got_40: 0, ch_ilche_got_45: 0, ch_ilche_got_50: 0, ch_ilche_got_55: 0, ch_ilche_got_60: 0, ch_ilche_got_65: 0, ch_ilche_got_70: 0,
 		// 에폭시채널 (글자당)
 		ch_epox_eng_20: 0, ch_epox_eng_25: 0, ch_epox_eng_30: 0, ch_epox_eng_35: 0, ch_epox_eng_40: 0, ch_epox_eng_45: 0, ch_epox_eng_50: 0, ch_epox_eng_55: 0, ch_epox_eng_60: 0, ch_epox_eng_65: 0, ch_epox_eng_70: 0,
@@ -696,7 +696,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_spilling'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고</label>";
@@ -1090,7 +1090,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고/필기체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_korean_writing'>한문</label>";
@@ -1184,7 +1184,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고/필기체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_korean_writing'>한문</label>";
@@ -1446,7 +1446,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고/필기체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_korean_writing'>한문</label>";
@@ -1581,7 +1581,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고/필기체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_korean_writing'>한문</label>";
@@ -1718,7 +1718,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고/필기체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_korean_writing'>한문</label>";
@@ -1813,7 +1813,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_godic' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_myongjo'>명조체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_logo'>로고/필기체</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_korean_writing'>한문</label>";
@@ -2810,7 +2810,7 @@ function actual_punch(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='skasi_text_form' id='skasi_text_form01' checked='checked'>고딕체</label>";
+					append_html += "<label><input type='radio' name='skasi_text_form' id='skasi_text_form01' checked='checked'>흘림체</label>";
 					append_html += "<label><input type='radio' name='skasi_text_form' id='skasi_text_form02'>필기체 & 한문</label>";
 					append_html += "<label><input type='radio' name='skasi_text_form' id='skasi_text_form03'>모양(캐릭터,도형 등등..)</label>";
 				append_html += "</td>";
@@ -5947,6 +5947,21 @@ $(function(){
     // option_table 동적 입력 콤마 포맷
     $(document).on('input', '#option_table input.comma-fmt', function(){
         formatCommaInput(this);
+    });
+
+    // 단가 자동 1.3배: 영문 입력 → 한글 자동 채우기 (알루미늄/일체형/에폭시)
+    $(document).on('input', '[id^="p_ch_taka_eng_"],[id^="p_ch_ilche_eng_"],[id^="p_ch_epox_eng_"]', function(){
+        var raw = this.value.replace(/[^0-9]/g, '');
+        var val = parseInt(raw) || 0;
+        var korEl = document.getElementById(this.id.replace('_eng_', '_kor_'));
+        if(korEl) korEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
+    });
+    // 단가 자동 1.3배: 영문/한글 입력 → 흘림체 자동 채우기 (티타늄/스텐/갈바/갈바오사이)
+    $(document).on('input', '[id^="p_ch_titan_eng_"],[id^="p_ch_sten_eng_"],[id^="p_ch_galva_eng_"],[id^="p_ch_gosa_eng_"]', function(){
+        var raw = this.value.replace(/[^0-9]/g, '');
+        var val = parseInt(raw) || 0;
+        var gotEl = document.getElementById(this.id.replace('_eng_', '_got_'));
+        if(gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
     });
 
     // 토글
