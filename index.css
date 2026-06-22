@@ -181,7 +181,7 @@ input::placeholder {
     line-height: 1.4;
 }
 
-.price_row input[type='number'] {
+.price_row input[type='text'] {
     height: 30px;
     width: 76px;
     padding: 0 6px;
@@ -196,7 +196,7 @@ input::placeholder {
     box-sizing: border-box;
 }
 
-.price_row input[type='number']:focus {
+.price_row input[type='text']:focus {
     outline: none;
     border-color: #e94560;
     background: #fff;
@@ -438,7 +438,8 @@ input::placeholder {
 }
 
 #option_table td input[type='number'],
-#option_table td input[type='text'] {
+#option_table td input[type='text'],
+#option_table td input.comma-fmt {
     height: 40px;
     padding: 0 14px;
     font-size: 14px;
@@ -454,7 +455,8 @@ input::placeholder {
 }
 
 #option_table td input[type='number']:focus,
-#option_table td input[type='text']:focus {
+#option_table td input[type='text']:focus,
+#option_table td input.comma-fmt:focus {
     outline: none;
     border-color: #e94560;
     background: #fff;
