@@ -81,8 +81,10 @@ function getSignDimensions() {
 
 function getBackdropPrice() {
     if(!$("#sigh_backdrop_yes").is(":checked")) return 0;
-    var d = getSignDimensions();
-    return d.w * d.h * 3000;
+    var w = nv("#sigh_backdrop_row") / 1000;
+    var h = nv("#sigh_backdrop_vertical") / 1000;
+    if(w <= 0 || h <= 0) return 0;
+    return w * h * 3000;
 }
 
 function getDeungbakPrice() {
@@ -279,6 +281,14 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_option add_row'>";
+			append_html += "<th>가로 (mm)</th>";
+			append_html += "<td><input type='text' inputmode='numeric' id='sigh_backdrop_row' class='comma-fmt' placeholder='가로 mm 입력'> mm</td>";
+		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_option add_row'>";
+			append_html += "<th>세로 (mm)</th>";
+			append_html += "<td><input type='text' inputmode='numeric' id='sigh_backdrop_vertical' class='comma-fmt' placeholder='세로 mm 입력'> mm</td>";
+		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -295,7 +305,7 @@ function set_sign_top_option_select(){
 			append_html += "<th>경관바 평수</th>";
 			append_html += "<td><label><input type='radio' name='sigh_kyungbak_size' id='sigh_kyungbak_50' checked='checked'>평50</label><label><input type='radio' name='sigh_kyungbak_size' id='sigh_kyungbak_70'>평70-100</label></td>";
 		append_html += "</tr>";
-		append_html += "<tr class='sigh_kyungbak_option add_row'>";
+		append_html += "<tr class='sigh_pos_option add_row'>";
 			append_html += "<th>위치</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_top' checked='checked'>상단</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_bottom'>하단</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_left'>좌측</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_right'>우측</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_center'>중앙</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_all'>사방테두리</label></td>";
 		append_html += "</tr>";
@@ -377,6 +387,14 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_option add_row'>";
+			append_html += "<th>가로 (mm)</th>";
+			append_html += "<td><input type='text' inputmode='numeric' id='sigh_backdrop_row' class='comma-fmt' placeholder='가로 mm 입력'> mm</td>";
+		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_option add_row'>";
+			append_html += "<th>세로 (mm)</th>";
+			append_html += "<td><input type='text' inputmode='numeric' id='sigh_backdrop_vertical' class='comma-fmt' placeholder='세로 mm 입력'> mm</td>";
+		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -393,7 +411,7 @@ function set_sign_top_option_select(){
 			append_html += "<th>경관바 평수</th>";
 			append_html += "<td><label><input type='radio' name='sigh_kyungbak_size' id='sigh_kyungbak_50' checked='checked'>평50</label><label><input type='radio' name='sigh_kyungbak_size' id='sigh_kyungbak_70'>평70-100</label></td>";
 		append_html += "</tr>";
-		append_html += "<tr class='sigh_kyungbak_option add_row'>";
+		append_html += "<tr class='sigh_pos_option add_row'>";
 			append_html += "<th>위치</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_top' checked='checked'>상단</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_bottom'>하단</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_left'>좌측</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_right'>우측</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_center'>중앙</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_all'>사방테두리</label></td>";
 		append_html += "</tr>";
@@ -460,6 +478,14 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_option add_row'>";
+			append_html += "<th>가로 (mm)</th>";
+			append_html += "<td><input type='text' inputmode='numeric' id='sigh_backdrop_row' class='comma-fmt' placeholder='가로 mm 입력'> mm</td>";
+		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_option add_row'>";
+			append_html += "<th>세로 (mm)</th>";
+			append_html += "<td><input type='text' inputmode='numeric' id='sigh_backdrop_vertical' class='comma-fmt' placeholder='세로 mm 입력'> mm</td>";
+		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -476,7 +502,7 @@ function set_sign_top_option_select(){
 			append_html += "<th>경관바 평수</th>";
 			append_html += "<td><label><input type='radio' name='sigh_kyungbak_size' id='sigh_kyungbak_50' checked='checked'>평50</label><label><input type='radio' name='sigh_kyungbak_size' id='sigh_kyungbak_70'>평70-100</label></td>";
 		append_html += "</tr>";
-		append_html += "<tr class='sigh_kyungbak_option add_row'>";
+		append_html += "<tr class='sigh_pos_option add_row'>";
 			append_html += "<th>위치</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_top' checked='checked'>상단</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_bottom'>하단</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_left'>좌측</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_right'>우측</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_center'>중앙</label><label><input type='radio' name='sigh_deungbak_pos' id='sigh_deungbak_all'>사방테두리</label></td>";
 		append_html += "</tr>";
@@ -559,22 +585,31 @@ function sigh_angle(){
 
 }
 function sigh_deungbak_handler(){
+	$("input[name='sigh_backdrop']").click(function(){
+		if($(this).attr("id") === "sigh_backdrop_yes"){
+			$(".sigh_backdrop_option").css({"display":"table-row"});
+		}else{
+			$(".sigh_backdrop_option").hide();
+		}
+	});
 	$("input[name='sigh_deungbak']").click(function(){
 		if($(this).attr("id") === "sigh_deungbak_yes"){
 			$(".sigh_deungbak_option").css({"display":"table-row"});
-			// 갈바가 기본 선택이므로 갈바 입력란 표시
 			$(".sigh_galva_option").css({"display":"table-row"});
+			$(".sigh_pos_option").css({"display":"table-row"});
 		}else{
-			$(".sigh_deungbak_option, .sigh_kyungbak_option, .sigh_galva_option").hide();
+			$(".sigh_deungbak_option, .sigh_kyungbak_option, .sigh_galva_option, .sigh_pos_option").hide();
 		}
 	});
 	$("input[name='sigh_deungbak_type']").click(function(){
 		if($(this).attr("id") === "sigh_deungbak_kyung"){
 			$(".sigh_kyungbak_option").css({"display":"table-row"});
 			$(".sigh_galva_option").hide();
+			$(".sigh_pos_option").css({"display":"table-row"});
 		}else{
 			$(".sigh_kyungbak_option").hide();
 			$(".sigh_galva_option").css({"display":"table-row"});
+			$(".sigh_pos_option").css({"display":"table-row"});
 		}
 	});
 }
@@ -3244,7 +3279,7 @@ function sign_top_01(){ //사인탑_비조명
     	sign_top_01_cal();
          
     });
-    $("#sigh_row,#sigh_vertical,#frame_custom_text,#sigh_angle_count,#sign_more_order_content,#more_order_price,#add_more_text,#sigh_galva_width").bind("change keyup paste", function(){
+    $("#sigh_row,#sigh_vertical,#frame_custom_text,#sigh_angle_count,#sign_more_order_content,#more_order_price,#add_more_text,#sigh_galva_width,#sigh_backdrop_row,#sigh_backdrop_vertical").bind("change keyup paste", function(){
     	sign_top_01_cal();
       
     });
@@ -3301,7 +3336,7 @@ function sign_top_02(){ //사인탑_조명
     	sign_top_02_cal();
          
     });
-    $("#sigh_row,#sigh_vertical,#more_order_price,#add_more_text,#sigh_light_led_count,#frame_custom_text,#sigh_angle_count,#sign_more_order_content,#sign_more_order_price,#sign_etc,#more_order_price,#add_more_text,#sigh_galva_width").bind("change keyup paste", function(){
+    $("#sigh_row,#sigh_vertical,#more_order_price,#add_more_text,#sigh_light_led_count,#frame_custom_text,#sigh_angle_count,#sign_more_order_content,#sign_more_order_price,#sign_etc,#more_order_price,#add_more_text,#sigh_galva_width,#sigh_backdrop_row,#sigh_backdrop_vertical").bind("change keyup paste", function(){
     	sign_top_02_cal();
       
     });
@@ -3419,7 +3454,7 @@ function sign_top_03(){ //사인탑_돌출
     	sign_top_03_cal();
          
     });
-    $("#sigh_vertical,#frame_custom_text,#sign_more_order_content,#sign_more_order_price,#sign_etc,#more_order_price,#add_more_text,#sigh_galva_width").bind("change keyup paste", function(){
+    $("#sigh_vertical,#frame_custom_text,#sign_more_order_content,#sign_more_order_price,#sign_etc,#more_order_price,#add_more_text,#sigh_galva_width,#sigh_backdrop_row,#sigh_backdrop_vertical").bind("change keyup paste", function(){
     	sign_top_03_cal();
       
     });
@@ -5437,11 +5472,11 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		total_html +=" / 뒷판작업 : 있음";
+            		total_html +=" / 뒷판작업 : "+$("#sigh_backdrop_row").val()+"×"+$("#sigh_backdrop_vertical").val()+"mm";
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
-            			total_html +=" / 등박스 : 갈바등박스 / 가로 : "+$("#sigh_galva_width").val()+"m (LED포함 SMPS불포함)";
+            			total_html +=" / 등박스 : 갈바등박스 / 위치 : "+$("input[name='sigh_deungbak_pos']:checked").parent("label").text()+" / 가로 : "+$("#sigh_galva_width").val()+"m (LED포함 SMPS불포함)";
             		}else{
             			total_html +=" / 등박스 : 경관바("+$("input[name='sigh_kyungbak_size']:checked").parent("label").text()+") / 위치 : "+$("input[name='sigh_deungbak_pos']:checked").parent("label").text();
             		}
@@ -5476,11 +5511,11 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		total_html +=" / 뒷판작업 : 있음";
+            		total_html +=" / 뒷판작업 : "+$("#sigh_backdrop_row").val()+"×"+$("#sigh_backdrop_vertical").val()+"mm";
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
-            			total_html +=" / 등박스 : 갈바등박스 / 가로 : "+$("#sigh_galva_width").val()+"m (LED포함 SMPS불포함)";
+            			total_html +=" / 등박스 : 갈바등박스 / 위치 : "+$("input[name='sigh_deungbak_pos']:checked").parent("label").text()+" / 가로 : "+$("#sigh_galva_width").val()+"m (LED포함 SMPS불포함)";
             		}else{
             			total_html +=" / 등박스 : 경관바("+$("input[name='sigh_kyungbak_size']:checked").parent("label").text()+") / 위치 : "+$("input[name='sigh_deungbak_pos']:checked").parent("label").text();
             		}
@@ -5513,11 +5548,11 @@ $(".save_btn").click(function(){
                 }
             	total_html +="/ 시공발통 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_baltong']:checked").parent("label").text();
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		total_html +=" / 뒷판작업 : 있음";
+            		total_html +=" / 뒷판작업 : "+$("#sigh_backdrop_row").val()+"×"+$("#sigh_backdrop_vertical").val()+"mm";
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
-            			total_html +=" / 등박스 : 갈바등박스 / 가로 : "+$("#sigh_galva_width").val()+"m (LED포함 SMPS불포함)";
+            			total_html +=" / 등박스 : 갈바등박스 / 위치 : "+$("input[name='sigh_deungbak_pos']:checked").parent("label").text()+" / 가로 : "+$("#sigh_galva_width").val()+"m (LED포함 SMPS불포함)";
             		}else{
             			total_html +=" / 등박스 : 경관바("+$("input[name='sigh_kyungbak_size']:checked").parent("label").text()+") / 위치 : "+$("input[name='sigh_deungbak_pos']:checked").parent("label").text();
             		}
