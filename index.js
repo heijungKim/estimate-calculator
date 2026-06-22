@@ -614,17 +614,13 @@ function hoorex_type(){
 		setting_html +="<tr id='channel_option_area'>";
 			setting_html +="<th>품목</th>";
 			setting_html +="<td>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option01'>타카식</label>";
-				/*setting_html +="<label><input type='radio' name='channel_option' id='channel_option02'>용접식</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option03'>역조</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option04'>갈바오사이</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option05'>2PC일체형</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option06'>에폭시</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option07'>면발광</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option08'>스탠채널</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option09'>스텐오사이</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option10'>스텐밀러/헤어라인</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option11'>골드스텐/블랙</label>";*/
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option01'>알루미늄 채널</label>";
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option02'>갈바채널</label>";
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option03'>갈바오사이채널</label>";
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option04'>에폭시채널</label>";
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option05'>일체형채널</label>";
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option06'>스텐채널</label>";
+				setting_html +="<label><input type='radio' name='channel_option' id='channel_option07'>티타늄골드채널</label>";
 
 			setting_html +="</td>";
 		setting_html +="</tr";
@@ -635,7 +631,7 @@ function hoorex_type(){
 	}
 	function set_channel_top_option_select(){
 		var append_html = "";
-		if($("#channel_option01").is(":checked")){ //타카식
+		if($("input[name='channel_option']:checked").length){ //채널문자 품목 선택됨
             append_html += "<tr>";
            	 	append_html += "<th>트러스바</th>";
             	append_html += "<td><label><input type='radio' name='channel_trusbar' id='channel_trusbar_none' checked='checked'>없음</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar01'>200폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar02'>250폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar03'>300폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar04'>400폭</label></td>";
@@ -3179,29 +3175,7 @@ $(".woosung_wrap .tab_area ul li").click(function(){
         });
     }else if($(this).hasClass("child02")){ //채널문자
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_option']").click(function(){
-        	if($(this).attr("id") == "channel_option01"){ //타카식
-                chnnel_taka();
-            }else if($(this).attr("id") == "channel_option01"){ //용접식
-                
-            }else if($(this).attr("id") == "channel_option03"){ //역조
-                
-            }else if($(this).attr("id") == "channel_option04"){ //갈바오사이
-                
-            }else if($(this).attr("id") == "channel_option05"){ //2PC일체형
-                
-            }else if($(this).attr("id") == "channel_option06"){ //에폭시
-                
-            }else if($(this).attr("id") == "channel_option07"){ //면발광
-                
-            }else if($(this).attr("id") == "channel_option08"){ //스탠채널
-                
-            }else if($(this).attr("id") == "channel_option09"){ //스텐오사이
-                
-            }else if($(this).attr("id") == "channel_option10"){ //스텐밀러/헤어라인
-                
-            }else if($(this).attr("id") == "channel_option11"){ //골드슨텐/블랙
-                
-            }
+            chnnel_taka();
         });
     }else if($(this).hasClass("child03")){ //간판프레임
         
@@ -5367,8 +5341,8 @@ $(".save_btn").click(function(){
                 _errs.push("등조립(LED) 수량을 입력해주세요.");
         }
     } else if(_tab.hasClass("child02")) { // 채널문자
-        if(!$("#channel_option01").is(":checked")) {
-            _errs.push("채널문자 유형을 선택해주세요.");
+        if(!$("input[name='channel_option']:checked").length) {
+            _errs.push("채널문자 품목을 선택해주세요.");
         } else {
             if(!$.trim($("#channel_content").val()) || Number($("#channel_content").val()) <= 0)
                 _errs.push("수량(글자 수)을 입력해주세요.");
@@ -5542,7 +5516,7 @@ $(".save_btn").click(function(){
         }
 
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child02")){ //채널문자
-    	if($("#channel_option01").is(":checked")){ // 타카식
+    	if($("input[name='channel_option']:checked").length){ // 채널문자 품목 선택됨
           		total_html += "<li><span class='number'></span>";
             	total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_option']:checked").parent("label").text();
             	total_html += "<br> / 트러스바 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']:checked").parent("label").text()+" * 길이"+$(".woosung_wrap .contents_wrap #option_table td input[id='channel_trusbar_width']").val()+"mm";
@@ -6007,7 +5981,7 @@ function recalcCurrent(){
             $("input[name='sigh_angle_width']:checked").trigger("change");
         }
     } else if($tab.hasClass("child02")){
-        if($("#channel_option01").is(":checked")) chnnel_taka_cal();
+        if($("input[name='channel_option']:checked").length) chnnel_taka_cal();
     } else if($tab.hasClass("child04")){
         if($("#actual_option01").is(":checked")) whoorex_cal();
         else if($("#actual_option02").is(":checked")) uv_silsa_cal();
