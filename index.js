@@ -5903,30 +5903,52 @@ $(function(){
     renderArchiveList();
 
     // ── 견적 비용 스티키 (하단 고정) ──────────────────────────
+    // 바의 하단이 뷰포트 아래로 내려가면 화면 맨 밑에 고정,
+    // 스크롤로 원래 위치에 도달하면 그 자리에 안착.
     (function(){
         var $bar = $(".order_info");
         if (!$bar.length) return;
         var $sp  = $('<div class="order_info_spacer">').insertAfter($bar);
         var on   = false;
 
-        $(window).on("scroll.orderSticky", function(){
-            var st = $(window).scrollTop();
+        function check() {
+            var st  = $(window).scrollTop();
+            var wh  = $(window).height();
             if (!on) {
                 var barTop = $bar.offset().top;
-                if (st > barTop) {
-                    $sp.height($bar.outerHeight()).show();
+                var barH   = $bar.outerHeight();
+                // 바의 하단이 뷰포트 아래로 내려가면 sticky 활성화
+                if (barTop + barH > st + wh) {
+                    $sp.height(barH).show();
                     $bar.addClass("sticky-active");
                     on = true;
                 }
             } else {
-                if (st <= $sp.offset().top) {
+                var spTop = $sp.offset().top;
+                var spH   = $sp.height();
+                // 스크롤로 원래 위치가 뷰포트 안에 들어오면 안착
+                if (spTop + spH <= st + wh) {
                     $bar.removeClass("sticky-active");
                     $sp.hide();
                     on = false;
                 }
             }
-        });
-        $(window).trigger("scroll.orderSticky");
+        }
+
+        $(window).on("scroll.orderSticky resize.orderSticky", check);
+
+        // 옵션 선택 시 테이블 높이 변화도 감지
+        if (window.MutationObserver) {
+            var moTimer;
+            var mo = new MutationObserver(function() {
+                clearTimeout(moTimer);
+                moTimer = setTimeout(check, 30);
+            });
+            var tbl = document.getElementById("option_table");
+            if (tbl) mo.observe(tbl, { childList: true, subtree: true, attributes: true });
+        }
+
+        check();
     })();
 });
 
