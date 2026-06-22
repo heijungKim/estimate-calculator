@@ -3508,6 +3508,7 @@ function chnnel_taka(){ //채널 타카식
     },500);
 }
 function chnnel_taka_cal(){ //채널 타카 계산
+    applyPrices(); // 단가 패널 최신값을 PRICES에 반영
     var trusbar_width = nv("#channel_trusbar_width") / 1000;
     var trusbar_price = 0;
     var text_price = 0;
