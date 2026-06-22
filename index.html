@@ -241,6 +241,38 @@
                     <div class="right_area"><span class="price">0</span><span class="unit">원</span></div>
                 </div>
             </div>
+            <div class="estimate_actions">
+                <button id="btn_clear_list" class="est_clear_btn">목록 초기화</button>
+                <button id="btn_print_estimate" class="est_print_btn">&#128424; 견적서 출력</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 견적서 출력 모달 -->
+<div class="modal_overlay" id="print_modal">
+    <div class="modal_box">
+        <div class="modal_header">
+            <h3>견적서 출력</h3>
+            <button class="modal_close" id="modal_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+            <div class="modal_field">
+                <label for="print_customer">수신 (업체 / 고객명)</label>
+                <input type="text" id="print_customer" placeholder="예: 홍길동 / (주)ABC" />
+            </div>
+            <div class="modal_field">
+                <label for="print_manager">담당자 <span class="modal_opt">(선택)</span></label>
+                <input type="text" id="print_manager" placeholder="담당자 이름" />
+            </div>
+            <div class="modal_field">
+                <label for="print_notes">비고 <span class="modal_opt">(선택)</span></label>
+                <textarea id="print_notes" rows="3" placeholder="특이사항 또는 기타 메모"></textarea>
+            </div>
+        </div>
+        <div class="modal_footer">
+            <button id="modal_cancel" class="modal_cancel_btn">취소</button>
+            <button id="modal_confirm_print" class="modal_print_btn">출력하기</button>
         </div>
     </div>
 </div>

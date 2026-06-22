@@ -5564,6 +5564,7 @@ function list_sum_price(){
     	total_price = total_price + Number($(this).find(".list_price").text().replace(/[^0-9]/g, ""));
     });
     $("#total_price_wrap .price_info .right_area .price").html(String(Math.floor(total_price)).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    saveToStorage();
 }
 
 // ── 단가 설정 패널 ──────────────────────────────────────
@@ -5597,6 +5598,26 @@ $(function(){
         resetPrices();
         recalcCurrent();
     });
+
+    // 견적서 출력 버튼
+    $("#btn_print_estimate").click(openPrintModal);
+
+    // 목록 초기화 버튼
+    $("#btn_clear_list").click(function(){
+        if($(".total_list ul li").length === 0) return;
+        if(confirm("견적 목록을 모두 초기화하시겠습니까?")) {
+            $("#total_price_wrap .total_list ul").empty();
+            list_sum_price();
+        }
+    });
+
+    // 출력 모달 이벤트
+    $("#modal_close, #modal_cancel").click(closePrintModal);
+    $("#print_modal").click(function(e){ if(e.target === this) closePrintModal(); });
+    $("#modal_confirm_print").click(doPrintEstimate);
+
+    // 저장된 견적 목록 복원
+    loadFromStorage();
 });
 
 function recalcCurrent(){
@@ -5616,5 +5637,220 @@ function recalcCurrent(){
         else if($("#actual_option03").is(":checked")) solven_silsa_cal();
         else if($("#actual_option04").is(":checked")) soosung_silsa_cal();
     }
+}
+// ─────────────────────────────────────────────────────────
+
+// ── localStorage 저장/불러오기 ──────────────────────────────
+function saveToStorage() {
+    try {
+        var $ul = $("#total_price_wrap .total_list ul");
+        if (!$ul.length) return;
+        var $clone = $ul.clone();
+        $clone.find(".remove_btn").remove();
+        localStorage.setItem("estimate_list_v1", $clone.html());
+    } catch(e) {}
+}
+
+function loadFromStorage() {
+    try {
+        var saved = localStorage.getItem("estimate_list_v1");
+        if (saved && saved.trim()) {
+            $("#total_price_wrap .total_list ul").html(saved);
+            list_sum_price();
+            list_delete_func();
+        }
+    } catch(e) {}
+}
+
+// ── 한글 금액 변환 ──────────────────────────────────────────
+function numberToKorean(n) {
+    if (!n || n === 0) return '영';
+    var units = ['', '만', '억', '조'];
+    var small = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    var place  = ['', '십', '백', '천'];
+    var result = '';
+    var ui = 0;
+    while (n > 0) {
+        var chunk = n % 10000;
+        if (chunk) {
+            var s = '', tmp = chunk;
+            for (var pi = 0; pi < 4; pi++) {
+                var d = tmp % 10;
+                if (d) {
+                    if (pi === 0) s = small[d] + s;
+                    else s = (d === 1 ? '' : small[d]) + place[pi] + s;
+                }
+                tmp = Math.floor(tmp / 10);
+            }
+            result = s + units[ui] + result;
+        }
+        n = Math.floor(n / 10000);
+        ui++;
+    }
+    return result;
+}
+
+// ── HTML 이스케이프 ─────────────────────────────────────────
+function escHtml(s) {
+    return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// ── 견적 항목 데이터 추출 ───────────────────────────────────
+function getEstimateItems() {
+    var items = [];
+    $(".total_list ul li").each(function(i) {
+        var $li = $(this);
+        var priceText = $li.find(".list_price").text().trim();
+        var priceNum  = Number(priceText.replace(/[^0-9]/g, ''));
+
+        var $clone = $li.clone();
+        $clone.find(".remove_btn, .price_breakdown, .number").remove();
+
+        var fullText = $clone.text();
+        var idx = fullText.indexOf('견적 비용');
+        if (idx > -1) fullText = fullText.substring(0, idx);
+        fullText = fullText.trim().replace(/\s*\/\s*/g, '\n').replace(/\n+/g, '\n');
+
+        var lines = fullText.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+        var category = lines[0] || '';
+        var details  = lines.slice(1).join('\n');
+
+        var bdParts = [];
+        $li.find(".bd_item").each(function(){ bdParts.push($(this).text().trim()); });
+
+        items.push({
+            no: i + 1,
+            category: category,
+            details:  details,
+            breakdown: bdParts.join(' / '),
+            priceText: priceText,
+            priceNum:  priceNum
+        });
+    });
+    return items;
+}
+
+// ── 출력 모달 열기/닫기 ─────────────────────────────────────
+function openPrintModal() {
+    if ($(".total_list ul li").length === 0) {
+        alert("출력할 견적 항목이 없습니다.");
+        return;
+    }
+    $("#print_modal").fadeIn(200, function(){ $(this).css('display','flex'); });
+    setTimeout(function(){ $("#print_customer").focus(); }, 220);
+}
+
+function closePrintModal() {
+    $("#print_modal").fadeOut(200);
+}
+
+// ── 견적서 출력 ─────────────────────────────────────────────
+function doPrintEstimate() {
+    var customer = $("#print_customer").val().trim() || '　';
+    var manager  = $("#print_manager").val().trim();
+    var notes    = $("#print_notes").val().trim();
+
+    var items = getEstimateItems();
+    var totalNum = 0;
+    items.forEach(function(it){ totalNum += it.priceNum; });
+    var totalFormatted = String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    var totalKorean    = numberToKorean(totalNum);
+
+    var today  = new Date();
+    var dateStr = today.getFullYear() + '년 ' + (today.getMonth()+1) + '월 ' + today.getDate() + '일';
+    var estNo  = String(today.getFullYear()) +
+                 ('0'+(today.getMonth()+1)).slice(-2) +
+                 ('0'+today.getDate()).slice(-2) +
+                 '-' + String(Math.floor(Math.random()*900)+100);
+
+    var rowsHtml = items.map(function(it) {
+        var detailLines = it.details.split('\n').map(function(d){
+            return d ? '<div>' + escHtml(d) + '</div>' : '';
+        }).join('');
+        if (it.breakdown) {
+            detailLines += '<div class="bd-row">&#9658; ' + escHtml(it.breakdown) + '</div>';
+        }
+        return '<tr>' +
+            '<td class="tc">' + it.no + '</td>' +
+            '<td>' + escHtml(it.category) + '</td>' +
+            '<td>' + detailLines + '</td>' +
+            '<td class="tr">' + escHtml(it.priceText) + '원</td>' +
+            '</tr>';
+    }).join('');
+
+    var managerRow  = manager  ? '<div class="info-row"><span class="info-label">담 당 자</span><span>' + escHtml(manager) + '</span></div>' : '';
+    var notesBlock  = notes    ? '<div class="custom-notes"><strong>비고</strong><br>' + escHtml(notes).replace(/\n/g,'<br>') + '</div>' : '';
+
+    var html = '<!DOCTYPE html><html lang="ko"><head>' +
+        '<meta charset="UTF-8"><title>견적서</title>' +
+        '<style>' +
+        '*{margin:0;padding:0;box-sizing:border-box}' +
+        'body{font-family:"맑은 고딕","Malgun Gothic",AppleGothic,sans-serif;padding:20mm;font-size:11pt;color:#000;background:#fff}' +
+        '@media print{body{padding:15mm}.no-print{display:none!important}}' +
+        '.no-print{text-align:center;margin-bottom:18px}' +
+        '.print-btn{padding:9px 36px;font-size:12pt;cursor:pointer;background:#1a1a2e;color:#fff;border:none;border-radius:5px}' +
+        'h1{text-align:center;font-size:22pt;letter-spacing:10px;margin-bottom:14px}' +
+        'hr.thick{border:none;border-top:2.5px solid #000;margin:10px 0}' +
+        'hr.thin{border:none;border-top:1px solid #888;margin:8px 0}' +
+        '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}' +
+        '.info-row{display:flex;align-items:center;margin-bottom:5px;font-size:11pt}' +
+        '.info-label{width:75px;font-weight:bold;flex-shrink:0}' +
+        '.total-box{border:2px solid #000;padding:10px 16px;text-align:center;margin:14px 0;font-size:13pt;font-weight:bold;background:#fafafa}' +
+        'table{width:100%;border-collapse:collapse;margin-top:14px}' +
+        'th{background:#e8e8e8;border:1px solid #555;padding:8px;text-align:center;font-size:11pt}' +
+        'td{border:1px solid #666;padding:7px 9px;vertical-align:top;font-size:10pt;line-height:1.6}' +
+        'td.tc{text-align:center}' +
+        'td.tr{text-align:right;white-space:nowrap}' +
+        '.bd-row{font-size:9pt;color:#555;margin-top:3px}' +
+        '.total-row td{font-weight:bold;background:#efefef;font-size:11pt}' +
+        '.total-row .tlabel{text-align:center}' +
+        '.notes{margin-top:20px;font-size:10pt;line-height:1.9;color:#333}' +
+        '.custom-notes{margin-top:12px;padding:9px 13px;border:1px solid #bbb;background:#f8f8f8;font-size:10pt;line-height:1.8}' +
+        '</style></head><body>' +
+        '<div class="no-print"><button class="print-btn" onclick="window.print()">인쇄하기</button></div>' +
+        '<h1>견 &nbsp; 적 &nbsp; 서</h1>' +
+        '<hr class="thick">' +
+        '<div class="info-grid">' +
+          '<div>' +
+            '<div class="info-row"><span class="info-label">수 &nbsp; 신</span><span>' + escHtml(customer) + '&nbsp;귀중</span></div>' +
+            managerRow +
+          '</div>' +
+          '<div>' +
+            '<div class="info-row"><span class="info-label">작 성 일</span><span>' + dateStr + '</span></div>' +
+            '<div class="info-row"><span class="info-label">견적번호</span><span>' + estNo + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<hr class="thin">' +
+        '<div class="total-box">합계금액 &nbsp; 일금 &nbsp;<strong>' + totalKorean + '원정</strong>&nbsp;&nbsp;( &#8361;&nbsp;' + totalFormatted + ' )</div>' +
+        '<table>' +
+          '<thead><tr>' +
+            '<th style="width:44px">No.</th>' +
+            '<th style="width:140px">품&nbsp;&nbsp;목</th>' +
+            '<th>세&nbsp;부&nbsp;내&nbsp;용</th>' +
+            '<th style="width:116px">금&nbsp;&nbsp;액</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rowsHtml + '</tbody>' +
+          '<tfoot><tr class="total-row">' +
+            '<td colspan="3" class="tlabel">합 &nbsp; 계</td>' +
+            '<td class="tr">' + totalFormatted + '원</td>' +
+          '</tr></tfoot>' +
+        '</table>' +
+        '<div class="notes">' +
+          '<p>&#8251; 상기 금액은 부가세 포함 금액입니다.</p>' +
+          '<p>&#8251; 본 견적서는 발행일로부터 30일간 유효합니다.</p>' +
+        '</div>' +
+        notesBlock +
+        '</body></html>';
+
+    var win = window.open('', '_blank', 'width=960,height=1050,scrollbars=yes');
+    if (!win) { alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요."); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    closePrintModal();
 }
 // ─────────────────────────────────────────────────────────
