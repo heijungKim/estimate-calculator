@@ -11,7 +11,7 @@ var DEFAULT_PRICES = {
     // 사인탑 돌출 화면작업
     sign03_flex_uv: 8000, sign03_flex_sol: 7000, sign03_flex_sheet: 10000,
     // 사인탑 공통
-    sign_led: 4500, sign_sten_molding: 20000, sign_color_paint: 10000,
+    sign_led: 4500, sign_sten_molding: 20000, sign_color_paint_nol: 10000, sign_color_paint_light: 10000,
     // 사인탑 까치발 (개당)
     angle_w800: 4800, angle_w900: 5000, angle_w1000: 5800, angle_w1100: 5800,
     angle_w1200: 6000, angle_w1300: 6800, angle_w1400: 6800, angle_w1500: 6800,
@@ -3257,7 +3257,7 @@ function sign_top_01_cal(){ //사인탑_비조명 계산
     }
 
     if($("#sigh_frame_color_custom").is(":checked")){
-        color_price = Math.round(target_width * target_vertical) * PRICES.sign_color_paint;
+        color_price = Math.round(target_width * target_vertical) * PRICES.sign_color_paint_nol;
     }else if($("#sigh_frame_color_stan").is(":checked")){
         color_price = ((target_width*2) + (target_vertical*2)) * PRICES.sign_sten_molding;
     }
@@ -3331,14 +3331,14 @@ function sign_top_02_cal(){ //사인탑_조명 계산
   			if(Math.round(target_width) <= 5){
               color_price = 50000;
            }else{
-               color_price = target_width * PRICES.sign_color_paint;
+               color_price = target_width * PRICES.sign_color_paint_light;
            } 
           // color_price = Math.round(target_width * target_vertical) * 10000 ;           
        }else{	//세로형
         	if(Math.round(target_vertical) <= 5){
               color_price = 50000;
            }else{
-               color_price = target_vertical * PRICES.sign_color_paint;
+               color_price = target_vertical * PRICES.sign_color_paint_light;
            }        
         
         }
