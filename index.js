@@ -16,10 +16,18 @@ var DEFAULT_PRICES = {
     angle_w800: 4800, angle_w900: 5000, angle_w1000: 5800, angle_w1100: 5800,
     angle_w1200: 6000, angle_w1300: 6800, angle_w1400: 6800, angle_w1500: 6800,
     angle_w1600: 7000, angle_w1700: 7200, angle_w1800: 7400, angle_w1900: 7600, angle_w2000: 8200,
-    // 채널문자 타카식 (글자당)
-    ch_taka_30: 25000, ch_taka_40: 28000, ch_taka_50: 34000, ch_taka_60: 40000,
-    ch_taka_70: 43000, ch_taka_80: 48000, ch_taka_90: 50000, ch_taka_100: 54000,
-    ch_taka_110: 66000, ch_taka_120: 78000, ch_taka_130: 94000, ch_taka_140: 115000, ch_taka_150: 130000,
+    // 알루미늄 채널 - 영문 (글자당)
+    ch_taka_eng_30: 25000, ch_taka_eng_40: 28000, ch_taka_eng_50: 34000, ch_taka_eng_60: 40000,
+    ch_taka_eng_70: 43000, ch_taka_eng_80: 48000, ch_taka_eng_90: 50000, ch_taka_eng_100: 54000,
+    ch_taka_eng_110: 66000, ch_taka_eng_120: 78000, ch_taka_eng_130: 94000, ch_taka_eng_140: 115000, ch_taka_eng_150: 130000,
+    // 알루미늄 채널 - 한글 (글자당)
+    ch_taka_kor_30: 25000, ch_taka_kor_40: 28000, ch_taka_kor_50: 34000, ch_taka_kor_60: 40000,
+    ch_taka_kor_70: 43000, ch_taka_kor_80: 48000, ch_taka_kor_90: 50000, ch_taka_kor_100: 54000,
+    ch_taka_kor_110: 66000, ch_taka_kor_120: 78000, ch_taka_kor_130: 94000, ch_taka_kor_140: 115000, ch_taka_kor_150: 130000,
+    // 알루미늄 채널 - 고딕체 (글자당)
+    ch_taka_got_30: 25000, ch_taka_got_40: 28000, ch_taka_got_50: 34000, ch_taka_got_60: 40000,
+    ch_taka_got_70: 43000, ch_taka_got_80: 48000, ch_taka_got_90: 50000, ch_taka_got_100: 54000,
+    ch_taka_got_110: 66000, ch_taka_got_120: 78000, ch_taka_got_130: 94000, ch_taka_got_140: 115000, ch_taka_got_150: 130000,
     // 채널문자 LED (개당)
     ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
     // 채널문자 기타
@@ -3542,40 +3550,38 @@ function chnnel_taka_cal(){ //채널 타카 계산
         trusbar_price = PRICES.ch_trusbar_400 * trusbar_width;
     }
 
-    if($("#channel_text_myongjo").is(":checked") || $("#channel_text_korean_writing").is(":checked") || $("#channel_text_spilling").is(":checked") ){
-    	text_price = 0.2;
+    if($("#channel_text_myongjo").is(":checked") || $("#channel_text_korean_writing").is(":checked") || $("#channel_text_spilling").is(":checked")){
+        text_price = 0.2;
     }else{
         text_price = 0;
-	}
+    }
 
+    // 선택된 문자형태에 따라 단가 접두어 결정
+    var _pricePrefix;
+    if($("#channel_text_number_godic").is(":checked")){
+        _pricePrefix = "eng";
+    }else if($("#channel_text_godic").is(":checked")){
+        _pricePrefix = "got";
+    }else{
+        _pricePrefix = "kor";
+    }
 
-    if($("#channel_size_30").is(":checked")){
-        chennel_width = PRICES.ch_taka_30;
-    }else if($("#channel_size_40").is(":checked")){
-        chennel_width = PRICES.ch_taka_40;
-    }else if($("#channel_size_50").is(":checked")){
-        chennel_width = PRICES.ch_taka_50;
-    }else if($("#channel_size_60").is(":checked")){
-        chennel_width = PRICES.ch_taka_60;
-    }else if($("#channel_size_70").is(":checked")){
-        chennel_width = PRICES.ch_taka_70;
-    }else if($("#channel_size_80").is(":checked")){
-        chennel_width = PRICES.ch_taka_80;
-    }else if($("#channel_size_90").is(":checked")){
-        chennel_width = PRICES.ch_taka_90;
-    }else if($("#channel_size_100").is(":checked")){
-        chennel_width = PRICES.ch_taka_100;
-    }else if($("#channel_size_110").is(":checked")){
-        chennel_width = PRICES.ch_taka_110;
-    }else if($("#channel_size_120").is(":checked")){
-        chennel_width = PRICES.ch_taka_120;
-    }else if($("#channel_size_130").is(":checked")){
-        chennel_width = PRICES.ch_taka_130;
-    }else if($("#channel_size_140").is(":checked")){
-        chennel_width = PRICES.ch_taka_140;
-    }else if($("#channel_size_150").is(":checked")){
-        chennel_width = PRICES.ch_taka_150;
-    }else if($("#channel_size_160").is(":checked")){
+    var _sizeMap = {30:"30",40:"40",50:"50",60:"60",70:"70",80:"80",90:"90",100:"100",110:"110",120:"120",130:"130",140:"140",150:"150"};
+    var _sz = null;
+    if($("#channel_size_30").is(":checked")) _sz="30";
+    else if($("#channel_size_40").is(":checked")) _sz="40";
+    else if($("#channel_size_50").is(":checked")) _sz="50";
+    else if($("#channel_size_60").is(":checked")) _sz="60";
+    else if($("#channel_size_70").is(":checked")) _sz="70";
+    else if($("#channel_size_80").is(":checked")) _sz="80";
+    else if($("#channel_size_90").is(":checked")) _sz="90";
+    else if($("#channel_size_100").is(":checked")) _sz="100";
+    else if($("#channel_size_110").is(":checked")) _sz="110";
+    else if($("#channel_size_120").is(":checked")) _sz="120";
+    else if($("#channel_size_130").is(":checked")) _sz="130";
+    else if($("#channel_size_140").is(":checked")) _sz="140";
+    else if($("#channel_size_150").is(":checked")) _sz="150";
+    if(_sz) chennel_width = PRICES["ch_taka_"+_pricePrefix+"_"+_sz]||0;else if($("#channel_size_160").is(":checked")){
         chennel_width = 60000;
     }else if($("#channel_size_170").is(":checked")){
         chennel_width = 60000;
@@ -3635,8 +3641,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
          	custom_order = 0.3;
          }
     }
-    //여기
-    $("#order_price").text(String(Math.floor((chennel_width+( chennel_width * custom_order)) * Number($("#channel_content").val())+ ggachi_price + trusbar_price + led_price + complete_price + (chennel_width*text_price) + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(Math.floor((chennel_width+(chennel_width*custom_order)) * Number($("#channel_content").val()) + ggachi_price + trusbar_price + led_price + complete_price + (chennel_width*text_price) + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
     
     
 }
@@ -5419,7 +5424,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		total_html +=" / 뒷판작업 : "+$("#sigh_backdrop_row").val()+"×"+$("#sigh_backdrop_vertical").val()+"mm";
+            		(function(){ var _bd=getSignDimensions(); total_html+=" / 뒷판작업 : "+Math.round(_bd.w*1000)+"×"+Math.round(_bd.h*1000)+"mm"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -5449,11 +5454,14 @@ $(".save_btn").click(function(){
                     var angleUnit=getAnglePrice(1), angleP=angleCnt*angleUnit;
                     var backdropP=getBackdropPrice(), deungbakP=getDeungbakPrice(), moreP=nv("#more_order_price");
                     var bd="<span class='price_breakdown'>";
-                    if(displayP>0) bd+="<span class='bd_item'>화면작업 <em>"+_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm × "+_fmt(dUnit)+"원 = "+_fmt(displayP)+"원</em></span>";
-                    if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
+                    if(displayP>0) bd+="<span class='bd_item'>화면작업 <em>"+_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm × "+_fmt(dUnit)+"원/m² = "+_fmt(displayP)+"원</em></span>";
+                    if(colorP>0){
+                        if($("#sigh_frame_color_custom").is(":checked")) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm("+Math.round(tw*tv)+"m²) × "+_fmt(PRICES.sign_color_paint_nol)+"원 = "+_fmt(colorP)+"원</em></span>";
+                        else bd+="<span class='bd_item'>스텐몰딩 <em>둘레 "+_fmt(Math.round((tw*2+tv*2)*1000))+"mm × "+_fmt(PRICES.sign_sten_molding)+"원/m = "+_fmt(colorP)+"원</em></span>";
+                    }
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
-                    if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
-                    if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
+                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+Math.round(_bD.w*1000)+"×"+Math.round(_bD.h*1000)+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; }
+                    if(deungbakP>0){ var _dD=getSignDimensions(),_pos=$("input[name='sigh_deungbak_pos']:checked").attr("id")||"sigh_deungbak_top",_posNm=$("input[name='sigh_deungbak_pos']:checked").parent("label").text(),_len=(_pos==="sigh_deungbak_top"||_pos==="sigh_deungbak_bottom")?_dD.w:(_pos==="sigh_deungbak_left"||_pos==="sigh_deungbak_right")?_dD.h:(_pos==="sigh_deungbak_center")?_dD.w:2*(_dD.w+_dD.h); if($("#sigh_deungbak_galva").is(":checked")) bd+="<span class='bd_item'>등박스(갈바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm"+(_len<=5?" → 5m 이하 기본":" → 300,000 + "+Math.ceil(_len-5)+"m×50,000")+" = "+_fmt(deungbakP)+"원</em></span>"; else{ var _kU=$("#sigh_kyungbak_50").is(":checked")?60000:80000,_kS=Math.ceil(_len/3); bd+="<span class='bd_item'>등박스(경관바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm → "+_kS+"구간 × "+_fmt(_kU)+"원 = "+_fmt(deungbakP)+"원</em></span>"; } }
                     if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
                     bd+="</span>"; total_html+=bd;
                 })();
@@ -5480,7 +5488,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		total_html +=" / 뒷판작업 : "+$("#sigh_backdrop_row").val()+"×"+$("#sigh_backdrop_vertical").val()+"mm";
+            		(function(){ var _bd=getSignDimensions(); total_html+=" / 뒷판작업 : "+Math.round(_bd.w*1000)+"×"+Math.round(_bd.h*1000)+"mm"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -5542,7 +5550,7 @@ $(".save_btn").click(function(){
                 }
             	total_html +="/ 시공발통 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_baltong']:checked").parent("label").text();
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		total_html +=" / 뒷판작업 : "+$("#sigh_backdrop_row").val()+"×"+$("#sigh_backdrop_vertical").val()+"mm";
+            		(function(){ var _bd=getSignDimensions(); total_html+=" / 뒷판작업 : "+Math.round(_bd.w*1000)+"×"+Math.round(_bd.h*1000)+"mm"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){

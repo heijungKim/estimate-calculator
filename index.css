@@ -275,6 +275,48 @@ input::placeholder {
     text-align: left;
 }
 
+.ch_taka_table {
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.ch_taka_table th {
+    padding: 5px 10px;
+    background: #f4f6fb;
+    color: #8892a4;
+    font-weight: 700;
+    text-align: center;
+    border: 1px solid #edf0f5;
+}
+.ch_taka_table td {
+    padding: 4px 8px;
+    border: 1px solid #edf0f5;
+    color: #4a5568;
+    text-align: center;
+    white-space: nowrap;
+}
+.ch_taka_table td:first-child {
+    font-weight: 600;
+    background: #f9fafc;
+    text-align: left;
+}
+.ch_taka_table input[type='text'] {
+    height: 28px;
+    width: 72px;
+    padding: 0 5px;
+    border: 1px solid #d8dde8;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: right;
+    color: #2d3748;
+    box-sizing: border-box;
+    margin-right: 2px;
+}
+.ch_taka_table input[type='text']:focus {
+    outline: none;
+    border-color: #e94560;
+    box-shadow: 0 0 0 2px rgba(233,69,96,0.1);
+}
+
 .price_actions {
     display: flex;
     justify-content: flex-end;
