@@ -1305,6 +1305,99 @@ input::placeholder {
     border-color: #fca5a5;
 }
 
+/* ── 검색/필터 바 ── */
+.archive_search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 10px;
+    align-items: center;
+}
+.arc_search_input {
+    flex: 1;
+    min-width: 130px;
+    padding: 8px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    outline: none;
+    transition: border-color 0.18s;
+}
+.arc_search_input:focus { border-color: #e94560; background: #fff; }
+.arc_search_select {
+    padding: 8px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    outline: none;
+    cursor: pointer;
+}
+.arc_search_select:focus { border-color: #e94560; }
+.arc_search_reset {
+    padding: 8px 16px;
+    background: #f0f2f5;
+    color: #4a5568;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+.arc_search_reset:hover { background: #e2e8f0; }
+
+/* ── 견적서 이름 + 상태 배지 행 ── */
+.archive_name_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+/* ── 상태 배지 ── */
+.arc_status_badge {
+    flex-shrink: 0;
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.st_wait    { background: #e8eaf6; color: #3949ab; }
+.st_unpaid  { background: #fdecea; color: #c62828; }
+.st_partial { background: #fff3e0; color: #e65100; }
+.st_paid    { background: #e8f5e9; color: #2e7d32; }
+
+/* ── 상태 변경 select ── */
+.arc_status_sel {
+    padding: 5px 8px;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: opacity 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: center;
+}
+.arc_status_sel:hover { opacity: 0.82; }
+.arc_status_sel.st_wait    { background: #e8eaf6; color: #3949ab; }
+.arc_status_sel.st_unpaid  { background: #fdecea; color: #c62828; }
+.arc_status_sel.st_partial { background: #fff3e0; color: #e65100; }
+.arc_status_sel.st_paid    { background: #e8f5e9; color: #2e7d32; }
+
 /* ── 내역 보기 모달 ── */
 .modal_lg {
     width: 620px;

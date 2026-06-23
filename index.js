@@ -6084,6 +6084,41 @@ $(function(){
     // 아카이브 목록 렌더링
     renderArchiveList();
 
+    // ── 검색 필터 이벤트 ─────────────────────────────────────
+    $('#search_name, #search_company').on('input', function() {
+        _arcFilter.name    = $.trim($('#search_name').val());
+        _arcFilter.company = $.trim($('#search_company').val());
+        renderArchiveList();
+    });
+    $('#search_date').on('change', function() {
+        _arcFilter.date = $(this).val();
+        renderArchiveList();
+    });
+    $('#search_status').on('change', function() {
+        _arcFilter.status = $(this).val();
+        renderArchiveList();
+    });
+    $('#btn_search_reset').on('click', function() {
+        _arcFilter = { name: '', company: '', date: '', status: '' };
+        $('#search_name').val('');
+        $('#search_company').val('');
+        $('#search_date').val('');
+        $('#search_status').val('');
+        renderArchiveList();
+    });
+
+    // ── 견적서 상태 변경 ─────────────────────────────────────
+    $(document).on('change', '.arc_status_sel', function() {
+        var id = $(this).data('id');
+        var newStatus = $(this).val();
+        var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
+        $(this).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
+        // 뱃지도 즉시 갱신
+        var $item = $(this).closest('.archive_item');
+        $item.find('.arc_status_badge').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
+        updateArchiveStatus(id, newStatus);
+    });
+
     // ── 견적 비용 스티키 (하단 고정) ──────────────────────────
     // 바의 하단이 뷰포트 아래로 내려가면 화면 맨 밑에 고정,
     // 스크롤로 원래 위치에 도달하면 그 자리에 안착.
@@ -6381,6 +6416,23 @@ function doPrintEstimate() {
 var ARCHIVE_KEY = 'estimate_archives_v1';
 var _archivesDoc = null;
 
+// 견적서 상태 정의
+var ARC_STATUS_CLASS = { '대기': 'st_wait', '미납': 'st_unpaid', '부분 납부': 'st_partial', '완납': 'st_paid' };
+
+// 검색 필터 상태
+var _arcFilter = { name: '', company: '', date: '', status: '' };
+
+function applyArchiveFilter(list) {
+    var f = _arcFilter;
+    return list.filter(function(a) {
+        if (f.name    && (a.name    || '').indexOf(f.name)    === -1) return false;
+        if (f.company && (a.company || '').indexOf(f.company) === -1) return false;
+        if (f.date    && a.date !== f.date) return false;
+        if (f.status  && (a.status  || '대기') !== f.status)  return false;
+        return true;
+    });
+}
+
 function _initFirestore() {
     if (_archivesDoc) return;
     try {
@@ -6450,6 +6502,7 @@ function saveEstimate(name, date, company) {
         name:           name,
         company:        company || '',
         date:           date,
+        status:         '대기',
         total:          totalNum,
         totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
         itemCount:      $ul.find("li").length,
@@ -6469,9 +6522,11 @@ function renderArchiveList() {
     if (_archivesDoc) {
         $el.html('<p class="archive_empty">불러오는 중…</p>');
     }
-    getArchives(function(list) {
+    getArchives(function(allList) {
+        var list = applyArchiveFilter(allList);
         if (!list.length) {
-            $el.html('<p class="archive_empty">저장된 견적이 없습니다.</p>');
+            var msg = allList.length ? '검색 결과가 없습니다.' : '저장된 견적이 없습니다.';
+            $el.html('<p class="archive_empty">' + msg + '</p>');
             return;
         }
         // 업체별 그룹화 (삽입 순서 유지)
@@ -6486,22 +6541,30 @@ function renderArchiveList() {
         groupOrder.forEach(function(company) {
             var items = groups[company];
             var coTotal = items.reduce(function(s, a){ return s + (Number(a.total) || 0); }, 0);
-            var coTotalFmt = coTotal.toLocaleString('ko-KR');
             html += '<div class="archive_company_group">';
             html +=   '<div class="archive_company_header">';
             html +=     '<span class="company_name">' + escHtml(company) + '</span>';
-            html +=     '<span class="company_stats">견적 ' + items.length + '건 &middot; 합계 &#8361;&nbsp;' + coTotalFmt + '</span>';
+            html +=     '<span class="company_stats">견적 ' + items.length + '건 &middot; 합계 &#8361;&nbsp;' + coTotal.toLocaleString('ko-KR') + '</span>';
             html +=   '</div>';
             items.forEach(function(arc) {
+                var st  = arc.status || '대기';
+                var stClass = ARC_STATUS_CLASS[st] || 'st_wait';
+                var stOpts = ['대기', '미납', '부분 납부', '완납'].map(function(s) {
+                    return '<option value="' + s + '"' + (st === s ? ' selected' : '') + '>' + s + '</option>';
+                }).join('');
                 html +=
                     '<div class="archive_item" data-id="' + arc.id + '">' +
                         '<div class="archive_item_left">' +
-                            '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
+                            '<div class="archive_name_row">' +
+                                '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
+                                '<span class="arc_status_badge ' + stClass + '">' + st + '</span>' +
+                            '</div>' +
                             '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
                                 arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
                             '</span>' +
                         '</div>' +
                         '<div class="archive_item_right">' +
+                            '<select class="arc_status_sel ' + stClass + '" data-id="' + arc.id + '">' + stOpts + '</select>' +
                             '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
                             '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
                         '</div>' +
@@ -6532,6 +6595,14 @@ function showArchiveDetail(id) {
         });
         $("#detail_items_list").html($temp.html());
         $("#archive_detail_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
+    });
+}
+
+// 견적서 상태 변경
+function updateArchiveStatus(id, newStatus) {
+    getArchives(function(list) {
+        list.forEach(function(a) { if (a.id === id) a.status = newStatus; });
+        setArchives(list);
     });
 }
 
