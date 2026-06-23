@@ -6107,16 +6107,63 @@ $(function(){
         renderArchiveList();
     });
 
-    // ── 견적서 상태 변경 ─────────────────────────────────────
+    // ── 목록 내 상태 변경 ────────────────────────────────────
     $(document).on('change', '.arc_status_sel', function() {
+        if ($(this).attr('id') === 'detail_status_sel') return; // 모달은 별도 처리
         var id = $(this).data('id');
         var newStatus = $(this).val();
         var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
         $(this).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
-        // 뱃지도 즉시 갱신
         var $item = $(this).closest('.archive_item');
         $item.find('.arc_status_badge').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
         updateArchiveStatus(id, newStatus);
+    });
+
+    // ── 내역 보기 모달: 상태 변경 ────────────────────────────
+    $(document).on('change', '#detail_status_sel', function() {
+        var id = $("#archive_detail_modal").data("current-id");
+        var newStatus = $(this).val();
+        var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
+        $(this).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
+        updateArchiveStatus(id, newStatus);
+        renderArchiveList();
+    });
+
+    // ── 내역 보기 모달: 완납 체크박스 ────────────────────────
+    $(document).on('change', '#detail_paid_full_chk', function() {
+        var id = $("#archive_detail_modal").data("current-id");
+        if (!$(this).is(':checked')) return;
+        var totalNum = parseInt($("#detail_total_num").text().replace(/[^0-9]/g, '')) || 0;
+        $("#detail_paid_input").val(totalNum > 0 ? totalNum.toLocaleString('ko-KR') : '');
+        var stClass = ARC_STATUS_CLASS['완납'];
+        $("#detail_status_sel").val('완납').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
+        updateArchivePayment(id, totalNum, '완납');
+    });
+
+    // ── 내역 보기 모달: 입금 금액 실시간 처리 ────────────────
+    $(document).on('input', '#detail_paid_input', function() {
+        var raw = this.value.replace(/[^0-9]/g, '');
+        var paid = parseInt(raw) || 0;
+        this.value = raw; // 입력 중엔 숫자만
+        var totalNum = parseInt($("#detail_total_num").text().replace(/[^0-9]/g, '')) || 0;
+        $("#detail_paid_full_chk").prop('checked', paid > 0 && paid >= totalNum);
+        // 상태 자동 변경 (실시간 미리보기)
+        var newStatus = null;
+        if (paid > 0 && paid < totalNum)         newStatus = '부분 납부';
+        else if (paid > 0 && paid >= totalNum)   newStatus = '완납';
+        if (newStatus) {
+            var stClass = ARC_STATUS_CLASS[newStatus];
+            $("#detail_status_sel").val(newStatus).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
+        }
+    });
+
+    $(document).on('blur', '#detail_paid_input', function() {
+        var raw = this.value.replace(/[^0-9]/g, '');
+        var paid = parseInt(raw) || 0;
+        this.value = paid > 0 ? paid.toLocaleString('ko-KR') : '';
+        var id = $("#archive_detail_modal").data("current-id");
+        var newStatus = $("#detail_status_sel").val();
+        updateArchivePayment(id, paid, newStatus);
     });
 
     // ── 견적 비용 스티키 (하단 고정) ──────────────────────────
@@ -6503,6 +6550,7 @@ function saveEstimate(name, date, company) {
         company:        company || '',
         date:           date,
         status:         '대기',
+        paid:           0,
         total:          totalNum,
         totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
         itemCount:      $ul.find("li").length,
@@ -6587,6 +6635,19 @@ function showArchiveDetail(id) {
         $("#detail_modal_date").text((arc.company ? '[' + arc.company + '] ' : '') + arc.date);
         $("#detail_total_num").text(arc.totalFormatted);
 
+        // 상태 select 초기화
+        var st = arc.status || '대기';
+        var stClass = ARC_STATUS_CLASS[st] || 'st_wait';
+        $("#detail_status_sel").val(st)
+            .removeClass('st_wait st_unpaid st_partial st_paid')
+            .addClass(stClass);
+
+        // 입금 금액 초기화
+        var paid    = Number(arc.paid)  || 0;
+        var totalNum = Number(arc.total) || 0;
+        $("#detail_paid_input").val(paid > 0 ? paid.toLocaleString('ko-KR') : '');
+        $("#detail_paid_full_chk").prop('checked', paid > 0 && paid >= totalNum);
+
         var $temp = $("<ul>").html(arc.itemsHtml);
         $temp.find(".remove_btn").remove();
         $temp.find("li").each(function(i){
@@ -6603,6 +6664,18 @@ function updateArchiveStatus(id, newStatus) {
     getArchives(function(list) {
         list.forEach(function(a) { if (a.id === id) a.status = newStatus; });
         setArchives(list);
+    });
+}
+
+// 견적서 입금 금액 + 상태 동시 저장
+function updateArchivePayment(id, paid, status) {
+    getArchives(function(list) {
+        list.forEach(function(a) {
+            if (a.id !== id) return;
+            a.paid = paid;
+            if (status) a.status = status;
+        });
+        setArchives(list, function() { renderArchiveList(); });
     });
 }
 

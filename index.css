@@ -1491,3 +1491,77 @@ input::placeholder {
     transition: background 0.15s;
 }
 .detail_load_btn:hover { background: #e2e6ee; }
+
+/* ── 내역 보기 모달: 결제 정보 섹션 ── */
+.detail_payment_section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 14px 24px;
+    border-top: 1.5px solid #eaedf2;
+    background: #f8f9fb;
+    align-items: center;
+}
+
+.detail_payment_field {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.detail_payment_label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    white-space: nowrap;
+}
+
+.detail_paid_row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.detail_paid_currency {
+    font-size: 14px;
+    font-weight: 600;
+    color: #888;
+}
+
+.detail_paid_input {
+    width: 130px;
+    padding: 6px 10px;
+    border: 1.5px solid #dde1e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1a1a2e;
+    outline: none;
+    text-align: right;
+    transition: border-color 0.18s;
+}
+.detail_paid_input:focus { border-color: #e94560; background: #fff; }
+
+.detail_paid_full_label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2e7d32;
+    padding: 5px 12px;
+    background: #e8f5e9;
+    border-radius: 20px;
+    white-space: nowrap;
+    user-select: none;
+    transition: background 0.15s;
+}
+.detail_paid_full_label:hover { background: #c8e6c9; }
+.detail_paid_full_label input[type="checkbox"] {
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+    accent-color: #2e7d32;
+    margin: 0;
+}
