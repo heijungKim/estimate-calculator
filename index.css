@@ -1466,6 +1466,70 @@ input::placeholder {
     border-color: #1a1a2e;
 }
 
+/* ── 견적 목록 테이블 ── */
+.arc-count {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8892a4;
+    margin-left: 6px;
+}
+
+.arc-tbl-wrap {
+    overflow-x: auto;
+    margin-top: 4px;
+}
+
+.arc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    color: #1a1a2e;
+}
+
+.arc-table thead tr {
+    background: #f5f7fa;
+    border-bottom: 2px solid #edf0f5;
+}
+
+.arc-table th {
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7a92;
+    text-align: left;
+    white-space: nowrap;
+}
+.arc-table th.tc { text-align: center; }
+.arc-table th.tr { text-align: right; }
+
+.arc-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.1s;
+}
+.arc-table tbody tr:hover { background: #f9fafc; }
+.arc-table tbody tr:last-child { border-bottom: none; }
+
+.arc-table td {
+    padding: 11px 14px;
+    color: #2d3748;
+    vertical-align: middle;
+}
+.arc-table td.tc { text-align: center; }
+.arc-table td.tr { text-align: right; font-variant-numeric: tabular-nums; }
+
+.arc-tbl-name { font-weight: 600; color: #1a1a2e; }
+
+.arc-tbl-proceed {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.arc-tbl-actions { white-space: nowrap; }
+.arc-tbl-actions .archive_view_btn { margin-right: 4px; }
+
 /* ── 견적서 이름 + 상태 배지 행 ── */
 .archive_name_row {
     display: flex;

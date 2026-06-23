@@ -164,61 +164,63 @@ function openPrintWindow(html) {
     win.document.close();
 }
 
-// ── 렌더링 ───────────────────────────────────────────────────
+// ── 렌더링 (테이블) ──────────────────────────────────────────
 function renderArchiveList() {
     _initFirestore();
     var $el = $("#archive_list");
     if (_archivesDoc) $el.html('<p class="archive_empty">불러오는 중…</p>');
     getArchives(function(allList) {
         var list = applyArchiveFilter(allList);
+
+        var countText = allList.length + '건';
+        if (list.length < allList.length) countText += ' (검색 ' + list.length + '건)';
+        $('#arc_count').text(countText);
+
         if (!list.length) {
             var msg = allList.length ? '검색 결과가 없습니다.' : '저장된 견적이 없습니다.';
             $el.html('<p class="archive_empty">' + msg + '</p>');
             return;
         }
-        var groupOrder = [];
-        var groups = {};
-        list.forEach(function(arc) {
-            var co = arc.company || '업체 미지정';
-            if (!groups[co]) { groups[co] = []; groupOrder.push(co); }
-            groups[co].push(arc);
+
+        list = list.slice().sort(function(a, b) {
+            return (b.date || '').localeCompare(a.date || '');
         });
-        var html = '';
-        groupOrder.forEach(function(company) {
-            var items = groups[company];
-            var coTotal = items.reduce(function(s, a){ return s + (Number(a.total) || 0); }, 0);
-            html += '<div class="archive_company_group">';
-            html +=   '<div class="archive_company_header">';
-            html +=     '<span class="company_name">' + escHtml(company) + '</span>';
-            html +=     '<span class="company_stats">견적 ' + items.length + '건 &middot; 합계 &#8361;&nbsp;' + coTotal.toLocaleString('ko-KR') + '</span>';
-            html +=   '</div>';
-            items.forEach(function(arc) {
-                var st  = arc.status || '대기';
-                var stClass = ARC_STATUS_CLASS[st] || 'st_wait';
-                var proc = arc.proceed || '';
-                var procClass = proc === 'O' ? 'proceed_o' : (proc === 'X' ? 'proceed_x' : 'proceed_none');
-                var procText  = proc || '-';
-                html +=
-                    '<div class="archive_item" data-id="' + arc.id + '">' +
-                        '<div class="archive_item_left">' +
-                            '<div class="archive_name_row">' +
-                                '<span class="arc_proceed_badge ' + procClass + '" title="진행 여부">' + procText + '</span>' +
-                                '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
-                                '<span class="arc_status_badge ' + (proc === 'O' ? stClass : 'st_none') + '">' + (proc === 'O' ? st : '-') + '</span>' +
-                            '</div>' +
-                            '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
-                                arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
-                            '</span>' +
-                        '</div>' +
-                        '<div class="archive_item_right">' +
-                            '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
-                            '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
-                        '</div>' +
-                    '</div>';
-            });
-            html += '</div>';
-        });
-        $el.html(html);
+
+        var rows = list.map(function(arc, idx) {
+            var st      = arc.status || '대기';
+            var stClass = ARC_STATUS_CLASS[st] || 'st_wait';
+            var proc    = arc.proceed || '';
+            var procClass = proc === 'O' ? 'proceed_o' : (proc === 'X' ? 'proceed_x' : 'proceed_none');
+            var showSt  = proc === 'O';
+
+            return '<tr data-id="' + arc.id + '">' +
+                '<td class="tc">' + (idx + 1) + '</td>' +
+                '<td class="arc-tbl-name">' + escHtml(arc.name) + '</td>' +
+                '<td>' + escHtml(arc.company || '-') + '</td>' +
+                '<td class="tc">' + escHtml(arc.date || '-') + '</td>' +
+                '<td class="tr">&#8361; ' + escHtml(arc.totalFormatted || '') + '</td>' +
+                '<td class="tc">' + (arc.itemCount || 0) + '개</td>' +
+                '<td class="tc"><span class="arc-tbl-proceed ' + procClass + '">' + (proc || '-') + '</span></td>' +
+                '<td class="tc"><span class="arc-tbl-status arc_status_badge ' + (showSt ? stClass : 'st_none') + '">' + (showSt ? st : '-') + '</span></td>' +
+                '<td class="arc-tbl-actions">' +
+                    '<button class="archive_view_btn" data-id="' + arc.id + '">내역</button>' +
+                    '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+
+        $el.html(
+            '<div class="arc-tbl-wrap">' +
+            '<table class="arc-table">' +
+            '<thead><tr>' +
+                '<th class="tc">No.</th><th>견적명</th><th>업체명</th>' +
+                '<th class="tc">날짜</th><th class="tr">금액</th><th class="tc">항목</th>' +
+                '<th class="tc">진행</th><th class="tc">상태</th><th>관리</th>' +
+            '</tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+            '</table>' +
+            '</div>'
+        );
     });
 }
 
@@ -404,7 +406,7 @@ $(function() {
         $(this).addClass('proceed_active');
         _togglePaymentFields(val === 'O');
         updateArchiveProceed(id, val);
-        var $badge = $('[data-id="' + id + '"] .arc_proceed_badge');
+        var $badge = $('[data-id="' + id + '"] .arc-tbl-proceed');
         $badge.text(val).removeClass('proceed_o proceed_x proceed_none').addClass(val === 'O' ? 'proceed_o' : 'proceed_x');
     });
 
@@ -415,7 +417,7 @@ $(function() {
         var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
         $(this).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
         updateArchiveStatus(id, newStatus);
-        $('[data-id="' + id + '"] .arc_status_badge').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
+        $('[data-id="' + id + '"] .arc-tbl-status').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
     });
 
     // 완납 체크박스
@@ -427,7 +429,7 @@ $(function() {
         var stClass = ARC_STATUS_CLASS['완납'];
         $("#detail_status_sel").val('완납').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
         updateArchivePayment(id, totalNum, '완납');
-        $('[data-id="' + id + '"] .arc_status_badge').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text('완납');
+        $('[data-id="' + id + '"] .arc-tbl-status').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text('완납');
     });
 
     // 입금 금액
@@ -454,6 +456,6 @@ $(function() {
         var newStatus = $("#detail_status_sel").val();
         updateArchivePayment(id, paid, newStatus);
         var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
-        $('[data-id="' + id + '"] .arc_status_badge').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
+        $('[data-id="' + id + '"] .arc-tbl-status').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
     });
 });
