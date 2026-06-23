@@ -6107,18 +6107,6 @@ $(function(){
         renderArchiveList();
     });
 
-    // ── 목록 내 상태 변경 ────────────────────────────────────
-    $(document).on('change', '.arc_status_sel', function() {
-        if ($(this).attr('id') === 'detail_status_sel') return; // 모달은 별도 처리
-        var id = $(this).data('id');
-        var newStatus = $(this).val();
-        var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
-        $(this).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
-        var $item = $(this).closest('.archive_item');
-        $item.find('.arc_status_badge').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass).text(newStatus);
-        updateArchiveStatus(id, newStatus);
-    });
-
     // ── 내역 보기 모달: 상태 변경 ────────────────────────────
     $(document).on('change', '#detail_status_sel', function() {
         var id = $("#archive_detail_modal").data("current-id");
@@ -6612,7 +6600,6 @@ function renderArchiveList() {
                             '</span>' +
                         '</div>' +
                         '<div class="archive_item_right">' +
-                            '<select class="arc_status_sel ' + stClass + '" data-id="' + arc.id + '">' + stOpts + '</select>' +
                             '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
                             '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
                         '</div>' +
