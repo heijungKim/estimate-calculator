@@ -1,6 +1,6 @@
 /* ── 업체 관리 페이지 ── */
 .vendor-wrap {
-    max-width: 1000px;
+    max-width: 1300px;
     margin: 40px auto 60px;
     padding: 0 32px;
     display: flex;
@@ -142,6 +142,48 @@
 }
 .btn-cancel:hover { background: #e2e8f0; }
 
+/* ── 검색 영역 ── */
+.vendor-search {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.vs-input {
+    flex: 1;
+    min-width: 120px;
+    padding: 9px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    transition: border-color 0.18s;
+}
+.vs-input:focus {
+    outline: none;
+    border-color: #e94560;
+    background: #fff;
+}
+.vs-input::placeholder { color: #b0bac9; }
+
+.vs-reset-btn {
+    padding: 9px 18px;
+    background: #f0f2f5;
+    color: #4a5568;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+.vs-reset-btn:hover { background: #e2e8f0; }
+
 /* ── 업체 목록 ── */
 .vendor-empty {
     text-align: center;
@@ -150,7 +192,83 @@
     padding: 40px 0;
 }
 
-/* ── 업체 카드 ── */
+/* ── 업체 테이블 ── */
+.vt-wrap {
+    overflow-x: auto;
+}
+
+.vendor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    color: #1a1a2e;
+}
+
+.vendor-table thead tr {
+    background: #f5f7fa;
+    border-bottom: 2px solid #edf0f5;
+}
+
+.vendor-table th {
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7a92;
+    text-align: left;
+    white-space: nowrap;
+}
+.vendor-table th.tc { text-align: center; }
+.vendor-table th.tr { text-align: right; }
+
+.vendor-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.12s;
+}
+.vendor-table tbody tr:hover { background: #f9fafc; }
+.vendor-table tbody tr:last-child { border-bottom: none; }
+
+.vendor-table td {
+    padding: 11px 14px;
+    vertical-align: middle;
+    color: #2d3748;
+}
+.vendor-table td.tc { text-align: center; }
+.vendor-table td.tr { text-align: right; font-variant-numeric: tabular-nums; }
+.vendor-table td.has-unpaid { color: #e94560; font-weight: 700; }
+
+.vt-name {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.vt-memo {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    background: #edf2ff;
+    color: #3b6cf7;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: help;
+}
+
+.vt-paid-cell {
+    white-space: nowrap;
+    display: table-cell;
+}
+.vt-paid-val { margin-right: 6px; }
+
+.vt-actions {
+    white-space: nowrap;
+}
+.vt-actions .btn-edit,
+.vt-actions .btn-delete {
+    margin-right: 4px;
+}
+.vt-actions .btn-delete { margin-right: 0; }
+
+/* ── 업체 카드 (레거시 — 미사용) ── */
 .vendor-item {
     border: 1.5px solid #edf0f5;
     border-radius: 14px;
