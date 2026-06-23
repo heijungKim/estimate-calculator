@@ -5867,7 +5867,12 @@ $(".save_btn").click(function(){
     $("#total_price_wrap .total_list ul").append(total_html);
 
     list_sum_price();
-  	list_delete_func();
+    list_delete_func();
+
+    // 추가 후 입력값 초기화
+    $("#option_table input[type='text'], #option_table input[type='number']").val('');
+    $("#option_table textarea").val('');
+    $(".order_info .right_area #order_price").text('0');
 });
 function list_delete_func(){
 	$(".total_list ul li .remove_btn").click(function(){
