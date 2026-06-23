@@ -49,61 +49,66 @@
 
 <div class="vendor-wrap">
 
-    <!-- 업체 등록 폼 -->
-    <div class="vendor-card" id="vendor_form_card">
-        <div class="vendor-card-title">
-            <span class="title-bar"></span>
-            <span id="form_title_text">업체 등록</span>
-        </div>
-        <form id="vendor_form" autocomplete="off">
-            <div class="vendor-form-grid">
-                <div class="form-field required">
-                    <label for="v_name">업체명</label>
-                    <input type="text" id="v_name" placeholder="업체명을 입력하세요" />
-                </div>
-                <div class="form-field">
-                    <label for="v_owner">대표자명</label>
-                    <input type="text" id="v_owner" placeholder="대표자 이름" />
-                </div>
-                <div class="form-field">
-                    <label for="v_phone">연락처</label>
-                    <input type="text" id="v_phone" placeholder="010-0000-0000" />
-                </div>
-                <div class="form-field">
-                    <label for="v_email">이메일</label>
-                    <input type="text" id="v_email" placeholder="example@email.com" />
-                </div>
-                <div class="form-field full">
-                    <label for="v_address">주소</label>
-                    <input type="text" id="v_address" placeholder="업체 주소" />
-                </div>
-                <div class="form-field full">
-                    <label for="v_memo">메모</label>
-                    <textarea id="v_memo" rows="3" placeholder="특이사항 또는 메모"></textarea>
-                </div>
-            </div>
-            <div class="vendor-form-actions">
-                <button type="button" id="btn_cancel_edit" class="btn-cancel" style="display:none;">취소</button>
-                <button type="submit" id="btn_submit" class="btn-submit">&#10003; 등록하기</button>
-            </div>
-            <p id="form_error" class="form-error"></p>
-        </form>
-    </div>
-
     <!-- 업체 목록 -->
     <div class="vendor-card">
         <div class="vendor-card-title">
             <span class="title-bar"></span>
             등록된 업체 목록
             <span class="vendor-count" id="vendor_count">0개</span>
+            <button type="button" id="btn_add_vendor" class="btn-submit vendor-add-btn">+ 업체 등록</button>
         </div>
         <div id="vendor_list_area">
-            <p class="vendor-empty" id="vendor_empty_msg">등록된 업체가 없습니다.</p>
+            <p class="vendor-empty">등록된 업체가 없습니다.</p>
         </div>
     </div>
 
 </div>
 </div><!-- /page-body -->
+
+<!-- ── 업체 등록/수정 모달 ── -->
+<div class="modal_overlay" id="vendor_form_modal">
+    <div class="modal_box">
+        <div class="modal_header">
+            <h3 id="form_title_text">업체 등록</h3>
+            <button type="button" class="modal_close" id="vendor_modal_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+            <form id="vendor_form" autocomplete="off">
+                <div class="vendor-form-grid">
+                    <div class="form-field required">
+                        <label for="v_name">업체명</label>
+                        <input type="text" id="v_name" placeholder="업체명을 입력하세요" />
+                    </div>
+                    <div class="form-field">
+                        <label for="v_owner">대표자명</label>
+                        <input type="text" id="v_owner" placeholder="대표자 이름" />
+                    </div>
+                    <div class="form-field">
+                        <label for="v_phone">연락처</label>
+                        <input type="text" id="v_phone" placeholder="010-0000-0000" />
+                    </div>
+                    <div class="form-field">
+                        <label for="v_email">이메일</label>
+                        <input type="text" id="v_email" placeholder="example@email.com" />
+                    </div>
+                    <div class="form-field full">
+                        <label for="v_address">주소</label>
+                        <input type="text" id="v_address" placeholder="업체 주소" />
+                    </div>
+                    <div class="form-field full">
+                        <label for="v_memo">메모</label>
+                        <textarea id="v_memo" rows="3" placeholder="특이사항 또는 메모"></textarea>
+                    </div>
+                </div>
+                <p id="form_error" class="form-error"></p>
+            </form>
+        </div>
+        <div class="modal_footer">
+            <button type="button" id="btn_cancel_edit" class="modal_cancel_btn">취소</button>
+            <button type="submit" form="vendor_form" id="btn_submit" class="modal_save_btn">&#10003; 등록하기</button>
+        </div>
+    </div>
+</div>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>

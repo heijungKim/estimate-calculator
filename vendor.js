@@ -165,6 +165,17 @@ function esc(str) {
         .replace(/"/g, '&quot;');
 }
 
+// ── 모달 열기/닫기 ────────────────────────────────────────────
+function openVendorModal() {
+    $('#vendor_form_modal').fadeIn(200, function(){ $(this).css('display', 'flex'); });
+    setTimeout(function(){ $('#v_name').focus(); }, 220);
+}
+
+function closeVendorModal() {
+    $('#vendor_form_modal').fadeOut(200);
+    resetForm();
+}
+
 // ── 폼 초기화 ────────────────────────────────────────────────
 function resetForm() {
     editingId = null;
@@ -187,13 +198,27 @@ function fillForm(v) {
     $('#form_title_text').text('업체 수정');
     $('#btn_submit').text('✓ 저장하기');
     $('#btn_cancel_edit').show();
-    $('html, body').animate({ scrollTop: $('#vendor_form_card').offset().top - 20 }, 200);
-    $('#v_name').focus();
+    openVendorModal();
 }
 
 // ── 이벤트 ──────────────────────────────────────────────────
 $(function() {
     renderVendors();
+
+    // 업체 등록 버튼
+    $('#btn_add_vendor').on('click', function() {
+        resetForm();
+        openVendorModal();
+    });
+
+    // 모달 닫기
+    $('#vendor_modal_close').on('click', closeVendorModal);
+    $('#vendor_form_modal').on('click', function(e) {
+        if (e.target === this) closeVendorModal();
+    });
+
+    // 취소 버튼
+    $('#btn_cancel_edit').on('click', closeVendorModal);
 
     // 폼 제출
     $('#vendor_form').on('submit', function(e) {
@@ -221,20 +246,17 @@ $(function() {
         if (editingId) {
             updateVendor(editingId, data, function(ok) {
                 $('#btn_submit').prop('disabled', false);
-                if (ok) { resetForm(); renderVendors(); }
+                if (ok) { closeVendorModal(); renderVendors(); }
                 else { $('#form_error').text('저장에 실패했습니다. 다시 시도해주세요.'); }
             });
         } else {
             addVendor(data, function(newId) {
                 $('#btn_submit').prop('disabled', false);
-                if (newId) { resetForm(); renderVendors(); }
+                if (newId) { closeVendorModal(); renderVendors(); }
                 else { $('#form_error').text('등록에 실패했습니다. 다시 시도해주세요.'); }
             });
         }
     });
-
-    // 취소
-    $('#btn_cancel_edit').on('click', resetForm);
 
     // 수정 / 삭제 (이벤트 위임)
     $('#vendor_list_area').on('click', '.btn-edit', function() {

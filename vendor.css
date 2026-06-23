@@ -34,10 +34,17 @@
 }
 
 .vendor-count {
-    margin-left: auto;
     font-size: 13px;
     font-weight: 500;
     color: #8892a4;
+}
+
+.vendor-add-btn {
+    margin-left: auto;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 10px;
 }
 
 /* ── 등록 폼 ── */
