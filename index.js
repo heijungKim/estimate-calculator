@@ -6114,7 +6114,10 @@ $(function(){
         var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
         $(this).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
         updateArchiveStatus(id, newStatus);
-        renderArchiveList();
+        // 목록 배지만 직접 갱신 (전체 재렌더 없음)
+        $('[data-id="' + id + '"] .arc_status_badge')
+            .removeClass('st_wait st_unpaid st_partial st_paid')
+            .addClass(stClass).text(newStatus);
     });
 
     // ── 내역 보기 모달: 완납 체크박스 ────────────────────────
@@ -6126,19 +6129,21 @@ $(function(){
         var stClass = ARC_STATUS_CLASS['완납'];
         $("#detail_status_sel").val('완납').removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
         updateArchivePayment(id, totalNum, '완납');
+        $('[data-id="' + id + '"] .arc_status_badge')
+            .removeClass('st_wait st_unpaid st_partial st_paid')
+            .addClass(stClass).text('완납');
     });
 
     // ── 내역 보기 모달: 입금 금액 실시간 처리 ────────────────
     $(document).on('input', '#detail_paid_input', function() {
         var raw = this.value.replace(/[^0-9]/g, '');
         var paid = parseInt(raw) || 0;
-        this.value = raw; // 입력 중엔 숫자만
+        this.value = raw;
         var totalNum = parseInt($("#detail_total_num").text().replace(/[^0-9]/g, '')) || 0;
         $("#detail_paid_full_chk").prop('checked', paid > 0 && paid >= totalNum);
-        // 상태 자동 변경 (실시간 미리보기)
         var newStatus = null;
-        if (paid > 0 && paid < totalNum)         newStatus = '부분 납부';
-        else if (paid > 0 && paid >= totalNum)   newStatus = '완납';
+        if (paid > 0 && paid < totalNum)       newStatus = '부분 납부';
+        else if (paid > 0 && paid >= totalNum) newStatus = '완납';
         if (newStatus) {
             var stClass = ARC_STATUS_CLASS[newStatus];
             $("#detail_status_sel").val(newStatus).removeClass('st_wait st_unpaid st_partial st_paid').addClass(stClass);
@@ -6152,6 +6157,10 @@ $(function(){
         var id = $("#archive_detail_modal").data("current-id");
         var newStatus = $("#detail_status_sel").val();
         updateArchivePayment(id, paid, newStatus);
+        var stClass = ARC_STATUS_CLASS[newStatus] || 'st_wait';
+        $('[data-id="' + id + '"] .arc_status_badge')
+            .removeClass('st_wait st_unpaid st_partial st_paid')
+            .addClass(stClass).text(newStatus);
     });
 
     // ── 견적 비용 스티키 (하단 고정) ──────────────────────────
@@ -6662,7 +6671,7 @@ function updateArchivePayment(id, paid, status) {
             a.paid = paid;
             if (status) a.status = status;
         });
-        setArchives(list, function() { renderArchiveList(); });
+        setArchives(list);
     });
 }
 
