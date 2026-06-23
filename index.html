@@ -23,6 +23,10 @@
             <span class="nav-icon">&#9998;</span>
             <span>견적 계산기</span>
         </a>
+        <a href="estimates.html" class="nav-item">
+            <span class="nav-icon">&#128196;</span>
+            <span>견적서 관리</span>
+        </a>
         <a href="vendor.html" class="nav-item">
             <span class="nav-icon">&#9679;</span>
             <span>업체 관리</span>
@@ -121,50 +125,6 @@
             </div>
         </div>
 
-        <!-- 저장된 견적 목록 -->
-        <div class="archive_section" id="archive_section">
-            <h2 class="total_title">
-                <span class="title-bar"></span>
-                저장된 견적 목록
-            </h2>
-            <!-- 검색/필터 -->
-            <div class="archive_search" id="archive_search">
-                <!-- 1행: 텍스트·상태·진행여부 -->
-                <div class="arc_search_row">
-                    <input type="text" id="search_name"    class="arc_search_input" placeholder="견적서 이름 검색..." />
-                    <input type="text" id="search_company" class="arc_search_input" placeholder="업체명 검색..." />
-                    <select id="search_status" class="arc_search_select">
-                        <option value="">전체 상태</option>
-                        <option value="대기">대기</option>
-                        <option value="미납">미납</option>
-                        <option value="부분 납부">부분 납부</option>
-                        <option value="완납">완납</option>
-                    </select>
-                    <select id="search_proceed" class="arc_search_select">
-                        <option value="">진행 여부 전체</option>
-                        <option value="O">O (진행)</option>
-                        <option value="X">X (미진행)</option>
-                    </select>
-                    <button id="btn_search_reset" class="arc_search_reset">초기화</button>
-                </div>
-                <!-- 2행: 기간 검색 -->
-                <div class="arc_search_row arc_date_row">
-                    <span class="arc_date_label">기간</span>
-                    <input type="date" id="search_date_from" class="arc_search_input arc_date_input" />
-                    <span class="arc_date_sep">~</span>
-                    <input type="date" id="search_date_to"   class="arc_search_input arc_date_input" />
-                    <div class="arc_date_quick_btns">
-                        <button class="arc_date_quick" data-range="today">당일</button>
-                        <button class="arc_date_quick" data-range="yesterday">전일</button>
-                        <button class="arc_date_quick" data-range="thismonth">당월</button>
-                        <button class="arc_date_quick" data-range="lastmonth">전월</button>
-                    </div>
-                </div>
-            </div>
-            <div class="archive_list" id="archive_list">
-                <p class="archive_empty">저장된 견적이 없습니다.</p>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -196,62 +156,6 @@
         <div class="modal_footer">
             <button id="save_name_cancel" class="modal_cancel_btn">취소</button>
             <button id="save_name_confirm" class="modal_save_btn">저장하기</button>
-        </div>
-    </div>
-</div>
-
-<!-- 견적 내역 보기 모달 -->
-<div class="modal_overlay" id="archive_detail_modal">
-    <div class="modal_box modal_lg">
-        <div class="modal_header">
-            <div class="modal_header_info">
-                <h3 id="detail_modal_title"></h3>
-                <p id="detail_modal_date" class="detail_modal_date"></p>
-            </div>
-            <button class="modal_close" id="detail_modal_close">&#215;</button>
-        </div>
-        <div class="modal_body modal_body_scroll">
-            <ul id="detail_items_list" class="detail_items_list"></ul>
-            <div class="detail_total_row">
-                <span class="detail_total_label">합 계</span>
-                <span class="detail_total_val">&#8361; <em id="detail_total_num">0</em> 원</span>
-            </div>
-        </div>
-        <!-- 결제 정보 -->
-        <div class="detail_payment_section">
-            <div class="detail_payment_field">
-                <span class="detail_payment_label">진행 여부</span>
-                <div class="detail_proceed_btns">
-                    <button class="btn_proceed" data-val="O">O</button>
-                    <button class="btn_proceed" data-val="X">X</button>
-                </div>
-            </div>
-            <div id="detail_payment_fields" class="detail_payment_fields payment_disabled">
-                <div class="detail_payment_field">
-                    <span class="detail_payment_label">견적 상태</span>
-                    <select id="detail_status_sel" class="arc_status_sel st_wait">
-                        <option value="대기">대기</option>
-                        <option value="미납">미납</option>
-                        <option value="부분 납부">부분 납부</option>
-                        <option value="완납">완납</option>
-                    </select>
-                </div>
-                <div class="detail_payment_field">
-                    <span class="detail_payment_label">입금 금액</span>
-                    <div class="detail_paid_row">
-                        <span class="detail_paid_currency">&#8361;</span>
-                        <input type="text" id="detail_paid_input" class="detail_paid_input" placeholder="0" />
-                        <label class="detail_paid_full_label">
-                            <input type="checkbox" id="detail_paid_full_chk" />
-                            <span>완납</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal_footer">
-            <button id="detail_load_btn" class="detail_load_btn">현재 목록으로 불러오기</button>
-            <button id="detail_print_btn" class="modal_print_btn">견적서 출력</button>
         </div>
     </div>
 </div>
