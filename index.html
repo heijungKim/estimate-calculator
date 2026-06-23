@@ -494,23 +494,32 @@
         <!-- 결제 정보 -->
         <div class="detail_payment_section">
             <div class="detail_payment_field">
-                <span class="detail_payment_label">견적 상태</span>
-                <select id="detail_status_sel" class="arc_status_sel st_wait">
-                    <option value="대기">대기</option>
-                    <option value="미납">미납</option>
-                    <option value="부분 납부">부분 납부</option>
-                    <option value="완납">완납</option>
-                </select>
+                <span class="detail_payment_label">진행 여부</span>
+                <div class="detail_proceed_btns">
+                    <button class="btn_proceed" data-val="O">O</button>
+                    <button class="btn_proceed" data-val="X">X</button>
+                </div>
             </div>
-            <div class="detail_payment_field">
-                <span class="detail_payment_label">입금 금액</span>
-                <div class="detail_paid_row">
-                    <span class="detail_paid_currency">&#8361;</span>
-                    <input type="text" id="detail_paid_input" class="detail_paid_input" placeholder="0" />
-                    <label class="detail_paid_full_label">
-                        <input type="checkbox" id="detail_paid_full_chk" />
-                        <span>완납</span>
-                    </label>
+            <div id="detail_payment_fields" class="detail_payment_fields payment_disabled">
+                <div class="detail_payment_field">
+                    <span class="detail_payment_label">견적 상태</span>
+                    <select id="detail_status_sel" class="arc_status_sel st_wait">
+                        <option value="대기">대기</option>
+                        <option value="미납">미납</option>
+                        <option value="부분 납부">부분 납부</option>
+                        <option value="완납">완납</option>
+                    </select>
+                </div>
+                <div class="detail_payment_field">
+                    <span class="detail_payment_label">입금 금액</span>
+                    <div class="detail_paid_row">
+                        <span class="detail_paid_currency">&#8361;</span>
+                        <input type="text" id="detail_paid_input" class="detail_paid_input" placeholder="0" />
+                        <label class="detail_paid_full_label">
+                            <input type="checkbox" id="detail_paid_full_chk" />
+                            <span>완납</span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>

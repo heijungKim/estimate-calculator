@@ -6107,6 +6107,21 @@ $(function(){
         renderArchiveList();
     });
 
+    // ── 내역 보기 모달: 진행 여부 ────────────────────────────
+    $(document).on('click', '.btn_proceed', function() {
+        var id = $("#archive_detail_modal").data("current-id");
+        var val = $(this).data('val');
+        $('.btn_proceed').removeClass('proceed_active');
+        $(this).addClass('proceed_active');
+        _togglePaymentFields(val === 'O');
+        updateArchiveProceed(id, val);
+        // 목록 배지 직접 갱신
+        var $badge = $('[data-id="' + id + '"] .arc_proceed_badge');
+        $badge.text(val)
+              .removeClass('proceed_o proceed_x proceed_none')
+              .addClass(val === 'O' ? 'proceed_o' : 'proceed_x');
+    });
+
     // ── 내역 보기 모달: 상태 변경 ────────────────────────────
     $(document).on('change', '#detail_status_sel', function() {
         var id = $("#archive_detail_modal").data("current-id");
@@ -6547,6 +6562,7 @@ function saveEstimate(name, date, company) {
         company:        company || '',
         date:           date,
         status:         '대기',
+        proceed:        '',
         paid:           0,
         total:          totalNum,
         totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -6594,6 +6610,9 @@ function renderArchiveList() {
             items.forEach(function(arc) {
                 var st  = arc.status || '대기';
                 var stClass = ARC_STATUS_CLASS[st] || 'st_wait';
+                var proc = arc.proceed || '';
+                var procClass = proc === 'O' ? 'proceed_o' : (proc === 'X' ? 'proceed_x' : 'proceed_none');
+                var procText  = proc || '-';
                 var stOpts = ['대기', '미납', '부분 납부', '완납'].map(function(s) {
                     return '<option value="' + s + '"' + (st === s ? ' selected' : '') + '>' + s + '</option>';
                 }).join('');
@@ -6601,8 +6620,9 @@ function renderArchiveList() {
                     '<div class="archive_item" data-id="' + arc.id + '">' +
                         '<div class="archive_item_left">' +
                             '<div class="archive_name_row">' +
+                                '<span class="arc_proceed_badge ' + procClass + '" title="진행 여부">' + procText + '</span>' +
                                 '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
-                                '<span class="arc_status_badge ' + stClass + '">' + st + '</span>' +
+                                '<span class="arc_status_badge ' + (proc === 'O' ? stClass : 'st_none') + '">' + (proc === 'O' ? st : '-') + '</span>' +
                             '</div>' +
                             '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
                                 arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
@@ -6630,6 +6650,12 @@ function showArchiveDetail(id) {
         $("#detail_modal_title").text(arc.name);
         $("#detail_modal_date").text((arc.company ? '[' + arc.company + '] ' : '') + arc.date);
         $("#detail_total_num").text(arc.totalFormatted);
+
+        // 진행 여부 초기화
+        var proc = arc.proceed || '';
+        $('.btn_proceed').removeClass('proceed_active');
+        if (proc) $('.btn_proceed[data-val="' + proc + '"]').addClass('proceed_active');
+        _togglePaymentFields(proc === 'O');
 
         // 상태 select 초기화
         var st = arc.status || '대기';
@@ -6659,6 +6685,19 @@ function showArchiveDetail(id) {
 function updateArchiveStatus(id, newStatus) {
     getArchives(function(list) {
         list.forEach(function(a) { if (a.id === id) a.status = newStatus; });
+        setArchives(list);
+    });
+}
+
+// 납부 영역 활성/비활성 토글
+function _togglePaymentFields(enabled) {
+    $('#detail_payment_fields').toggleClass('payment_disabled', !enabled);
+}
+
+// 진행 여부 저장
+function updateArchiveProceed(id, proceed) {
+    getArchives(function(list) {
+        list.forEach(function(a) { if (a.id === id) a.proceed = proceed; });
         setArchives(list);
     });
 }

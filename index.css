@@ -1496,7 +1496,7 @@ input::placeholder {
 .detail_payment_section {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 12px 20px;
     padding: 14px 24px;
     border-top: 1.5px solid #eaedf2;
     background: #f8f9fb;
@@ -1565,3 +1565,64 @@ input::placeholder {
     accent-color: #2e7d32;
     margin: 0;
 }
+
+/* ── 진행 여부 버튼 ── */
+.detail_proceed_btns {
+    display: flex;
+    gap: 6px;
+}
+.btn_proceed {
+    width: 38px;
+    height: 32px;
+    border: 1.5px solid #dde1e9;
+    border-radius: 8px;
+    background: #f8f9fb;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: #bbb;
+    transition: all 0.15s;
+}
+.btn_proceed:hover { border-color: #bfc7d5; color: #666; }
+.btn_proceed[data-val="O"].proceed_active {
+    background: #e8f5e9;
+    border-color: #2e7d32;
+    color: #2e7d32;
+}
+.btn_proceed[data-val="X"].proceed_active {
+    background: #fdecea;
+    border-color: #c62828;
+    color: #c62828;
+}
+
+/* ── 납부 영역 비활성 ── */
+.detail_payment_fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+.payment_disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* ── 진행 여부 배지 (목록) ── */
+.arc_proceed_badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.proceed_o    { background: #e8f5e9; color: #2e7d32; }
+.proceed_x    { background: #fdecea; color: #c62828; }
+.proceed_none { background: #f0f2f5; color: #bbb; }
+
+/* 진행 X일 때 상태 배지 비활성 */
+.st_none { background: #f0f2f5; color: #bbb; }
