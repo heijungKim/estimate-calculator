@@ -55,6 +55,9 @@ function deleteVendor(id, cb) {
 // ── 편집 상태 ────────────────────────────────────────────────
 var editingId = null;
 
+// ── 견적 상태 클래스 ─────────────────────────────────────────
+var ARC_STATUS_CLASS = { '대기': 'st_wait', '미납': 'st_unpaid', '부분 납부': 'st_partial', '완납': 'st_paid' };
+
 // ── 검색 필터 상태 ───────────────────────────────────────────
 var _vFilter = { name: '', owner: '', phone: '', email: '' };
 
@@ -103,15 +106,17 @@ function fmt(n) {
 }
 
 // ── 렌더링 (테이블) ──────────────────────────────────────────
-var _cachedVendors = null;
-var _cachedStats   = null;
+var _cachedVendors      = null;
+var _cachedStats        = null;
+var _cachedArchiveList  = null;
 
 function renderVendors() {
     var $area = $('#vendor_list_area');
     $area.html('<p class="vendor-empty">불러오는 중…</p>');
 
-    _cachedVendors = null;
-    _cachedStats   = null;
+    _cachedVendors     = null;
+    _cachedStats       = null;
+    _cachedArchiveList = null;
 
     function tryRender() {
         if (_cachedVendors === null || _cachedStats === null) return;
@@ -135,7 +140,7 @@ function renderVendors() {
                 '<td>' + esc(v.owner || '-') + '</td>' +
                 '<td>' + esc(v.phone || '-') + '</td>' +
                 '<td>' + esc(v.email || '-') + '</td>' +
-                '<td class="tc">' + stats.count + '건</td>' +
+                '<td class="tc"><button class="vt-count-btn" data-name="' + esc(v.name) + '">' + stats.count + '건</button></td>' +
                 '<td class="tr">₩ ' + fmt(stats.total) + '</td>' +
                 '<td class="tr vt-paid-cell" data-id="' + v.id + '" data-paid="' + paid + '">' +
                     '<span class="vt-paid-val">₩ ' + fmt(paid) + '</span>' +
@@ -168,9 +173,53 @@ function renderVendors() {
         tryRender();
     });
     loadArchiveList(function(l) {
+        _cachedArchiveList = l;
         _cachedStats = buildVendorStats(l);
         tryRender();
     });
+}
+
+// ── 업체별 견적 팝업 ─────────────────────────────────────────
+function showVendorEstimates(vendorName) {
+    var list = (_cachedArchiveList || []).filter(function(arc) {
+        return arc.company === vendorName;
+    });
+    list.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
+    $('#vest_title').text('"' + vendorName + '" 견적 목록 (' + list.length + '건)');
+
+    var $body = $('#vest_body');
+    if (!list.length) {
+        $body.html('<p class="vendor-empty">해당 업체의 견적이 없습니다.</p>');
+    } else {
+        var rows = list.map(function(arc) {
+            var st = arc.status || '-';
+            var stCls = ARC_STATUS_CLASS[st] || '';
+            return '<tr>' +
+                '<td class="vest-name">' + esc(arc.name || '-') + '</td>' +
+                '<td class="tc">' + esc(arc.date || '-') + '</td>' +
+                '<td class="tr">₩ ' + (arc.totalFormatted || fmt(arc.total)) + '</td>' +
+                '<td class="tc"><span class="arc-status ' + stCls + '">' + esc(st) + '</span></td>' +
+                '<td class="tc">' + esc(arc.proceed || '-') + '</td>' +
+            '</tr>';
+        }).join('');
+
+        $body.html(
+            '<table class="vest-table">' +
+            '<thead><tr>' +
+                '<th>견적명</th><th class="tc">날짜</th><th class="tr">금액</th>' +
+                '<th class="tc">상태</th><th class="tc">진행</th>' +
+            '</tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+            '</table>'
+        );
+    }
+
+    $('#vendor_est_modal').fadeIn(200, function(){ $(this).css('display', 'flex'); });
+}
+
+function closeEstModal() {
+    $('#vendor_est_modal').fadeOut(200);
 }
 
 function reRenderFiltered() {
@@ -267,6 +316,15 @@ function fillForm(v) {
 // ── 이벤트 바인딩 ────────────────────────────────────────────
 $(function() {
     renderVendors();
+
+    // 업체별 견적 팝업
+    $('#vendor_list_area').on('click', '.vt-count-btn', function() {
+        showVendorEstimates($(this).data('name'));
+    });
+    $('#vest_modal_close, #vest_close_btn').on('click', closeEstModal);
+    $('#vendor_est_modal').on('click', function(e) {
+        if (e.target === this) closeEstModal();
+    });
 
     // 검색 필터
     $('#vs_name, #vs_owner, #vs_phone, #vs_email').on('input', function() {
