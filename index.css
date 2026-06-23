@@ -84,7 +84,7 @@ input::placeholder {
 /* ── Header ── */
 .site-header {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-    padding: 32px 0 28px;
+    padding: 14px 0 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 }
 
@@ -92,32 +92,35 @@ input::placeholder {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .header-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 0;
 }
 
 .logo-icon {
     color: #e94560;
-    font-size: 22px;
+    font-size: 16px;
 }
 
 .logo-text {
     color: #fff;
-    font-size: 24px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.5px;
 }
 
 .header-sub {
-    color: rgba(255,255,255,0.5);
-    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    font-size: 12px;
     font-weight: 300;
-    padding-left: 34px;
+    padding-left: 0;
 }
 
 /* ── Wrap ── */
