@@ -143,49 +143,145 @@
     padding: 40px 0;
 }
 
-.vendor-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.vendor-table th {
-    background: #f7f8fa;
-    padding: 11px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #4a5568;
-    text-align: left;
-    border-bottom: 1.5px solid #edf0f5;
-}
-
-.vendor-table td {
-    padding: 13px 16px;
-    font-size: 14px;
-    color: #1a1a2e;
-    border-bottom: 1px solid #f0f2f5;
-    vertical-align: middle;
-}
-
-.vendor-table tr:last-child td {
-    border-bottom: none;
-}
-
-.vendor-table tr:hover td {
-    background: #fafbfc;
-}
-
-.vendor-name-cell {
-    font-weight: 600;
-}
-
-.vendor-memo-cell {
-    color: #8892a4;
-    font-size: 13px;
-    max-width: 200px;
-    white-space: nowrap;
+/* ── 업체 카드 ── */
+.vendor-item {
+    border: 1.5px solid #edf0f5;
+    border-radius: 14px;
+    margin-bottom: 14px;
     overflow: hidden;
-    text-overflow: ellipsis;
+    background: #fff;
+    transition: box-shadow 0.18s;
 }
+.vendor-item:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.07); }
+.vendor-item:last-child { margin-bottom: 0; }
+
+.vendor-item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 16px 20px 14px;
+    gap: 12px;
+}
+
+.vendor-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.vendor-item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.vendor-item-info {
+    font-size: 13px;
+    color: #5a6880;
+}
+
+.vendor-item-memo {
+    font-size: 12px;
+    color: #8892a4;
+    font-style: italic;
+}
+
+/* ── 통계 영역 ── */
+.vendor-item-stats {
+    display: flex;
+    border-top: 1.5px solid #f0f2f5;
+}
+
+.stat-box {
+    flex: 1;
+    padding: 11px 16px;
+    border-right: 1px solid #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.stat-box:last-child { border-right: none; }
+
+.stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #8892a4;
+    letter-spacing: 0.3px;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.stat-box-paid  { background: #f5fdf7; }
+.stat-box-unpaid { background: #fffaf5; }
+.has-unpaid { color: #e94560; }
+
+.stat-value-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.paid-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.btn-paid-edit {
+    padding: 2px 8px;
+    background: #edf2ff;
+    color: #3b6cf7;
+    border: none;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+.btn-paid-edit:hover { background: #dce6ff; }
+
+.paid-input {
+    width: 100px;
+    padding: 4px 8px;
+    border: 1.5px solid #3b6cf7;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a2e;
+    outline: none;
+}
+
+.btn-paid-save {
+    padding: 4px 10px;
+    background: #3b6cf7;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+.btn-paid-save:hover { opacity: 0.88; }
+
+.btn-paid-cancel {
+    padding: 4px 8px;
+    background: #f0f2f5;
+    color: #4a5568;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+.btn-paid-cancel:hover { background: #e2e8f0; }
 
 .vendor-actions {
     display: flex;
