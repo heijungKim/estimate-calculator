@@ -1092,7 +1092,8 @@ input::placeholder {
     font-size: 12px;
 }
 .modal_field input,
-.modal_field textarea {
+.modal_field textarea,
+.modal_field select {
     border: 1.5px solid #dde1e9;
     border-radius: 8px;
     padding: 9px 12px;
@@ -1102,9 +1103,13 @@ input::placeholder {
     outline: none;
     transition: border-color 0.18s;
     resize: vertical;
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
 }
 .modal_field input:focus,
-.modal_field textarea:focus {
+.modal_field textarea:focus,
+.modal_field select:focus {
     border-color: #e94560;
 }
 

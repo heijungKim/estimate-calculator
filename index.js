@@ -6031,12 +6031,10 @@ $(function(){
                 ('0'+today.getDate()).slice(-2);
         $("#save_estimate_date").val(d);
         $("#save_estimate_name").val('');
-        $("#save_estimate_company").val('');
-        getArchives(function(list) {
-            var companies = [];
-            list.forEach(function(a) { if(a.company && companies.indexOf(a.company) === -1) companies.push(a.company); });
-            var opts = companies.map(function(c){ return '<option value="' + escHtml(c) + '">'; }).join('');
-            $("#company_datalist").html(opts);
+        loadVendorNames(function(names) {
+            var opts = '<option value="">-- 업체 선택 (선택 안 함) --</option>';
+            opts += names.map(function(n){ return '<option value="' + escHtml(n) + '">' + escHtml(n) + '</option>'; }).join('');
+            $("#save_estimate_company").html(opts).val('');
         });
         $("#save_name_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
         setTimeout(function(){ $("#save_estimate_company").focus(); }, 220);
@@ -6057,8 +6055,8 @@ $(function(){
     $("#save_estimate_name").keypress(function(e){
         if (e.which === 13) $("#save_name_confirm").click();
     });
-    $("#save_estimate_company").keypress(function(e){
-        if (e.which === 13) { $("#save_estimate_name").focus(); }
+    $("#save_estimate_company").on('change', function(){
+        setTimeout(function(){ $("#save_estimate_name").focus(); }, 50);
     });
 
     // ── 아카이브 목록 이벤트 (동적 바인딩) ───────────────────
@@ -6391,6 +6389,21 @@ function _initFirestore() {
         if (!firebase.apps.length) firebase.initializeApp(cfg);
         _archivesDoc = firebase.firestore().collection('estimates').doc('archive_list');
     } catch(e) {}
+}
+
+function loadVendorNames(cb) {
+    try {
+        var cfg = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
+        if (!cfg || !cfg.apiKey || cfg.apiKey === 'YOUR_API_KEY') { cb([]); return; }
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
+        firebase.firestore().collection('vendors').orderBy('createdAt', 'asc').get()
+            .then(function(snap) {
+                var names = [];
+                snap.forEach(function(doc) { if (doc.data().name) names.push(doc.data().name); });
+                cb(names);
+            })
+            .catch(function() { cb([]); });
+    } catch(e) { cb([]); }
 }
 
 function getArchives(cb) {

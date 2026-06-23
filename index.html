@@ -440,8 +440,9 @@
         <div class="modal_body">
             <div class="modal_field">
                 <label for="save_estimate_company">업체명</label>
-                <input type="text" id="save_estimate_company" list="company_datalist" placeholder="업체명을 입력하세요" autocomplete="off" />
-                <datalist id="company_datalist"></datalist>
+                <select id="save_estimate_company">
+                    <option value="">-- 업체 선택 (선택 안 함) --</option>
+                </select>
             </div>
             <div class="modal_field">
                 <label for="save_estimate_name">견적 이름</label>
