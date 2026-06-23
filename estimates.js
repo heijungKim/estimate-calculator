@@ -176,6 +176,42 @@ function renderArchiveList() {
         if (list.length < allList.length) countText += ' (검색 ' + list.length + '건)';
         $('#arc_count').text(countText);
 
+        // 합계 계산
+        var sumTotal = 0, sumProceed = 0, sumPaid = 0;
+        list.forEach(function(a) {
+            var t = Number(a.total) || 0;
+            var p = Number(a.paid)  || 0;
+            sumTotal += t;
+            if (a.proceed === 'O') {
+                sumProceed += t;
+                sumPaid    += p;
+            }
+        });
+        var sumUnpaid = Math.max(0, sumProceed - sumPaid);
+        var fk = function(n) { return n.toLocaleString('ko-KR'); };
+        $('#arc_summary').html(
+            '<div class="arc-sum-item">' +
+                '<span class="arc-sum-label">견적 수</span>' +
+                '<span class="arc-sum-value">' + list.length + '건</span>' +
+            '</div>' +
+            '<div class="arc-sum-item">' +
+                '<span class="arc-sum-label">견적 금액</span>' +
+                '<span class="arc-sum-value">&#8361; ' + fk(sumTotal) + '</span>' +
+            '</div>' +
+            '<div class="arc-sum-item sum-proceed">' +
+                '<span class="arc-sum-label">진행 견적 금액</span>' +
+                '<span class="arc-sum-value">&#8361; ' + fk(sumProceed) + '</span>' +
+            '</div>' +
+            '<div class="arc-sum-item sum-paid">' +
+                '<span class="arc-sum-label">입금 금액</span>' +
+                '<span class="arc-sum-value">&#8361; ' + fk(sumPaid) + '</span>' +
+            '</div>' +
+            '<div class="arc-sum-item sum-unpaid">' +
+                '<span class="arc-sum-label">미수 금액</span>' +
+                '<span class="arc-sum-value">&#8361; ' + fk(sumUnpaid) + '</span>' +
+            '</div>'
+        );
+
         if (!list.length) {
             var msg = allList.length ? '검색 결과가 없습니다.' : '저장된 견적이 없습니다.';
             $el.html('<p class="archive_empty">' + msg + '</p>');
