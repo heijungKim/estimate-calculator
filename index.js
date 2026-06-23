@@ -6615,7 +6615,12 @@ function saveEstimate(name, date, company) {
 
     getArchives(function(list) {
         list.unshift(arc);
-        setArchives(list, function() { renderArchiveList(); });
+        setArchives(list, function() {
+            renderArchiveList();
+            // 저장 완료 후 견적 리스트 초기화
+            $("#total_price_wrap .total_list ul").empty();
+            list_sum_price();
+        });
     });
 }
 
