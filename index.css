@@ -1308,14 +1308,19 @@ input::placeholder {
 /* ── 검색/필터 바 ── */
 .archive_search {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 7px;
     margin: 14px 0 10px;
+}
+.arc_search_row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
     align-items: center;
 }
 .arc_search_input {
     flex: 1;
-    min-width: 130px;
+    min-width: 120px;
     padding: 8px 12px;
     border: 1.5px solid #e2e8f0;
     border-radius: 8px;
@@ -1325,6 +1330,7 @@ input::placeholder {
     background: #fafbfc;
     outline: none;
     transition: border-color 0.18s;
+    box-sizing: border-box;
 }
 .arc_search_input:focus { border-color: #e94560; background: #fff; }
 .arc_search_select {
@@ -1353,6 +1359,48 @@ input::placeholder {
     transition: background 0.15s;
 }
 .arc_search_reset:hover { background: #e2e8f0; }
+
+/* ── 기간 검색 행 ── */
+.arc_date_label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    white-space: nowrap;
+}
+.arc_date_sep {
+    font-size: 14px;
+    color: #aaa;
+    font-weight: 500;
+}
+.arc_date_input {
+    flex: none;
+    width: 148px;
+    min-width: unset;
+}
+.arc_date_quick_btns {
+    display: flex;
+    gap: 5px;
+    margin-left: 2px;
+}
+.arc_date_quick {
+    padding: 7px 13px;
+    background: #f0f2f5;
+    color: #4a5568;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.arc_date_quick:hover { background: #e2e8f0; border-color: #c8cedb; }
+.arc_date_quick_active {
+    background: #1a1a2e;
+    color: #fff;
+    border-color: #1a1a2e;
+}
 
 /* ── 견적서 이름 + 상태 배지 행 ── */
 .archive_name_row {

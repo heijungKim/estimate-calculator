@@ -6090,20 +6090,61 @@ $(function(){
         _arcFilter.company = $.trim($('#search_company').val());
         renderArchiveList();
     });
-    $('#search_date').on('change', function() {
-        _arcFilter.date = $(this).val();
-        renderArchiveList();
-    });
     $('#search_status').on('change', function() {
         _arcFilter.status = $(this).val();
         renderArchiveList();
     });
+    $('#search_proceed').on('change', function() {
+        _arcFilter.proceed = $(this).val();
+        renderArchiveList();
+    });
+    $('#search_date_from, #search_date_to').on('change', function() {
+        _arcFilter.dateFrom = $('#search_date_from').val();
+        _arcFilter.dateTo   = $('#search_date_to').val();
+        $('.arc_date_quick').removeClass('arc_date_quick_active');
+        renderArchiveList();
+    });
+
+    // ── 기간 빠른 버튼 ───────────────────────────────────────
+    function _fmtDate(d) {
+        return d.getFullYear() + '-' +
+               ('0'+(d.getMonth()+1)).slice(-2) + '-' +
+               ('0'+d.getDate()).slice(-2);
+    }
+    $(document).on('click', '.arc_date_quick', function() {
+        var range = $(this).data('range');
+        var now   = new Date();
+        var from, to;
+        if (range === 'today') {
+            from = to = _fmtDate(now);
+        } else if (range === 'yesterday') {
+            var y = new Date(now); y.setDate(y.getDate() - 1);
+            from = to = _fmtDate(y);
+        } else if (range === 'thismonth') {
+            from = _fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+            to   = _fmtDate(now);
+        } else if (range === 'lastmonth') {
+            from = _fmtDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+            to   = _fmtDate(new Date(now.getFullYear(), now.getMonth(), 0));
+        }
+        $('#search_date_from').val(from);
+        $('#search_date_to').val(to);
+        _arcFilter.dateFrom = from;
+        _arcFilter.dateTo   = to;
+        $('.arc_date_quick').removeClass('arc_date_quick_active');
+        $(this).addClass('arc_date_quick_active');
+        renderArchiveList();
+    });
+
     $('#btn_search_reset').on('click', function() {
-        _arcFilter = { name: '', company: '', date: '', status: '' };
+        _arcFilter = { name: '', company: '', dateFrom: '', dateTo: '', status: '', proceed: '' };
         $('#search_name').val('');
         $('#search_company').val('');
-        $('#search_date').val('');
+        $('#search_date_from').val('');
+        $('#search_date_to').val('');
         $('#search_status').val('');
+        $('#search_proceed').val('');
+        $('.arc_date_quick').removeClass('arc_date_quick_active');
         renderArchiveList();
     });
 
@@ -6479,15 +6520,17 @@ var _archivesDoc = null;
 var ARC_STATUS_CLASS = { '대기': 'st_wait', '미납': 'st_unpaid', '부분 납부': 'st_partial', '완납': 'st_paid' };
 
 // 검색 필터 상태
-var _arcFilter = { name: '', company: '', date: '', status: '' };
+var _arcFilter = { name: '', company: '', dateFrom: '', dateTo: '', status: '', proceed: '' };
 
 function applyArchiveFilter(list) {
     var f = _arcFilter;
     return list.filter(function(a) {
-        if (f.name    && (a.name    || '').indexOf(f.name)    === -1) return false;
-        if (f.company && (a.company || '').indexOf(f.company) === -1) return false;
-        if (f.date    && a.date !== f.date) return false;
-        if (f.status  && (a.status  || '대기') !== f.status)  return false;
+        if (f.name     && (a.name    || '').indexOf(f.name)    === -1) return false;
+        if (f.company  && (a.company || '').indexOf(f.company) === -1) return false;
+        if (f.dateFrom && (a.date || '') < f.dateFrom) return false;
+        if (f.dateTo   && (a.date || '') > f.dateTo)   return false;
+        if (f.status   && (a.status  || '대기') !== f.status)  return false;
+        if (f.proceed  && (a.proceed || '') !== f.proceed)      return false;
         return true;
     });
 }
