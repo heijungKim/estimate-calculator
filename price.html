@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>단가 설정표 - 간판 관리</title>
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">&#9998;</span>
+            <span>견적 계산기</span>
+        </a>
+        <a href="vendor.html" class="nav-item">
+            <span class="nav-icon">&#9679;</span>
+            <span>업체 관리</span>
+        </a>
+        <a href="price.html" class="nav-item active">
+            <span class="nav-icon">&#128176;</span>
+            <span>단가 설정표</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <span class="logo-icon">&#9632;</span>
+            <span class="logo-text">단가 설정표</span>
+        </div>
+        <p class="header-sub">간판 종류별 단가를 설정하고 저장하세요</p>
+    </div>
+</header>
+
+<div class="woosung_wrap">
+    <div class="price_panel">
+        <div class="price_panel_body" id="price_panel_body" style="display:block;">
+
+            <!-- 사인탑 -->
+            <div class="price_section">
+                <div class="price_section_title">사인탑</div>
+                <div class="price_cols">
+                    <div class="price_col">
+                        <div class="price_col_head">비조명 화면작업 (m²)</div>
+                        <div class="price_row"><label>후렉스출력</label><input type="text" inputmode="numeric" id="p_sign01_flex_print"><span>원</span></div>
+                        <div class="price_row"><label>후렉스시트</label><input type="text" inputmode="numeric" id="p_sign01_flex_sheet"><span>원</span></div>
+                        <div class="price_row"><label>텐션없음</label><input type="text" inputmode="numeric" id="p_sign01_tension_none"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">조명 화면작업 (m²)</div>
+                        <div class="price_row"><label>후렉스출력</label><input type="text" inputmode="numeric" id="p_sign02_flex_print"><span>원</span></div>
+                        <div class="price_row"><label>후렉스시트</label><input type="text" inputmode="numeric" id="p_sign02_flex_sheet"><span>원</span></div>
+                        <div class="price_row"><label>텐션없음</label><input type="text" inputmode="numeric" id="p_sign02_tension_none"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">공통 단가</div>
+                        <div class="price_row"><label>LED 형광등 (개당)</label><input type="text" inputmode="numeric" id="p_sign_led"><span>원</span></div>
+                        <div class="price_row"><label>스텐몰딩 (m당)</label><input type="text" inputmode="numeric" id="p_sign_sten_molding"><span>원</span></div>
+                        <div class="price_row"><label>색상도장 비조명 (m당)</label><input type="text" inputmode="numeric" id="p_sign_color_paint_nol"><span>원</span></div>
+                        <div class="price_row"><label>색상도장 조명 (m당)</label><input type="text" inputmode="numeric" id="p_sign_color_paint_light"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">돌출 세로m당 단가</div>
+                        <div class="price_row"><label>800mm폭</label><input type="text" inputmode="numeric" id="p_sign03_w800"><span>원</span></div>
+                        <div class="price_row"><label>900mm폭</label><input type="text" inputmode="numeric" id="p_sign03_w900"><span>원</span></div>
+                        <div class="price_row"><label>1000mm폭</label><input type="text" inputmode="numeric" id="p_sign03_w1000"><span>원</span></div>
+                        <div class="price_row"><label>1100mm폭</label><input type="text" inputmode="numeric" id="p_sign03_w1100"><span>원</span></div>
+                        <div class="price_row"><label>1200mm폭</label><input type="text" inputmode="numeric" id="p_sign03_w1200"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">돌출 화면작업 (m²)</div>
+                        <div class="price_row"><label>후렉스UV</label><input type="text" inputmode="numeric" id="p_sign03_flex_uv"><span>원</span></div>
+                        <div class="price_row"><label>후렉스솔벤</label><input type="text" inputmode="numeric" id="p_sign03_flex_sol"><span>원</span></div>
+                        <div class="price_row"><label>후렉스시트</label><input type="text" inputmode="numeric" id="p_sign03_flex_sheet"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">까치발 단가 (개당)</div>
+                        <div class="price_row"><label>800mm</label><input type="text" inputmode="numeric" id="p_angle_w800"><span>원</span></div>
+                        <div class="price_row"><label>900mm</label><input type="text" inputmode="numeric" id="p_angle_w900"><span>원</span></div>
+                        <div class="price_row"><label>1000mm</label><input type="text" inputmode="numeric" id="p_angle_w1000"><span>원</span></div>
+                        <div class="price_row"><label>1100mm</label><input type="text" inputmode="numeric" id="p_angle_w1100"><span>원</span></div>
+                        <div class="price_row"><label>1200mm</label><input type="text" inputmode="numeric" id="p_angle_w1200"><span>원</span></div>
+                        <div class="price_row"><label>1300mm</label><input type="text" inputmode="numeric" id="p_angle_w1300"><span>원</span></div>
+                        <div class="price_row"><label>1400mm</label><input type="text" inputmode="numeric" id="p_angle_w1400"><span>원</span></div>
+                        <div class="price_row"><label>1500mm</label><input type="text" inputmode="numeric" id="p_angle_w1500"><span>원</span></div>
+                        <div class="price_row"><label>1600mm</label><input type="text" inputmode="numeric" id="p_angle_w1600"><span>원</span></div>
+                        <div class="price_row"><label>1700mm</label><input type="text" inputmode="numeric" id="p_angle_w1700"><span>원</span></div>
+                        <div class="price_row"><label>1800mm</label><input type="text" inputmode="numeric" id="p_angle_w1800"><span>원</span></div>
+                        <div class="price_row"><label>1900mm</label><input type="text" inputmode="numeric" id="p_angle_w1900"><span>원</span></div>
+                        <div class="price_row"><label>2000mm</label><input type="text" inputmode="numeric" id="p_angle_w2000"><span>원</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 채널문자 품목 -->
+            <div class="price_section">
+                <div class="price_section_title">채널문자 품목</div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;">
+                <div class="ch_price_item">
+                <!-- 알루미늄 채널 -->
+                <div class="ch_type_label">알루미늄 채널 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문</th><th>한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_30">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_40">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_50">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_60">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_70">원</td></tr>
+                            <tr><td>80cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_80">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_80">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_80">원</td></tr>
+                            <tr><td>90cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_90">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_90">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_90">원</td></tr>
+                            <tr><td>100cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_100">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_100">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_100">원</td></tr>
+                            <tr><td>110cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_110">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_110">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_110">원</td></tr>
+                            <tr><td>120cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_120">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_120">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_120">원</td></tr>
+                            <tr><td>130cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_130">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_130">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_130">원</td></tr>
+                            <tr><td>140cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_140">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_140">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_140">원</td></tr>
+                            <tr><td>150cm</td><td><input type="text" inputmode="numeric" id="p_ch_taka_eng_150">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_kor_150">원</td><td><input type="text" inputmode="numeric" id="p_ch_taka_got_150">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="ch_price_item">
+                <!-- 일체형 채널 -->
+                <div class="ch_type_label">일체형 채널 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문</th><th>한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>20cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_20">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_20">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_20">원</td></tr>
+                            <tr><td>25cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_25">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_25">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_25">원</td></tr>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_30">원</td></tr>
+                            <tr><td>35cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_35">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_40">원</td></tr>
+                            <tr><td>45cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_45">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_50">원</td></tr>
+                            <tr><td>55cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_55">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_55">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_55">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_60">원</td></tr>
+                            <tr><td>65cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_65">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_65">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_65">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_kor_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_ilche_got_70">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="ch_price_item">
+                <!-- 에폭시채널 -->
+                <div class="ch_type_label">에폭시채널 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문</th><th>한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>20cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_20">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_20">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_20">원</td></tr>
+                            <tr><td>25cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_25">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_25">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_25">원</td></tr>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_30">원</td></tr>
+                            <tr><td>35cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_35">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_40">원</td></tr>
+                            <tr><td>45cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_45">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_50">원</td></tr>
+                            <tr><td>55cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_55">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_55">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_55">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_60">원</td></tr>
+                            <tr><td>65cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_65">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_65">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_65">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_epox_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_kor_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_epox_got_70">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="ch_price_item">
+                <!-- 티타늄골드채널 -->
+                <div class="ch_type_label">티타늄골드채널 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문/한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>20cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_20">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_20">원</td></tr>
+                            <tr><td>25cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_25">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_25">원</td></tr>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_30">원</td></tr>
+                            <tr><td>35cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_35">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_40">원</td></tr>
+                            <tr><td>45cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_45">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_50">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_60">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_70">원</td></tr>
+                            <tr><td>80cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_80">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_80">원</td></tr>
+                            <tr><td>90cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_90">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_90">원</td></tr>
+                            <tr><td>100cm</td><td><input type="text" inputmode="numeric" id="p_ch_titan_eng_100">원</td><td><input type="text" inputmode="numeric" id="p_ch_titan_got_100">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="ch_price_item">
+                <!-- 스텐채널 -->
+                <div class="ch_type_label">스텐채널 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문/한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>20cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_20">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_20">원</td></tr>
+                            <tr><td>25cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_25">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_25">원</td></tr>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_30">원</td></tr>
+                            <tr><td>35cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_35">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_40">원</td></tr>
+                            <tr><td>45cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_45">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_50">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_60">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_70">원</td></tr>
+                            <tr><td>80cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_80">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_80">원</td></tr>
+                            <tr><td>90cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_90">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_90">원</td></tr>
+                            <tr><td>100cm</td><td><input type="text" inputmode="numeric" id="p_ch_sten_eng_100">원</td><td><input type="text" inputmode="numeric" id="p_ch_sten_got_100">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="ch_price_item">
+                <!-- 갈바채널 ×1.3 -->
+                <div class="ch_type_label">갈바채널 ×1.3 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문/한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_30">원</td></tr>
+                            <tr><td>35cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_35">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_40">원</td></tr>
+                            <tr><td>45cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_45">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_50">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_60">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_70">원</td></tr>
+                            <tr><td>80cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_80">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_80">원</td></tr>
+                            <tr><td>90cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_90">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_90">원</td></tr>
+                            <tr><td>100cm</td><td><input type="text" inputmode="numeric" id="p_ch_galva_eng_100">원</td><td><input type="text" inputmode="numeric" id="p_ch_galva_got_100">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="ch_price_item">
+                <!-- 갈바오사이채널 ×1.3 -->
+                <div class="ch_type_label">갈바오사이채널 ×1.3 (글자당)</div>
+                <div style="overflow-x:auto">
+                    <table class="ch_taka_table">
+                        <thead><tr><th>크기</th><th>영문/한글</th><th>흘림체</th></tr></thead>
+                        <tbody>
+                            <tr><td>30cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_30">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_30">원</td></tr>
+                            <tr><td>35cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_35">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_35">원</td></tr>
+                            <tr><td>40cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_40">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_40">원</td></tr>
+                            <tr><td>45cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_45">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_45">원</td></tr>
+                            <tr><td>50cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_50">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_50">원</td></tr>
+                            <tr><td>60cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_60">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_60">원</td></tr>
+                            <tr><td>70cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_70">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_70">원</td></tr>
+                            <tr><td>80cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_80">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_80">원</td></tr>
+                            <tr><td>90cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_90">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_90">원</td></tr>
+                            <tr><td>100cm</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_eng_100">원</td><td><input type="text" inputmode="numeric" id="p_ch_gosa_got_100">원</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+            <!-- 공통 단가: 트러스바 / LED / 기타 -->
+                <div class="ch_type_label" style="margin-top:8px;">공통 단가</div>
+                <div class="price_cols">
+                    <div class="price_col">
+                        <div class="price_col_head">트러스바 (m당)</div>
+                        <div class="price_row"><label>200폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_200"><span>원</span></div>
+                        <div class="price_row"><label>250폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_250"><span>원</span></div>
+                        <div class="price_row"><label>300폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_300"><span>원</span></div>
+                        <div class="price_row"><label>400폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_400"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">LED 단가 (개당)</div>
+                        <div class="price_row"><label>백색</label><input type="text" inputmode="numeric" id="p_ch_led_white"><span>원</span></div>
+                        <div class="price_row"><label>웜(전구색)</label><input type="text" inputmode="numeric" id="p_ch_led_warm"><span>원</span></div>
+                        <div class="price_row"><label>RGB</label><input type="text" inputmode="numeric" id="p_ch_led_rgb"><span>원</span></div>
+                        <div class="price_row"><label>파노라마</label><input type="text" inputmode="numeric" id="p_ch_led_panorama"><span>원</span></div>
+                        <div class="price_row"><label>컬러(적/청/녹)</label><input type="text" inputmode="numeric" id="p_ch_led_color"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">기타</div>
+                        <div class="price_row"><label>까치발 (개당)</label><input type="text" inputmode="numeric" id="p_ch_ggachi"><span>원</span></div>
+                        <div class="price_row"><label>완조립</label><input type="text" inputmode="numeric" id="p_ch_complete"><span>원</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 실사출력 -->
+            <div class="price_section">
+                <div class="price_section_title">실사출력 (m²당)</div>
+                <div class="price_cols">
+                    <div class="price_col">
+                        <div class="price_col_head">후렉스 출력</div>
+                        <div class="price_row"><label>UV 양면출력</label><input type="text" inputmode="numeric" id="p_flex_uv_double"><span>원</span></div>
+                        <div class="price_row"><label>강솔벤출력</label><input type="text" inputmode="numeric" id="p_flex_sol"><span>원</span></div>
+                        <div class="price_row"><label>고휘도반사지</label><input type="text" inputmode="numeric" id="p_flex_high_bright"><span>원</span></div>
+                        <div class="price_row"><label>타공 (m²)</label><input type="text" inputmode="numeric" id="p_flex_punch"><span>원</span></div>
+                        <div class="price_row"><label>빈도 (m당)</label><input type="text" inputmode="numeric" id="p_flex_freq"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">UV 실사</div>
+                        <div class="price_row"><label>LG 백색시트</label><input type="text" inputmode="numeric" id="p_uv_white"><span>원</span></div>
+                        <div class="price_row"><label>LG 백색(그레이)</label><input type="text" inputmode="numeric" id="p_uv_white_grey"><span>원</span></div>
+                        <div class="price_row"><label>클리어(1레이어)</label><input type="text" inputmode="numeric" id="p_uv_clear"><span>원</span></div>
+                        <div class="price_row"><label>클리어미러(2레이어)</label><input type="text" inputmode="numeric" id="p_uv_clear_mirror"><span>원</span></div>
+                        <div class="price_row"><label>클리어블랙(3레이어)</label><input type="text" inputmode="numeric" id="p_uv_clear_black"><span>원</span></div>
+                        <div class="price_row"><label>타공 PET</label><input type="text" inputmode="numeric" id="p_uv_punch_pet"><span>원</span></div>
+                        <div class="price_row"><label>조명용 백색</label><input type="text" inputmode="numeric" id="p_uv_light_white"><span>원</span></div>
+                        <div class="price_row"><label>엠보(안개시트)</label><input type="text" inputmode="numeric" id="p_uv_embo"><span>원</span></div>
+                        <div class="price_row"><label>재단 (m²)</label><input type="text" inputmode="numeric" id="p_uv_cut"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">솔벤 실사</div>
+                        <div class="price_row"><label>LG 백색시트</label><input type="text" inputmode="numeric" id="p_sol_white"><span>원</span></div>
+                        <div class="price_row"><label>LG 백색(그레이)</label><input type="text" inputmode="numeric" id="p_sol_white_grey"><span>원</span></div>
+                        <div class="price_row"><label>원웨이(타공)</label><input type="text" inputmode="numeric" id="p_sol_oneway"><span>원</span></div>
+                        <div class="price_row"><label>조명용 백색</label><input type="text" inputmode="numeric" id="p_sol_light_white"><span>원</span></div>
+                        <div class="price_row"><label>엠보(안개시트)</label><input type="text" inputmode="numeric" id="p_sol_embo"><span>원</span></div>
+                        <div class="price_row"><label>고휘도반사</label><input type="text" inputmode="numeric" id="p_sol_high_reflect"><span>원</span></div>
+                        <div class="price_row"><label>솔벤 현수막</label><input type="text" inputmode="numeric" id="p_sol_banner"><span>원</span></div>
+                        <div class="price_row"><label>재단 (m²)</label><input type="text" inputmode="numeric" id="p_sol_cut"><span>원</span></div>
+                        <div class="price_row"><label>코팅 (m²)</label><input type="text" inputmode="numeric" id="p_sol_coat"><span>원</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="price_actions">
+                <button id="btn_reset_prices" class="price_reset_btn">초기화</button>
+                <button id="btn_apply_prices" class="price_apply_btn">적용하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="price.js"></script>
+</body>
+</html>

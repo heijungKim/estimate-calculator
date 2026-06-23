@@ -5921,14 +5921,8 @@ function list_sum_price(){
     saveToStorage();
 }
 
-// ── 단가 설정 패널 ──────────────────────────────────────
+// ── Firebase 저장 단가 로드
 $(function(){
-    // 기본값으로 입력 필드 초기화
-    Object.keys(DEFAULT_PRICES).forEach(function(key){
-        $("#p_" + key).val(fmtNum(DEFAULT_PRICES[key]));
-    });
-
-    // Firebase에 저장된 단가 로드 (비동기 - 패널이 닫혀 있는 동안 적용됨)
     _initPricesDoc();
     if (_pricesDoc) {
         _pricesDoc.get()
@@ -5936,72 +5930,16 @@ $(function(){
                 if (!doc.exists) return;
                 var saved = doc.data();
                 Object.keys(DEFAULT_PRICES).forEach(function(key) {
-                    if (saved[key] !== undefined) {
-                        PRICES[key] = saved[key];
-                        $("#p_" + key).val(fmtNum(saved[key]));
-                    }
+                    if (saved[key] !== undefined) PRICES[key] = saved[key];
                 });
                 recalcCurrent();
             })
             .catch(function(){});
     }
 
-    // 단가 패널 입력 콤마 포맷 (정적 입력)
-    $(document).on('input', '.price_panel input[type="text"]', function(){
-        formatCommaInput(this);
-    });
     // option_table 동적 입력 콤마 포맷
     $(document).on('input', '#option_table input.comma-fmt', function(){
         formatCommaInput(this);
-    });
-
-    // 단가 자동 1.3배: 영문 입력 → 한글 자동 채우기 (알루미늄/일체형/에폭시)
-    $(document).on('input', '[id^="p_ch_taka_eng_"],[id^="p_ch_ilche_eng_"],[id^="p_ch_epox_eng_"]', function(){
-        var raw = this.value.replace(/[^0-9]/g, '');
-        var val = parseInt(raw) || 0;
-        var korEl = document.getElementById(this.id.replace('_eng_', '_kor_'));
-        if(korEl) korEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
-    });
-    // 단가 자동 1.3배: 한글 입력 → 흘림체 자동 채우기 (알루미늄/일체형/에폭시)
-    $(document).on('input', '[id^="p_ch_taka_kor_"],[id^="p_ch_ilche_kor_"],[id^="p_ch_epox_kor_"]', function(){
-        var raw = this.value.replace(/[^0-9]/g, '');
-        var val = parseInt(raw) || 0;
-        var gotEl = document.getElementById(this.id.replace('_kor_', '_got_'));
-        if(gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
-    });
-    // 단가 자동 1.3배: 영문/한글 입력 → 흘림체 자동 채우기 (티타늄/스텐/갈바/갈바오사이)
-    $(document).on('input', '[id^="p_ch_titan_eng_"],[id^="p_ch_sten_eng_"],[id^="p_ch_galva_eng_"],[id^="p_ch_gosa_eng_"]', function(){
-        var raw = this.value.replace(/[^0-9]/g, '');
-        var val = parseInt(raw) || 0;
-        var gotEl = document.getElementById(this.id.replace('_eng_', '_got_'));
-        if(gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
-    });
-
-    // 토글
-    $("#price_panel_toggle").click(function(){
-        var $body = $("#price_panel_body");
-        $body.slideToggle(250, function(){
-            var open = $body.is(":visible");
-            $("#price_panel_toggle .toggle_arrow").text(open ? "▼" : "▶");
-            $("#price_panel_toggle .toggle_hint").text(open ? "클릭하여 닫기" : "클릭하여 열기 / 닫기");
-        });
-    });
-
-    // 적용
-    $("#btn_apply_prices").click(function(){
-        applyPrices();
-        savePricesToFirebase(PRICES);
-        recalcCurrent();
-        $(this).text("✓ 적용됨").addClass("applied");
-        var _btn = this;
-        setTimeout(function(){ $(_btn).text("적용하기").removeClass("applied"); }, 1500);
-    });
-
-    // 초기화
-    $("#btn_reset_prices").click(function(){
-        resetPrices();
-        savePricesToFirebase(DEFAULT_PRICES);
-        recalcCurrent();
     });
 
     // 견적서 출력 버튼
