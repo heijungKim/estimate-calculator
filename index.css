@@ -1191,6 +1191,38 @@ input::placeholder {
     padding: 24px 0;
 }
 
+/* 업체 그룹 */
+.archive_company_group {
+    margin-bottom: 14px;
+}
+.archive_company_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: #e9edf5;
+    border-radius: 8px 8px 0 0;
+    border: 1.5px solid #c8cedb;
+    border-bottom: none;
+}
+.company_name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2d3a52;
+}
+.company_stats {
+    font-size: 12px;
+    color: #5a6880;
+    font-weight: 600;
+}
+.archive_company_group .archive_item {
+    border-radius: 0;
+    border-top: none;
+}
+.archive_company_group .archive_item:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
 .archive_item {
     display: flex;
     align-items: center;

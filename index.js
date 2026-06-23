@@ -6031,8 +6031,15 @@ $(function(){
                 ('0'+today.getDate()).slice(-2);
         $("#save_estimate_date").val(d);
         $("#save_estimate_name").val('');
+        $("#save_estimate_company").val('');
+        getArchives(function(list) {
+            var companies = [];
+            list.forEach(function(a) { if(a.company && companies.indexOf(a.company) === -1) companies.push(a.company); });
+            var opts = companies.map(function(c){ return '<option value="' + escHtml(c) + '">'; }).join('');
+            $("#company_datalist").html(opts);
+        });
         $("#save_name_modal").fadeIn(200, function(){ $(this).css("display","flex"); });
-        setTimeout(function(){ $("#save_estimate_name").focus(); }, 220);
+        setTimeout(function(){ $("#save_estimate_company").focus(); }, 220);
     });
 
     $("#save_name_close, #save_name_cancel").click(function(){
@@ -6041,13 +6048,17 @@ $(function(){
     $("#save_name_modal").click(function(e){ if(e.target===this) $(this).fadeOut(200); });
 
     $("#save_name_confirm").click(function(){
+        var company = $.trim($("#save_estimate_company").val());
         var name = $.trim($("#save_estimate_name").val());
         if (!name) { $("#save_estimate_name").focus(); return; }
-        saveEstimate(name, $("#save_estimate_date").val());
+        saveEstimate(name, $("#save_estimate_date").val(), company);
         $("#save_name_modal").fadeOut(200);
     });
     $("#save_estimate_name").keypress(function(e){
         if (e.which === 13) $("#save_name_confirm").click();
+    });
+    $("#save_estimate_company").keypress(function(e){
+        if (e.which === 13) { $("#save_estimate_name").focus(); }
     });
 
     // ── 아카이브 목록 이벤트 (동적 바인딩) ───────────────────
@@ -6411,7 +6422,7 @@ function setArchives(list, cb) {
 }
 
 // 현재 견적 목록을 이름+날짜와 함께 저장
-function saveEstimate(name, date) {
+function saveEstimate(name, date, company) {
     var $ul = $("#total_price_wrap .total_list ul");
     var $clone = $ul.clone();
     $clone.find(".remove_btn").remove();
@@ -6424,6 +6435,7 @@ function saveEstimate(name, date) {
     var arc = {
         id:             'est_' + Date.now(),
         name:           name,
+        company:        company || '',
         date:           date,
         total:          totalNum,
         totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -6449,21 +6461,40 @@ function renderArchiveList() {
             $el.html('<p class="archive_empty">저장된 견적이 없습니다.</p>');
             return;
         }
-        var html = '';
+        // 업체별 그룹화 (삽입 순서 유지)
+        var groupOrder = [];
+        var groups = {};
         list.forEach(function(arc) {
-            html +=
-                '<div class="archive_item" data-id="' + arc.id + '">' +
-                    '<div class="archive_item_left">' +
-                        '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
-                        '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
-                            arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
-                        '</span>' +
-                    '</div>' +
-                    '<div class="archive_item_right">' +
-                        '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
-                        '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
-                    '</div>' +
-                '</div>';
+            var co = arc.company || '업체 미지정';
+            if (!groups[co]) { groups[co] = []; groupOrder.push(co); }
+            groups[co].push(arc);
+        });
+        var html = '';
+        groupOrder.forEach(function(company) {
+            var items = groups[company];
+            var coTotal = items.reduce(function(s, a){ return s + (Number(a.total) || 0); }, 0);
+            var coTotalFmt = coTotal.toLocaleString('ko-KR');
+            html += '<div class="archive_company_group">';
+            html +=   '<div class="archive_company_header">';
+            html +=     '<span class="company_name">' + escHtml(company) + '</span>';
+            html +=     '<span class="company_stats">견적 ' + items.length + '건 &middot; 합계 &#8361;&nbsp;' + coTotalFmt + '</span>';
+            html +=   '</div>';
+            items.forEach(function(arc) {
+                html +=
+                    '<div class="archive_item" data-id="' + arc.id + '">' +
+                        '<div class="archive_item_left">' +
+                            '<span class="archive_name">' + escHtml(arc.name) + '</span>' +
+                            '<span class="archive_meta">' + escHtml(arc.date) + ' &middot; ' +
+                                arc.itemCount + '개 항목 &middot; &#8361;&nbsp;' + arc.totalFormatted +
+                            '</span>' +
+                        '</div>' +
+                        '<div class="archive_item_right">' +
+                            '<button class="archive_view_btn" data-id="' + arc.id + '">내역 보기</button>' +
+                            '<button class="archive_del_btn"  data-id="' + arc.id + '">삭제</button>' +
+                        '</div>' +
+                    '</div>';
+            });
+            html += '</div>';
         });
         $el.html(html);
     });
@@ -6477,7 +6508,7 @@ function showArchiveDetail(id) {
 
         $("#archive_detail_modal").data("current-id", id);
         $("#detail_modal_title").text(arc.name);
-        $("#detail_modal_date").text(arc.date);
+        $("#detail_modal_date").text((arc.company ? '[' + arc.company + '] ' : '') + arc.date);
         $("#detail_total_num").text(arc.totalFormatted);
 
         var $temp = $("<ul>").html(arc.itemsHtml);
