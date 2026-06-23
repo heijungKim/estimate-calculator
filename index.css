@@ -71,6 +71,37 @@ body {
     opacity: 1;
 }
 
+.nav-logout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 0 13px 18px;
+    width: 100%;
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.35);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    text-align: left;
+    margin-top: auto;
+}
+.nav-logout:hover {
+    background: rgba(233,69,96,0.08);
+    color: #e94560;
+}
+.nav-logout span:not(.nav-icon) {
+    opacity: 0;
+    transition: opacity 0.15s 0.05s;
+}
+.sidebar:hover .nav-logout span:not(.nav-icon) {
+    opacity: 1;
+}
+
 /* ── 메인 레이아웃 ── */
 .page-body {
     margin-left: 56px;
