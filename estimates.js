@@ -140,20 +140,117 @@ function getEstimateItems($src) {
     return items;
 }
 
+function parseBdRow(t) {
+    t = (t || '').trim();
+    var eqIdx = t.lastIndexOf('='), mulIdx = t.lastIndexOf('×');
+    if (mulIdx < 0) mulIdx = t.lastIndexOf('x');
+    if (eqIdx > 0 && mulIdx > 0 && mulIdx < eqIdx) {
+        var before = t.substring(0, mulIdx).trim();
+        var after  = t.substring(mulIdx + 1, eqIdx).trim();
+        var totalPart = t.substring(eqIdx + 1).trim();
+        var tM = totalPart.match(/([\d,]+)/), uM = after.match(/([\d,]+)/);
+        var total = tM ? tM[1] : '', unit = uM ? uM[1] : '';
+        var nqM = before.match(/^(.+?)\s+(.+)$/);
+        if (nqM) {
+            var qr = nqM[2], qty;
+            if (/[×x]/.test(qr)) qty = qr;
+            else { var qn = qr.match(/^([\d,.]+)/); qty = qn ? qn[1] : qr; }
+            return { name: nqM[1].trim(), qty: qty, unit: unit, total: total };
+        }
+        return { name: before, qty: '', unit: unit, total: total };
+    }
+    var m2 = t.match(/^(.+?)\s+([\d,]+)원?$/);
+    if (m2) return { name: m2[1].trim(), qty: '1', unit: m2[2], total: m2[2] };
+    return null;
+}
+
 function buildPrintDoc(items, totalNum, customer, manager, notes) {
-    var totalFormatted = String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    var totalKorean    = numberToKorean(totalNum);
-    var today  = new Date();
-    var dateStr = today.getFullYear() + '년 ' + (today.getMonth()+1) + '월 ' + today.getDate() + '일';
-    var estNo  = String(today.getFullYear()) + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2) + '-' + String(Math.floor(Math.random()*900)+100);
-    var rowsHtml = items.map(function(it) {
-        var detailLines = it.details.split('\n').map(function(d){ return d ? '<div>' + escHtml(d) + '</div>' : ''; }).join('');
-        if (it.breakdown) detailLines += '<div class="bd-row">&#9658; ' + escHtml(it.breakdown) + '</div>';
-        return '<tr><td class="tc">' + it.no + '</td><td>' + escHtml(it.category) + '</td><td>' + detailLines + '</td><td class="tr">' + escHtml(it.priceText) + '원</td></tr>';
-    }).join('');
-    var managerRow = manager ? '<div class="info-row"><span class="info-label">담 당 자</span><span>' + escHtml(manager) + '</span></div>' : '';
-    var notesBlock = notes   ? '<div class="custom-notes"><strong>비고</strong><br>' + escHtml(notes).replace(/\n/g,'<br>') + '</div>' : '';
-    return '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>견적서</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"맑은 고딕","Malgun Gothic",AppleGothic,sans-serif;padding:20mm;font-size:11pt;color:#000;background:#fff}@media print{body{padding:15mm}.no-print{display:none!important}}.no-print{text-align:center;margin-bottom:18px}.print-btn{padding:9px 36px;font-size:12pt;cursor:pointer;background:#1a1a2e;color:#fff;border:none;border-radius:5px}h1{text-align:center;font-size:22pt;letter-spacing:10px;margin-bottom:14px}hr.thick{border:none;border-top:2.5px solid #000;margin:10px 0}hr.thin{border:none;border-top:1px solid #888;margin:8px 0}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.info-row{display:flex;align-items:center;margin-bottom:5px;font-size:11pt}.info-label{width:75px;font-weight:bold;flex-shrink:0}.total-box{border:2px solid #000;padding:10px 16px;text-align:center;margin:14px 0;font-size:13pt;font-weight:bold;background:#fafafa}table{width:100%;border-collapse:collapse;margin-top:14px}th{background:#e8e8e8;border:1px solid #555;padding:8px;text-align:center;font-size:11pt}td{border:1px solid #666;padding:7px 9px;vertical-align:top;font-size:10pt;line-height:1.6}td.tc{text-align:center}td.tr{text-align:right;white-space:nowrap}.bd-row{font-size:9pt;color:#555;margin-top:3px}.total-row td{font-weight:bold;background:#efefef;font-size:11pt}.total-row .tlabel{text-align:center}.notes{margin-top:20px;font-size:10pt;line-height:1.9;color:#333}.custom-notes{margin-top:12px;padding:9px 13px;border:1px solid #bbb;background:#f8f8f8;font-size:10pt;line-height:1.8}</style></head><body><div class="no-print"><button class="print-btn" onclick="window.print()">인쇄하기</button></div><h1>견 &nbsp; 적 &nbsp; 서</h1><hr class="thick"><div class="info-grid"><div><div class="info-row"><span class="info-label">수 &nbsp; 신</span><span>' + escHtml(customer) + '&nbsp;귀중</span></div>' + managerRow + '</div><div><div class="info-row"><span class="info-label">작 성 일</span><span>' + dateStr + '</span></div><div class="info-row"><span class="info-label">견적번호</span><span>' + estNo + '</span></div></div></div><hr class="thin"><div class="total-box">합계금액 &nbsp; 일금 &nbsp;<strong>' + totalKorean + '원정</strong>&nbsp;&nbsp;( &#8361;&nbsp;' + totalFormatted + ' )</div><table><thead><tr><th style="width:44px">No.</th><th style="width:140px">품&nbsp;&nbsp;목</th><th>세&nbsp;부&nbsp;내&nbsp;용</th><th style="width:116px">금&nbsp;&nbsp;액</th></tr></thead><tbody>' + rowsHtml + '</tbody><tfoot><tr class="total-row"><td colspan="3" class="tlabel">합 &nbsp; 계</td><td class="tr">' + totalFormatted + '원</td></tr></tfoot></table><div class="notes"><p>&#8251; 상기 금액은 부가세 포함 금액입니다.</p><p>&#8251; 본 견적서는 발행일로부터 30일간 유효합니다.</p></div>' + notesBlock + '</body></html>';
+    var _f = function(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var totalFormatted = _f(totalNum);
+    var totalKorean = numberToKorean(totalNum);
+    var today = new Date();
+    var mm = ('0' + (today.getMonth()+1)).slice(-2), dd = ('0' + today.getDate()).slice(-2);
+    var dateStr = today.getFullYear() + '년 ' + mm + '월 ' + dd + '일';
+    var estNo = String(Math.floor(Math.random() * 9000) + 1000);
+
+    var tableRows = [];
+    items.forEach(function(item) {
+        if (item.breakdown) {
+            var parts = item.breakdown.split(' / '), added = false;
+            parts.forEach(function(p) { var r = parseBdRow(p); if (r) { tableRows.push(r); added = true; } });
+            if (!added) tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
+        } else {
+            tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
+        }
+    });
+
+    var rowsHtml = '';
+    tableRows.forEach(function(r) {
+        rowsHtml += '<tr><td>' + escHtml(r.name) + '</td><td class="tc">' + escHtml(r.qty) + '</td><td class="tr">' + escHtml(r.unit) + '</td><td class="tr">' + escHtml(r.total) + '</td></tr>';
+    });
+    for (var ei = tableRows.length; ei < 15; ei++) rowsHtml += '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
+
+    var managerLine = manager ? '<tr><td class="il">담&nbsp;&nbsp;&nbsp;당:</td><td>' + escHtml(manager) + '</td></tr>' : '';
+    var notesBlock = notes ? '<div class="notes-box"><strong>비고</strong><br>' + escHtml(notes).replace(/\n/g,'<br>') + '</div>' : '';
+
+    return '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>견적서</title><style>' +
+    '*{margin:0;padding:0;box-sizing:border-box}' +
+    'body{font-family:"맑은 고딕","Malgun Gothic",sans-serif;padding:14mm 18mm;font-size:10pt;color:#000;background:#fff}' +
+    '@media print{body{padding:10mm 14mm}.no-print{display:none!important}}' +
+    '.no-print{text-align:center;margin-bottom:14px}.print-btn{padding:8px 32px;font-size:11pt;cursor:pointer;background:#1a1a2e;color:#fff;border:none;border-radius:4px}' +
+    'h1{text-align:center;font-size:28pt;letter-spacing:18px;font-weight:bold;margin-bottom:2px}' +
+    '.title-line{border:none;border-top:3px double #000;margin:2px auto 14px;width:60%}' +
+    '.info-section{display:flex;gap:12px;margin-bottom:8px}.info-left{flex:1}.info-right{flex:1}' +
+    '.info-left table{border-collapse:collapse;font-size:10pt;width:100%}.info-left td{padding:2px 4px;vertical-align:top}' +
+    '.il{font-weight:bold;white-space:nowrap;width:80px}' +
+    '.customer-line{font-size:11pt;font-weight:bold;padding:3px 4px}' +
+    '.supplier-box{border:2px solid #000;display:flex;height:100%}' +
+    '.supplier-label{writing-mode:vertical-lr;text-align:center;font-weight:bold;font-size:14pt;padding:6px 5px;border-right:2px solid #000;letter-spacing:10px;background:#f8f8f8}' +
+    '.supplier-table{border-collapse:collapse;flex:1;font-size:9.5pt}' +
+    '.supplier-table td{border:1px solid #000;padding:4px 8px}' +
+    '.supplier-table td.sl{font-weight:bold;text-align:center;white-space:nowrap;width:50px;background:#f8f8f8}' +
+    '.intro{font-size:10.5pt;margin:8px 0 6px 16px;font-weight:bold}' +
+    '.total-box{border:2px solid #000;padding:9px 18px;margin:6px 0 10px;font-size:12pt;font-weight:bold;display:flex;justify-content:space-between;background:#fafafa}' +
+    '.items-table{width:100%;border-collapse:collapse}' +
+    '.items-table th{border:2px solid #000;padding:6px 8px;background:#f0f0f0;font-size:9.5pt;text-align:center;font-weight:bold}' +
+    '.items-table td{border:1px solid #000;padding:5px 8px;font-size:9.5pt}' +
+    '.items-table td.tc{text-align:center}.items-table td.tr{text-align:right;font-variant-numeric:tabular-nums}' +
+    '.items-table tfoot td{border:2px solid #000;font-weight:bold;font-size:9.5pt;padding:5px 8px}' +
+    '.items-table tfoot td.tl{text-align:right;letter-spacing:3px}' +
+    '.footer-mark{text-align:center;margin-top:12px;font-size:9pt;color:#666;letter-spacing:4px;border-top:1px solid #ccc;padding-top:8px}' +
+    '.notes-box{margin-top:10px;padding:8px 12px;border:1px solid #aaa;font-size:9.5pt;line-height:1.7}' +
+    '</style></head><body>' +
+    '<div class="no-print"><button class="print-btn" onclick="window.print()">인쇄하기</button></div>' +
+    '<h1>견 적 서</h1><hr class="title-line">' +
+    '<div class="info-section"><div class="info-left"><table>' +
+      '<tr><td class="il">견적일자:</td><td>' + dateStr + '</td></tr>' +
+      '<tr><td colspan="2" class="customer-line">' + escHtml(customer || '') + '&nbsp;&nbsp;귀하</td></tr>' +
+      '<tr><td class="il">수&nbsp;&nbsp;&nbsp;신:</td><td></td></tr>' +
+      '<tr><td class="il">제&nbsp;&nbsp;&nbsp;목:</td><td></td></tr>' +
+      '<tr><td class="il">견적번호:</td><td>' + estNo + '</td></tr>' +
+      '<tr><td class="il">유효기간:</td><td></td></tr>' +
+      managerLine +
+      '<tr><td class="il">지불조건:</td><td></td></tr>' +
+    '</table></div><div class="info-right"><div class="supplier-box">' +
+      '<div class="supplier-label">공<br>급<br>자</div>' +
+      '<table class="supplier-table">' +
+        '<tr><td class="sl">등록<br>번호</td><td colspan="3">308-04-88155</td></tr>' +
+        '<tr><td class="sl">상호</td><td>우성디지탈</td><td class="sl">성명</td><td>김일용</td></tr>' +
+        '<tr><td class="sl">주소</td><td colspan="3">경기도 양주시 고암동 388</td></tr>' +
+        '<tr><td class="sl">업태</td><td>서비스</td><td class="sl">종목</td><td>광고업</td></tr>' +
+      '</table></div></div></div>' +
+    '<p class="intro">아래와같이 견적합니다.</p>' +
+    '<div class="total-box"><span>합계금액: 일금&nbsp;&nbsp;' + totalKorean + '원정</span><span>(&#8361;' + totalFormatted + '-)</span></div>' +
+    '<table class="items-table"><thead><tr>' +
+      '<th style="width:auto">품목 코드 및 품목명</th><th style="width:70px">수 량</th><th style="width:100px">단 가</th><th style="width:100px">공급가액</th>' +
+    '</tr></thead><tbody>' + rowsHtml + '</tbody><tfoot>' +
+      '<tr><td class="tl" colspan="3">공급가계:</td><td class="tr">' + totalFormatted + '</td></tr>' +
+      '<tr><td class="tl" colspan="3">세 액 계:</td><td class="tr"></td></tr>' +
+      '<tr><td class="tl" colspan="3">합&nbsp;&nbsp;&nbsp;계:</td><td class="tr">' + totalFormatted + '</td></tr>' +
+    '</tfoot></table>' +
+    notesBlock +
+    '<div class="footer-mark">※ ※ ※ ※ ※ ※ ※ 이 하 &nbsp; 여 백 ※ ※ ※ ※ ※ ※ ※</div>' +
+    '</body></html>';
 }
 
 function openPrintWindow(html) {
@@ -342,7 +439,8 @@ function printFromArchive(id) {
         if (!arc) return;
         var $temp = $("<ul>").html(arc.itemsHtml);
         var items = getEstimateItems($temp);
-        openPrintWindow(buildPrintDoc(items, arc.total, arc.name, '', ''));
+        var custName = (arc.company ? arc.company + ' ' : '') + (arc.name || '');
+        openPrintWindow(buildPrintDoc(items, arc.total, custName, '', ''));
         $("#archive_detail_modal").fadeOut(200);
     });
 }
