@@ -741,8 +741,8 @@ function hoorex_type(){
             	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_width' placeholder='길이을 입력해주세요.'> mm</td>";
             append_html += "</tr>";
             append_html += "<tr class='channel_trusbar_custom add_row'>";
-            	append_html += "<th>트러스바 단가</th>";
-            	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_price' placeholder='m당 단가를 입력해주세요.'> 원/m</td>";
+            	append_html += "<th>트러스 주문제작 추가금</th>";
+            	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_price' placeholder='추가금을 입력해주세요.'> 원</td>";
             append_html += "</tr>";
             append_html += "<tr>";
 				append_html += "<th>까치발</th>";
@@ -3605,6 +3605,8 @@ function chnnel_taka_cal(){ //채널 타카 계산
         trusbar_price = PRICES.ch_trusbar_300 * trusbar_width;
     }else if($("#channel_trusbar04").is(":checked")){
         trusbar_price = PRICES.ch_trusbar_400 * trusbar_width;
+    }else if($("#channel_trusbar05").is(":checked")){
+        trusbar_price = nv("#channel_trusbar_custom_price") || 0;
     }
 
     if($("#channel_text_myongjo").is(":checked") || $("#channel_text_korean_writing").is(":checked") || $("#channel_text_spilling").is(":checked")){
@@ -5813,12 +5815,13 @@ $(".save_btn").click(function(){
                     var _tbMm = nv("#channel_trusbar_width") || 0;
                     var _tbM = _tbMm / 1000;
                     var _tbUnit = 0;
+                    var _tbCustom = 0;
                     if($("#channel_trusbar01").is(":checked")) _tbUnit=30000;
                     else if($("#channel_trusbar02").is(":checked")) _tbUnit=40000;
                     else if($("#channel_trusbar03").is(":checked")) _tbUnit=40000;
                     else if($("#channel_trusbar04").is(":checked")) _tbUnit=60000;
-                    else if($("#channel_trusbar05").is(":checked")) _tbUnit=nv("#channel_trusbar_custom_price") || 0;
-                    var _tbP = Math.floor(_tbUnit * _tbM);
+                    else if($("#channel_trusbar05").is(":checked")) _tbCustom=nv("#channel_trusbar_custom_price") || 0;
+                    var _tbP = Math.floor(_tbUnit * _tbM) + _tbCustom;
 
                     // 까치발
                     var _ggCnt = Number($("#channel_more_order_count").val()) || 0;
