@@ -13,6 +13,7 @@ var DEFAULT_PRICES = {
     // 사인탑 공통
     sign_led: 4500, sign_sten_molding: 20000, sign_color_paint_nol: 10000, sign_color_paint_light: 10000,
     // 사인탑 까치발 (개당)
+    angle_w200: 2000, angle_w250: 2500, angle_w300: 3000, angle_w400: 3500, angle_w500: 4000, angle_w600: 4200, angle_w700: 4500,
     angle_w800: 4800, angle_w900: 5000, angle_w1000: 5800, angle_w1100: 5800,
     angle_w1200: 6000, angle_w1300: 6800, angle_w1400: 6800, angle_w1500: 6800,
     angle_w1600: 7000, angle_w1700: 7200, angle_w1800: 7400, angle_w1900: 7600, angle_w2000: 8200,
@@ -61,7 +62,8 @@ var DEFAULT_PRICES = {
     // 채널문자 LED (개당)
     ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
     // 채널문자 기타
-    ch_ggachi: 4000, ch_complete: 100000,
+    ch_ggachi_200: 2000, ch_ggachi_250: 2500, ch_ggachi_300: 3000, ch_ggachi_400: 3500,
+    ch_complete: 100000,
     ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
     flex_uv_double: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
@@ -144,6 +146,13 @@ function getDeungbakPrice() {
 
 function getAnglePrice(count) {
     var n = Number(count) || 0;
+    if($("#sigh_angle_width_200").is(":checked"))  return PRICES.angle_w200 * n;
+    if($("#sigh_angle_width_250").is(":checked"))  return PRICES.angle_w250 * n;
+    if($("#sigh_angle_width_300").is(":checked"))  return PRICES.angle_w300 * n;
+    if($("#sigh_angle_width_400").is(":checked"))  return PRICES.angle_w400 * n;
+    if($("#sigh_angle_width_500").is(":checked"))  return PRICES.angle_w500 * n;
+    if($("#sigh_angle_width_600").is(":checked"))  return PRICES.angle_w600 * n;
+    if($("#sigh_angle_width_700").is(":checked"))  return PRICES.angle_w700 * n;
     if($("#sigh_angle_width_800").is(":checked"))  return PRICES.angle_w800 * n;
     if($("#sigh_angle_width_900").is(":checked"))  return PRICES.angle_w900 * n;
     if($("#sigh_angle_width_1000").is(":checked")) return PRICES.angle_w1000 * n;
@@ -344,7 +353,14 @@ function set_sign_top_option_select(){
 		append_html += "<tr class='sigh_angle_option add_row'>";
 			append_html += "<th>크기</th>";
 			append_html += "<td>";
-				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_800' checked='checked'>800mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_200' checked='checked'>200mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_250'>250mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_300'>300mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_400'>400mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_500'>500mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_600'>600mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_700'>700mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_800'>800mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_900'>900mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_1000'>1000mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_1100'>1100mm</label>";
@@ -433,7 +449,14 @@ function set_sign_top_option_select(){
 		append_html += "<tr class='sigh_angle_option add_row'>";
 			append_html += "<th>크기</th>";
 			append_html += "<td>";
-				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_800' checked='checked'>800mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_200' checked='checked'>200mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_250'>250mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_300'>300mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_400'>400mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_500'>500mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_600'>600mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_700'>700mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_800'>800mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_900'>900mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_1000'>1000mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_1100'>1100mm</label>";
@@ -490,7 +513,14 @@ function set_sign_top_option_select(){
 		append_html += "<tr>";
 			append_html += "<th>가로 (800기본)</th>";
 			append_html += "<td>";
-				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_800' checked='checked'>800mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_200' checked='checked'>200mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_250'>250mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_300'>300mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_400'>400mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_500'>500mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_600'>600mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_700'>700mm</label>";
+				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_800'>800mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_900'>900mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_1000'>1000mm</label>";
 				append_html += "<label><input type='radio' name='sigh_angle_width' id='sigh_angle_width_1100'>1100mm</label>";
@@ -716,14 +746,23 @@ function hoorex_type(){
             append_html += "</tr>";
             append_html += "<tr>";
 				append_html += "<th>까치발</th>";
-                append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>까지발부착</label></td>";
-            append_html += "</tr>";	
+                append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>까치발부착</label></td>";
+            append_html += "</tr>";
+            append_html += "<tr class='channel_more_order_option01 add_row'>";
+                append_html += "<th>까치발 크기</th>";
+                append_html += "<td>";
+                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked'>200mm</label>";
+                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>250mm</label>";
+                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>300mm</label>";
+                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>400mm</label>";
+                append_html += "</td>";
+            append_html += "</tr>";
             append_html += "<tr class='channel_more_order_option01 add_row'>";
                 append_html += "<th>까치발 갯수</th>";
                 append_html += "<td>";
                     append_html += "<input type='number' id='channel_more_order_count' placeholder='까치발 갯수를 입력하세요'/>";
                 append_html += "</td>";
-            append_html += "</tr>";	
+            append_html += "</tr>";
             append_html += "<tr>";
             	append_html += "<th>완조립</th>";
             	append_html += "<td><label><input type='radio' name='channel_complete' id='channel_complete_none' checked='checked'>없음</label><label><input type='radio' name='channel_complete' id='channel_complete_normal'>일반 완조립</label><label><input type='radio' name='channel_complete' id='channel_complete_premium'>고급 완조립</label></td>";
@@ -949,10 +988,10 @@ function hoorex_type(){
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>까치발 크기</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05' checked='checked'>5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>12cm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked'>200mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>250mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>300mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>400mm</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr class='channel_more_order_option02 add_row'>";
@@ -1075,12 +1114,12 @@ function hoorex_type(){
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>작업내용</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05'>까치발 5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>까치발 8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>까치발 10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>까치발 12cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_rubber'>고무부착</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200'>까치발 200mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>까치발 250mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>까치발 300mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>까치발 400mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_rubber'>고무부착</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
@@ -1569,10 +1608,10 @@ function hoorex_type(){
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>까치발 크기</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05' checked='checked'>5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>12cm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked'>200mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>250mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>300mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>400mm</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr class='channel_more_order_option02 add_row'>";
@@ -1690,10 +1729,10 @@ function hoorex_type(){
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>까치발 크기</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05' checked='checked'>5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>12cm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked'>200mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>250mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>300mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>400mm</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr class='channel_more_order_option02 add_row'>";
@@ -1808,12 +1847,12 @@ function hoorex_type(){
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>작업내용</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05'>까치발 5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>까치발 8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>까치발 10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>까치발 12cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_rubber'>고무부착</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200'>까치발 200mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>까치발 250mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>까치발 300mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>까치발 400mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_rubber'>고무부착</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
@@ -1889,12 +1928,12 @@ function hoorex_type(){
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>작업내용</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size05'>까치발 5cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size08'>까치발 8cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size10'>까치발 10cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_size12'>까치발 12cm</label>";
-					append_html += "<label><input type='radio' name='channel_more_order_option01_size' id='channel_more_order_option01_rubber'>고무부착</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200'>까치발 200mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>까치발 250mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>까치발 300mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>까치발 400mm</label>";
+					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_rubber'>고무부착</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
@@ -3243,7 +3282,7 @@ function sign_top_01(){ //사인탑_비조명
    setTimeout(function(){
 	$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_option']").click(function(){
         $("#sigh_row,#sigh_vertical,#more_order_price,#add_more_text,#more_order_price,#add_more_text,#sigh_angle_count,#frame_custom_text,#sign_more_order_content").val("");
-        $("#sigh_option_row,#sigh_display_01,#sigh_frame_color_white,#sigh_angle_no,#sign_more_order_no,#sigh_angle_width_800").prop("checked",true);
+        $("#sigh_option_row,#sigh_display_01,#sigh_frame_color_white,#sigh_angle_no,#sign_more_order_no,#sigh_angle_width_200").prop("checked",true);
    
         //초기 리셋
     	sign_top_01_cal();
@@ -3527,7 +3566,7 @@ function chnnel_taka(){ //채널 타카식
     setTimeout(function(){
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_option']").click(function(){
             $("#frame_product_width,#frame_product_vertical,#more_order_price,#add_more_text,#actual_punch_count,#channel_trusbar_width").val("");
-            $("#channel_text_godic,#channel_size_30,#channel_trim_color_white,#channel_solid_color_white,#channel_led_color_none,#channel_more_order_no,#channel_led_display_work_no,#channel_trim_custom_color_red,#channel_solid_custom_color_red,#channel_more_order_option01_size05,#channel_more_order_option02_type01,#channel_led_display_work_type01,#channel_trusbar_none").prop("checked",true);
+            $("#channel_text_godic,#channel_size_30,#channel_trim_color_white,#channel_solid_color_white,#channel_led_color_none,#channel_more_order_no,#channel_led_display_work_no,#channel_trim_custom_color_red,#channel_solid_custom_color_red,#ch_ggachi_size_200,#channel_more_order_option02_type01,#channel_led_display_work_type01,#channel_trusbar_none").prop("checked",true);
 
             //초기 리셋
             chnnel_taka_cal();
@@ -3699,7 +3738,12 @@ function chnnel_taka_cal(){ //채널 타카 계산
     }
 
     if($("#channel_more_order_option01").is(":checked")){ //까치발
-        ggachi_price = Number($("#channel_more_order_count").val()) * PRICES.ch_ggachi;
+        var _chGgUnit = 0;
+        if($("#ch_ggachi_size_200").is(":checked")) _chGgUnit = PRICES.ch_ggachi_200;
+        else if($("#ch_ggachi_size_250").is(":checked")) _chGgUnit = PRICES.ch_ggachi_250;
+        else if($("#ch_ggachi_size_300").is(":checked")) _chGgUnit = PRICES.ch_ggachi_300;
+        else if($("#ch_ggachi_size_400").is(":checked")) _chGgUnit = PRICES.ch_ggachi_400;
+        ggachi_price = Number($("#channel_more_order_count").val()) * _chGgUnit;
     }else{
         ggachi_price = 0;
     }
@@ -5778,7 +5822,11 @@ $(".save_btn").click(function(){
 
                     // 까치발
                     var _ggCnt = Number($("#channel_more_order_count").val()) || 0;
-                    var _ggUnit = 4000;
+                    var _ggUnit = 0;
+                    if($("#ch_ggachi_size_200").is(":checked")) _ggUnit = PRICES.ch_ggachi_200;
+                    else if($("#ch_ggachi_size_250").is(":checked")) _ggUnit = PRICES.ch_ggachi_250;
+                    else if($("#ch_ggachi_size_300").is(":checked")) _ggUnit = PRICES.ch_ggachi_300;
+                    else if($("#ch_ggachi_size_400").is(":checked")) _ggUnit = PRICES.ch_ggachi_400;
                     var _ggP = ($("#channel_more_order_option01").is(":checked")) ? _ggCnt * _ggUnit : 0;
 
                     // LED
