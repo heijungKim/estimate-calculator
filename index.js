@@ -6233,17 +6233,10 @@ function parseBdRow(t) {
         var totalPart = t.substring(eqIdx + 1).trim();
         var tM = totalPart.match(/([\d,]+)/), uM = after.match(/([\d,]+)/);
         var total = tM ? tM[1] : '', unit = uM ? uM[1] : '';
-        var nqM = before.match(/^(.+?)\s+(.+)$/);
-        if (nqM) {
-            var qr = nqM[2], qty;
-            if (/[×x]/.test(qr)) qty = qr;
-            else { var qn = qr.match(/^([\d,.]+)/); qty = qn ? qn[1] : qr; }
-            return { name: nqM[1].trim(), qty: qty, unit: unit, total: total };
-        }
         return { name: before, qty: '', unit: unit, total: total };
     }
     var m2 = t.match(/^(.+?)\s+([\d,]+)원?$/);
-    if (m2) return { name: m2[1].trim(), qty: '1', unit: m2[2], total: m2[2] };
+    if (m2) return { name: m2[1].trim(), qty: '', unit: '', total: m2[2] };
     return null;
 }
 
@@ -6318,7 +6311,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
       '<div class="supplier-label">공<br>급<br>자</div>' +
       '<table class="supplier-table">' +
         '<tr><td class="sl">등록<br>번호</td><td colspan="3">308-04-88155</td></tr>' +
-        '<tr><td class="sl">상호</td><td>우성디지탈</td><td class="sl">성명</td><td>김일용</td></tr>' +
+        '<tr><td class="sl">상호</td><td>우성디지탈</td><td class="sl">성명</td><td>김일웅</td></tr>' +
         '<tr><td class="sl">주소</td><td colspan="3">경기도 양주시 고암동 388</td></tr>' +
         '<tr><td class="sl">업태</td><td>서비스</td><td class="sl">종목</td><td>광고업</td></tr>' +
       '</table></div></div></div>' +
