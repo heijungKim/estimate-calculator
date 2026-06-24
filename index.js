@@ -3830,12 +3830,11 @@ function chnnel_taka_cal(){ //채널 타카 계산
         trusbar_price = nv("#channel_trusbar_custom_price") || 0;
     }
 
-    if($("#channel_more_order_option01").is(":checked")){ //까치발
-        var _chGgUnit = 0;
-        if($("#ch_ggachi_size_200").is(":checked")) _chGgUnit = PRICES.ch_ggachi_200;
-        else if($("#ch_ggachi_size_250").is(":checked")) _chGgUnit = PRICES.ch_ggachi_250;
-        else if($("#ch_ggachi_size_300").is(":checked")) _chGgUnit = PRICES.ch_ggachi_300;
-        else if($("#ch_ggachi_size_400").is(":checked")) _chGgUnit = PRICES.ch_ggachi_400;
+    if($("#channel_more_order_option01").is(":checked")){ //까치발 - 트러스바 폭 기준 단가 연동
+        var _chGgUnit = PRICES.ch_ggachi_200; // 기본값
+        if($("#channel_trusbar02").is(":checked"))      _chGgUnit = PRICES.ch_ggachi_250;
+        else if($("#channel_trusbar03").is(":checked")) _chGgUnit = PRICES.ch_ggachi_300;
+        else if($("#channel_trusbar04").is(":checked")) _chGgUnit = PRICES.ch_ggachi_400;
         ggachi_price = Number($("#channel_more_order_count").val()) * _chGgUnit;
     }
 
@@ -6034,10 +6033,10 @@ $(".save_btn").click(function(){
                 }
                 // 까치발
                 var _ggCnt=Number($("#channel_more_order_count").val())||0, _ggUnit=0;
-                if($("#ch_ggachi_size_200").is(":checked")) _ggUnit=PRICES.ch_ggachi_200;
-                else if($("#ch_ggachi_size_250").is(":checked")) _ggUnit=PRICES.ch_ggachi_250;
-                else if($("#ch_ggachi_size_300").is(":checked")) _ggUnit=PRICES.ch_ggachi_300;
-                else if($("#ch_ggachi_size_400").is(":checked")) _ggUnit=PRICES.ch_ggachi_400;
+                _ggUnit = PRICES.ch_ggachi_200; // 트러스바 폭 기준 연동
+                if($("#channel_trusbar02").is(":checked"))      _ggUnit=PRICES.ch_ggachi_250;
+                else if($("#channel_trusbar03").is(":checked")) _ggUnit=PRICES.ch_ggachi_300;
+                else if($("#channel_trusbar04").is(":checked")) _ggUnit=PRICES.ch_ggachi_400;
                 var _ggP=($("#channel_more_order_option01").is(":checked"))?_ggCnt*_ggUnit:0;
                 if(_ggP>0) bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmtCh(_ggUnit)+"원 = "+_fmtCh(_ggP)+"원</em></span>";
                 // 완조립
