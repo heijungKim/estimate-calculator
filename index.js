@@ -84,6 +84,7 @@ var DEFAULT_PRICES = {
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
+var _chItems = []; // 채널문자 담기 목록 [{label, details, price}]
 
 // ── 단가 Firebase 연동 ──────────────────────────────────────
 var _pricesDoc = null;
@@ -1943,6 +1944,24 @@ function hoorex_type(){
 		}
 		$("#option_table tbody").html(append_html);
 
+		// 담기 UI 삽입 (추가금액 행 바로 위)
+		_chItems = [];
+		var $extraRow = $("#option_table tbody tr").filter(function(){
+			return $(this).find("th").first().text().trim() === "추가 금액";
+		}).first();
+		var _chAddHtml =
+			"<tr class='ch-items-row' id='ch_items_header_row'>" +
+			"<th>담긴 항목</th>" +
+			"<td>" +
+			"<div id='ch_items_area'></div>" +
+			"<div class='ch-add-bar'>" +
+			"<button type='button' id='btn_add_ch_item' class='btn-ch-add-item'>+ 담기</button>" +
+			"<span class='ch-item-preview-wrap'> 예상 금액: <em id='ch_item_preview' class='ch-item-preview-val'>-</em></span>" +
+			"</div>" +
+			"</td></tr>";
+		$(_chAddHtml).insertBefore($extraRow);
+		$("#btn_add_ch_item").click(addChannelItem);
+
 		//channel_size_custom();
 		channel_trim_color_custom();
 		channel_solid_color_custom();
@@ -3585,42 +3604,15 @@ function chnnel_taka(){ //채널 타카식
         });
     },500);
 }
-function chnnel_taka_cal(){ //채널 타카 계산
-    applyPrices(); // 단가 패널 최신값을 PRICES에 반영
-    var trusbar_width = nv("#channel_trusbar_width") / 1000;
-    var trusbar_price = 0;
-    var text_price = 0;
-    var chennel_width = 0;
-    var led_price = 0;
-    var ggachi_price = 0;
-    var complete_price = 0;
-
-    var custom_order = 0;
-   	if($("#channel_trusbar01").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_200 * trusbar_width;
-    }else if($("#channel_trusbar02").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_250 * trusbar_width;
-    }else if($("#channel_trusbar03").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_300 * trusbar_width;
-    }else if($("#channel_trusbar04").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_400 * trusbar_width;
-    }else if($("#channel_trusbar05").is(":checked")){
-        trusbar_price = nv("#channel_trusbar_custom_price") || 0;
-    }
-
-    text_price = 0;
-
-    // 선택된 문자형태에 따라 단가 접두어 결정
+// ── 채널문자 글자단가(현재 폼 상태) 계산 ──────────────────────
+function _getChCurrentItemPrice() {
+    applyPrices();
     var _pricePrefix;
-    if($("#channel_text_eng").is(":checked")){
-        _pricePrefix = "eng";
-    }else if($("#channel_text_got").is(":checked")){
-        _pricePrefix = "got";
-    }else{
-        _pricePrefix = "kor";
-    }
+    if($("#channel_text_eng").is(":checked"))      _pricePrefix = "eng";
+    else if($("#channel_text_got").is(":checked")) _pricePrefix = "got";
+    else                                           _pricePrefix = "kor";
 
-    var _sz = null;
+    var chennel_width = 0, _sz = null;
     if($("#channel_option05").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3658,7 +3650,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_galva_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_galva_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
     } else if($("#channel_option03").is(":checked")){
         if($("#channel_size_30").is(":checked")) _sz="30";
         else if($("#channel_size_35").is(":checked")) _sz="35";
@@ -3670,7 +3662,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_gosa_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_gosa_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
     } else if($("#channel_option06").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3684,7 +3676,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_sten_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_sten_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
     } else if($("#channel_option07").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3698,7 +3690,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_titan_"+(_pricePrefix === "kor" ? "eng" : _pricePrefix)+"_"+_sz]||0;
+        if(_sz) chennel_width = PRICES["ch_titan_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
     } else {
         if($("#channel_size_30").is(":checked")) _sz="30";
         else if($("#channel_size_40").is(":checked")) _sz="40";
@@ -3714,24 +3706,110 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#channel_size_140").is(":checked")) _sz="140";
         else if($("#channel_size_150").is(":checked")) _sz="150";
         if(_sz) chennel_width = PRICES["ch_taka_"+_pricePrefix+"_"+_sz]||0;
-        else if($("#channel_size_160").is(":checked")||$("#channel_size_170").is(":checked")||$("#channel_size_180").is(":checked")||$("#channel_size_190").is(":checked")||$("#channel_size_200").is(":checked")) chennel_width = 60000;
+        else if($("#channel_size_160,#channel_size_170,#channel_size_180,#channel_size_190,#channel_size_200").is(":checked")) chennel_width = 60000;
     }
-    if($("#channel_led_color_white").is(":checked")){
-        led_price = PRICES.ch_led_white * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else if($("#channel_led_color_wram").is(":checked")){
-        led_price = PRICES.ch_led_warm * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else if($("#channel_led_color_rgb").is(":checked")){
-        led_price = PRICES.ch_led_rgb * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else if($("#channel_led_color_panorama").is(":checked")){
-        led_price = PRICES.ch_led_panorama * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else if($("#channel_led_color_red").is(":checked")){
-        led_price = PRICES.ch_led_color * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else if($("#channel_led_color_blue").is(":checked")){
-        led_price = PRICES.ch_led_color * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else if($("#channel_led_color_green").is(":checked")){
-        led_price = PRICES.ch_led_color * $(".channel_led_count td span").text().replace(/[^0-9]/g, "");
-    }else{
-        led_price = 0;
+
+    var custom_order = 0;
+    if($("#channel_led_display_work_yes").is(":checked")){
+        if($("#channel_led_display_work_type01,#channel_led_display_work_type02").is(":checked"))      custom_order = 0.2;
+        else if($("#channel_led_display_work_type03").is(":checked")) custom_order = 0.4;
+        else if($("#channel_led_display_work_type04").is(":checked")) custom_order = 0.3;
+        else if($("#channel_led_display_work_type05").is(":checked")) custom_order = 0.5;
+        else if($("#channel_led_display_work_type06").is(":checked")) custom_order = 0.3;
+    }
+
+    var _ledCnt = parseInt($(".channel_led_count td span").text()) || 0;
+    var led_price = 0;
+    if($("#channel_led_color_white").is(":checked"))        led_price = PRICES.ch_led_white * _ledCnt;
+    else if($("#channel_led_color_wram").is(":checked"))    led_price = PRICES.ch_led_warm  * _ledCnt;
+    else if($("#channel_led_color_rgb").is(":checked"))     led_price = PRICES.ch_led_rgb   * _ledCnt;
+    else if($("#channel_led_color_panorama").is(":checked"))led_price = PRICES.ch_led_panorama * _ledCnt;
+    else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.ch_led_color * _ledCnt;
+
+    var qty = Number($("#channel_content").val()) || 0;
+    return Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
+}
+
+// ── 담기 버튼: 현재 폼 항목을 _chItems에 추가 ──────────────────
+function addChannelItem() {
+    var qty = Number($("#channel_content").val()) || 0;
+    if(qty <= 0) { alert("수량(글자 수)을 입력해주세요."); return; }
+
+    var price = _getChCurrentItemPrice();
+    if(price <= 0) { alert("크기 또는 문자형태를 선택해주세요."); return; }
+
+    var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
+
+    // 항목 라벨 조합
+    var label = "";
+    label += "문자형태: " + $("input[name='channel_text_form']:checked").parent("label").text();
+    label += " / 크기: " + $("input[name='channel_size']:checked").parent("label").text();
+    label += " / 수량: " + qty + "자";
+
+    var trimColor = $("input[name='channel_trim_color']:checked").parent("label").text();
+    if(trimColor) label += " / 트림: " + trimColor;
+
+    var solidColor = $("input[name='channel_solid_color']:checked").parent("label").text();
+    if(solidColor) label += " / 입체: " + solidColor;
+
+    var ledColor = $("input[name='channel_led_color']:checked").parent("label").text();
+    if(ledColor && !$("#channel_led_color_none").is(":checked")) label += " / LED: " + ledColor;
+
+    if($("#channel_led_display_work_yes").is(":checked")){
+        label += " / 화면작업: " + $("input[name='channel_led_display_work_type']:checked").parent("label").text();
+    }
+
+    _chItems.push({ label: label, price: price });
+    renderChItems();
+    chnnel_taka_cal();
+}
+
+// ── 담긴 항목 렌더링 ─────────────────────────────────────────
+function renderChItems() {
+    var $area = $("#ch_items_area");
+    if(!$area.length) return;
+    var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
+
+    if(_chItems.length === 0) {
+        $area.html("<p class='ch-items-empty'>담긴 항목이 없습니다. 옵션 선택 후 담기 버튼을 눌러주세요.</p>");
+        return;
+    }
+    var html = "<ul class='ch-items-list'>";
+    $.each(_chItems, function(i, item) {
+        html += "<li class='ch-items-item'>" +
+            "<span class='ch-items-idx'>" + (i+1) + "</span>" +
+            "<span class='ch-items-label'>" + item.label + "</span>" +
+            "<span class='ch-items-price'>" + fmt(item.price) + "원</span>" +
+            "<button type='button' class='ch-items-remove' data-idx='" + i + "'>×</button>" +
+            "</li>";
+    });
+    html += "</ul>";
+    $area.html(html);
+    $area.find(".ch-items-remove").click(function(){
+        var idx = parseInt($(this).data("idx"));
+        _chItems.splice(idx, 1);
+        renderChItems();
+        chnnel_taka_cal();
+    });
+}
+
+function chnnel_taka_cal(){ //채널 타카 계산
+    applyPrices(); // 단가 패널 최신값을 PRICES에 반영
+    var trusbar_width = nv("#channel_trusbar_width") / 1000;
+    var trusbar_price = 0;
+    var ggachi_price = 0;
+    var complete_price = 0;
+
+    if($("#channel_trusbar01").is(":checked")){
+        trusbar_price = PRICES.ch_trusbar_200 * trusbar_width;
+    }else if($("#channel_trusbar02").is(":checked")){
+        trusbar_price = PRICES.ch_trusbar_250 * trusbar_width;
+    }else if($("#channel_trusbar03").is(":checked")){
+        trusbar_price = PRICES.ch_trusbar_300 * trusbar_width;
+    }else if($("#channel_trusbar04").is(":checked")){
+        trusbar_price = PRICES.ch_trusbar_400 * trusbar_width;
+    }else if($("#channel_trusbar05").is(":checked")){
+        trusbar_price = nv("#channel_trusbar_custom_price") || 0;
     }
 
     if($("#channel_more_order_option01").is(":checked")){ //까치발
@@ -3741,37 +3819,22 @@ function chnnel_taka_cal(){ //채널 타카 계산
         else if($("#ch_ggachi_size_300").is(":checked")) _chGgUnit = PRICES.ch_ggachi_300;
         else if($("#ch_ggachi_size_400").is(":checked")) _chGgUnit = PRICES.ch_ggachi_400;
         ggachi_price = Number($("#channel_more_order_count").val()) * _chGgUnit;
-    }else{
-        ggachi_price = 0;
     }
 
-    if($("#channel_complete_normal").is(":checked")){ //완조립 일반
-        complete_price = 100000;
-    }else if($("#channel_complete_premium").is(":checked")){ //완조립 고급
-        complete_price = 150000;
-    }else{
-        complete_price = 0;
-    }
-    
- 
-    if($("#channel_led_display_work_yes").is(":checked")){
-         if($("#channel_led_display_work_type01").is(":checked")){
-         	custom_order = 0.2;
-         }else if($("#channel_led_display_work_type02").is(":checked")){
-         	custom_order = 0.2;
-         }else if($("#channel_led_display_work_type03").is(":checked")){
-         	custom_order = 0.4;
-         }else if($("#channel_led_display_work_type04").is(":checked")){
-         	custom_order = 0.3;
-         }else if($("#channel_led_display_work_type05").is(":checked")){
-         	custom_order = 0.5;
-         }else if($("#channel_led_display_work_type06").is(":checked")){
-         	custom_order = 0.3;
-         }
-    }
-    $("#order_price").text(String(Math.floor((chennel_width+(chennel_width*custom_order)) * Number($("#channel_content").val()) + ggachi_price + trusbar_price + led_price + complete_price + (chennel_width*text_price) + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-    
-    
+    if($("#channel_complete_normal").is(":checked"))        complete_price = 100000;
+    else if($("#channel_complete_premium").is(":checked"))  complete_price = 150000;
+
+    // 담긴 항목 합산
+    var items_total = 0;
+    $.each(_chItems, function(i, item){ items_total += item.price; });
+
+    // 담기 버튼 예상 금액 업데이트
+    var previewPrice = _getChCurrentItemPrice();
+    var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
+    $("#ch_item_preview").text(previewPrice > 0 ? fmt(previewPrice) + "원" : "-");
+
+    var total = Math.floor(trusbar_price + ggachi_price + complete_price + items_total + nv("#more_order_price"));
+    $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 function whoorex(){ //후렉스
    setTimeout(function(){
@@ -5637,9 +5700,9 @@ $(".save_btn").click(function(){
         if(!$("input[name='channel_option']:checked").length) {
             _errs.push("채널문자 품목을 선택해주세요.");
         } else {
-            if(!$.trim($("#channel_content").val()) || Number($("#channel_content").val()) <= 0)
-                _errs.push("수량(글자 수)을 입력해주세요.");
-            if(!$("#channel_trusbar_none").is(":checked") && (!$.trim($("#channel_trusbar_width").val()) || nv("#channel_trusbar_width") <= 0))
+            if(_chItems.length === 0)
+                _errs.push("항목을 1개 이상 담아주세요. (문자형태·크기·수량 선택 후 담기 버튼)");
+            if(!$("#channel_trusbar_none").is(":checked") && (!$.trim($("#channel_trusbar_width").val()) || nv("#channel_trusbar_width") <= 0) && !$("#channel_trusbar05").is(":checked"))
                 _errs.push("트러스바 길이를 입력해주세요.");
             if($("#channel_more_order_option01").is(":checked") && (!$.trim($("#channel_more_order_count").val()) || Number($("#channel_more_order_count").val()) <= 0))
                 _errs.push("까치발 갯수를 입력해주세요.");
@@ -5895,145 +5958,85 @@ $(".save_btn").click(function(){
 
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child02")){ //채널문자
     	if($("input[name='channel_option']:checked").length){ // 채널문자 품목 선택됨
-          		total_html += "<li><span class='number'></span>";
-            	total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_option']:checked").parent("label").text();
-            	total_html += "<br> / 트러스바 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']:checked").parent("label").text();
-            	if($("#channel_trusbar05").is(":checked")){
-            		total_html +="<br> / 주문제작 사이즈 : "+$("#channel_trusbar_custom_w").val()+"×"+$("#channel_trusbar_custom_h").val()+"×"+$("#channel_trusbar_custom_t").val()+"mm";
-            		total_html +="<br> / 주문제작 추가금 : "+$("#channel_trusbar_custom_price").val()+"원";
-            	}else if(!$("#channel_trusbar_none").is(":checked")){
-            		total_html +="<br> / 트러스바 길이 :"+$("#channel_trusbar_width").val()+" mm ";
-                }
-            	total_html +="<br> / 까치발 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_more_order']:checked").parent("label").text();
-                if($("#channel_more_order_option01").is(":checked")){
-            		total_html +="<br> / 까치발 갯수 : "+$("#channel_more_order_count").val() +" 개 ";
-                }
-            	total_html +="<br> / 완조립 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_complete']:checked").parent("label").text();
-      			total_html +="<br> / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_text_form']:checked").parent("label").text();
-            	total_html +="<br> / 크기 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_size']:checked").parent("label").text();
-            	total_html +="<br> / 트림 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_color']:checked").parent("label").text();
-            	if($("#channel_trim_color_custom").is(":checked")){
-            		total_html +="<br> / 트림 컬러색 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_custom_color']:checked").parent("label").text();
-                }
-            	total_html +="<br> / 입체 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_color']:checked").parent("label").text();
-            	if($("#channel_trim_color_custom").is(":checked")){
-            		total_html +="<br> / 입체 컬러색 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_solid_custom_color_red']:checked").parent("label").text();
-                }
-          		 total_html +="<br> / LED 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_led_color']:checked").parent("label").text();
-            	if(!$("#channel_led_color_none").is(":checked")){
-            		total_html +="<br> / LED 수량 : "+$(".channel_led_count span").text();
-                }
-            	total_html +="<br> / 수량 : "+$("#channel_content").val()+" 개 ";
-             	total_html +="<br> / 화면 작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work']:checked").parent("label").text();
-            	if(!$("#channel_led_display_work_yes").is(":checked")){
-            		total_html +="<br> / 작업 내용 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work_type']:checked").parent("label").text();
-                }
-            	if(Number($("#channel_trim_color_custom").val()) != 0){
-            	total_html +="<br> / "+getExtraCostText();
-                }
-            	if($("#add_more_text").val().length !=0 ){
-            	total_html +="<br> / 추가입력 사항 : "+$("#add_more_text").val();
-                }
+            function _fmtCh(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
-                // 단가 내역
-                (function(){
-                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+            total_html += "<li><span class='number'></span>";
+            total_html += $("input[name='channel_option']:checked").parent("label").text();
 
-                    // 글자 단가
-                    var _unit = 0;
-                    if($("#channel_size_30").is(":checked")) _unit=25000;
-                    else if($("#channel_size_40").is(":checked")) _unit=28000;
-                    else if($("#channel_size_50").is(":checked")) _unit=34000;
-                    else if($("#channel_size_60").is(":checked")) _unit=40000;
-                    else if($("#channel_size_70").is(":checked")) _unit=43000;
-                    else if($("#channel_size_80").is(":checked")) _unit=48000;
-                    else if($("#channel_size_90").is(":checked")) _unit=50000;
-                    else if($("#channel_size_100").is(":checked")) _unit=54000;
-                    else if($("#channel_size_110").is(":checked")) _unit=66000;
-                    else if($("#channel_size_120").is(":checked")) _unit=78000;
-                    else if($("#channel_size_130").is(":checked")) _unit=94000;
-                    else if($("#channel_size_140").is(":checked")) _unit=115000;
-                    else if($("#channel_size_150").is(":checked")) _unit=130000;
-                    else if($("#channel_size_160,#channel_size_170,#channel_size_180,#channel_size_190,#channel_size_200").is(":checked")) _unit=60000;
+            // ── 고정 옵션 ──
+            total_html += "<br> / 트러스바 : " + $("input[name='channel_trusbar']:checked").parent("label").text();
+            if($("#channel_trusbar05").is(":checked")){
+                total_html += "<br> / 주문제작 사이즈 : "+$("#channel_trusbar_custom_w").val()+"×"+$("#channel_trusbar_custom_h").val()+"×"+$("#channel_trusbar_custom_t").val()+"mm";
+                total_html += "<br> / 주문제작 추가금 : "+$("#channel_trusbar_custom_price").val()+"원";
+            }else if(!$("#channel_trusbar_none").is(":checked")){
+                total_html += "<br> / 트러스바 길이 : "+$("#channel_trusbar_width").val()+" mm";
+            }
+            total_html += "<br> / 까치발 : " + $("input[name='channel_more_order']:checked").parent("label").text();
+            if($("#channel_more_order_option01").is(":checked")){
+                total_html += " (" + $("input[name='ch_ggachi_size']:checked").parent("label").text() + " / " + $("#channel_more_order_count").val() + "개)";
+            }
+            if($("#channel_complete_none").length && !$("#channel_complete_none").is(":checked")){
+                total_html += "<br> / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
+            } else if($("#channel_complete_normal,#channel_complete_premium").is(":checked")){
+                total_html += "<br> / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
+            }
 
-                    // 화면작업 할증률
-                    var _cr = 0;
-                    if($("#channel_led_display_work_yes").is(":checked")){
-                        if($("#channel_led_display_work_type01,#channel_led_display_work_type02").is(":checked")) _cr=0.2;
-                        else if($("#channel_led_display_work_type03").is(":checked")) _cr=0.4;
-                        else if($("#channel_led_display_work_type04").is(":checked")) _cr=0.3;
-                        else if($("#channel_led_display_work_type05").is(":checked")) _cr=0.5;
-                        else if($("#channel_led_display_work_type06").is(":checked")) _cr=0.3;
+            // ── 담긴 항목 목록 ──
+            if(_chItems.length > 0){
+                total_html += "<br><br><strong>[담긴 항목 " + _chItems.length + "개]</strong>";
+                $.each(_chItems, function(i, item){
+                    total_html += "<br> &nbsp;(" + (i+1) + ") " + item.label + " → <em>" + _fmtCh(item.price) + "원</em>";
+                });
+            }
+
+            if(nv("#more_order_price") !== 0){
+                total_html += "<br> / " + getExtraCostText();
+            }
+            if($.trim($("#add_more_text").val()).length !== 0){
+                total_html += "<br> / 추가입력 사항 : " + $("#add_more_text").val();
+            }
+
+            // ── 단가 내역 badges ──
+            (function(){
+                var bd = "<span class='price_breakdown'>";
+                // 트러스바
+                var _tbMm = nv("#channel_trusbar_width") || 0, _tbM = _tbMm/1000, _tbUnit=0, _tbCustom=0;
+                if($("#channel_trusbar01").is(":checked")) _tbUnit=30000;
+                else if($("#channel_trusbar02").is(":checked")) _tbUnit=40000;
+                else if($("#channel_trusbar03").is(":checked")) _tbUnit=40000;
+                else if($("#channel_trusbar04").is(":checked")) _tbUnit=60000;
+                else if($("#channel_trusbar05").is(":checked")) _tbCustom=nv("#channel_trusbar_custom_price")||0;
+                var _tbP = Math.floor(_tbUnit*_tbM)+_tbCustom;
+                if(_tbP>0){
+                    if(_tbCustom>0){
+                        bd += "<span class='bd_item'>트러스바 주문제작 <em>"+_fmtCh(_tbCustom)+"원</em></span>";
+                    }else{
+                        bd += "<span class='bd_item'>트러스바 <em>"+_tbM.toFixed(2)+"m × "+_fmtCh(_tbUnit)+"원/m = "+_fmtCh(_tbP)+"원</em></span>";
                     }
-                    var _unitFinal = Math.floor(_unit * (1 + _cr));
+                }
+                // 까치발
+                var _ggCnt=Number($("#channel_more_order_count").val())||0, _ggUnit=0;
+                if($("#ch_ggachi_size_200").is(":checked")) _ggUnit=PRICES.ch_ggachi_200;
+                else if($("#ch_ggachi_size_250").is(":checked")) _ggUnit=PRICES.ch_ggachi_250;
+                else if($("#ch_ggachi_size_300").is(":checked")) _ggUnit=PRICES.ch_ggachi_300;
+                else if($("#ch_ggachi_size_400").is(":checked")) _ggUnit=PRICES.ch_ggachi_400;
+                var _ggP=($("#channel_more_order_option01").is(":checked"))?_ggCnt*_ggUnit:0;
+                if(_ggP>0) bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmtCh(_ggUnit)+"원 = "+_fmtCh(_ggP)+"원</em></span>";
+                // 완조립
+                var _compP=$("#channel_complete_normal").is(":checked")?100000:($("#channel_complete_premium").is(":checked")?150000:0);
+                if(_compP>0) bd += "<span class='bd_item'>완조립 <em>"+_fmtCh(_compP)+"원</em></span>";
+                // 담긴 항목 합계
+                var _itemsTotal=0;
+                $.each(_chItems,function(i,it){ _itemsTotal+=it.price; });
+                if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
+                var _moreP=nv("#more_order_price")||0;
+                if(_moreP>0) bd += "<span class='bd_item'>추가금액 <em>"+_fmtCh(_moreP)+"원</em></span>";
+                bd += "</span>";
+                total_html += bd;
+            })();
 
-                    // 글자수
-                    var _cnt = Number($("#channel_content").val()) || 0;
-
-                    var _charP = _unitFinal * _cnt;
-
-                    // 트러스바
-                    var _tbMm = nv("#channel_trusbar_width") || 0;
-                    var _tbM = _tbMm / 1000;
-                    var _tbUnit = 0;
-                    var _tbCustom = 0;
-                    if($("#channel_trusbar01").is(":checked")) _tbUnit=30000;
-                    else if($("#channel_trusbar02").is(":checked")) _tbUnit=40000;
-                    else if($("#channel_trusbar03").is(":checked")) _tbUnit=40000;
-                    else if($("#channel_trusbar04").is(":checked")) _tbUnit=60000;
-                    else if($("#channel_trusbar05").is(":checked")) _tbCustom=nv("#channel_trusbar_custom_price") || 0;
-                    var _tbP = Math.floor(_tbUnit * _tbM) + _tbCustom;
-
-                    // 까치발
-                    var _ggCnt = Number($("#channel_more_order_count").val()) || 0;
-                    var _ggUnit = 0;
-                    if($("#ch_ggachi_size_200").is(":checked")) _ggUnit = PRICES.ch_ggachi_200;
-                    else if($("#ch_ggachi_size_250").is(":checked")) _ggUnit = PRICES.ch_ggachi_250;
-                    else if($("#ch_ggachi_size_300").is(":checked")) _ggUnit = PRICES.ch_ggachi_300;
-                    else if($("#ch_ggachi_size_400").is(":checked")) _ggUnit = PRICES.ch_ggachi_400;
-                    var _ggP = ($("#channel_more_order_option01").is(":checked")) ? _ggCnt * _ggUnit : 0;
-
-                    // LED
-                    var _ledCnt = parseInt($(".channel_led_count td span").text()) || 0;
-                    var _ledUnit = 0;
-                    if($("#channel_led_color_white").is(":checked")) _ledUnit=450;
-                    else if($("#channel_led_color_wram").is(":checked")) _ledUnit=500;
-                    else if($("#channel_led_color_rgb").is(":checked")) _ledUnit=800;
-                    else if($("#channel_led_color_panorama").is(":checked")) _ledUnit=3500;
-                    else if($("#channel_led_color_red").is(":checked") || $("#channel_led_color_blue").is(":checked") || $("#channel_led_color_green").is(":checked")) _ledUnit=500;
-                    var _ledP = _ledUnit * _ledCnt;
-
-                    // 완조립
-                    var _compP = $("#channel_complete_normal").is(":checked") ? 100000 : ($("#channel_complete_premium").is(":checked") ? 150000 : 0);
-
-                    // 추가금액
-                    var _moreP = nv("#more_order_price") || 0;
-
-                    var bd = "<span class='price_breakdown'>";
-                    if(_cnt > 0 && _unit > 0)
-                        bd += "<span class='bd_item'>글자 <em>"+_cnt+"자 × "+_fmt(_unitFinal)+"원 = "+_fmt(_charP)+"원</em></span>";
-                    if(_tbP > 0) {
-                        if(_tbCustom > 0) {
-                            var _cw=$("#channel_trusbar_custom_w").val()||'0', _ch=$("#channel_trusbar_custom_h").val()||'0', _ct=$("#channel_trusbar_custom_t").val()||'0';
-                            bd += "<span class='bd_item'>트러스바(주문제작 "+_cw+"×"+_ch+"×"+_ct+"mm) <em>"+_fmt(_tbCustom)+"원</em></span>";
-                        } else {
-                            bd += "<span class='bd_item'>트러스바 <em>"+_tbM.toFixed(2)+"m × "+_fmt(_tbUnit)+"원/m = "+_fmt(_tbP)+"원</em></span>";
-                        }
-                    }
-                    if(_ggP > 0)
-                        bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmt(_ggUnit)+"원 = "+_fmt(_ggP)+"원</em></span>";
-                    if(_ledP > 0)
-                        bd += "<span class='bd_item'>LED <em>"+_ledCnt+"개 × "+_fmt(_ledUnit)+"원 = "+_fmt(_ledP)+"원</em></span>";
-                    if(_compP > 0)
-                        bd += "<span class='bd_item'>완조립 <em>"+_fmt(_compP)+"원</em></span>";
-                    if(_moreP > 0)
-                        bd += "<span class='bd_item'>추가금액 <em>"+_fmt(_moreP)+"원</em></span>";
-                    bd += "</span>";
-                    total_html += bd;
-                })();
-
-            	total_html +="<br> / 견적 비용 : <span class='list_price'>";
-            	total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
+            total_html += "<br> / 견적 비용 : <span class='list_price'>";
+            total_html += $(".order_info .right_area #order_price").text() + "</span> 원</li>";
          }
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child03")){ //간판프레임
     
