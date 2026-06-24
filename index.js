@@ -195,6 +195,37 @@ function formatCommaInput(el) {
     el.setSelectionRange(newPos, newPos);
 }
 
+function addExtraCostRow() {
+    var $row = $("<div class='extra-cost-row'>" +
+        "<input type='text' class='extra-cost-name' placeholder='항목명' />" +
+        "<input type='text' inputmode='numeric' class='extra-cost-amount comma-fmt' placeholder='금액' />" +
+        "<span class='extra-cost-won'>원</span>" +
+        "<button type='button' class='btn-remove-extra' title='삭제'>&#10005;</button>" +
+    "</div>");
+    $("#extra_cost_list").append($row);
+    $row.find(".extra-cost-amount").on("input", function(){ formatCommaInput(this); syncExtraCosts(); });
+    $row.find(".btn-remove-extra").on("click", function(){ $(this).closest(".extra-cost-row").remove(); syncExtraCosts(); });
+}
+
+function syncExtraCosts() {
+    var total = 0;
+    $(".extra-cost-amount").each(function(){
+        total += parseInt(String(this.value).replace(/[^0-9]/g,'')) || 0;
+    });
+    $("#more_order_price").val(total).trigger("change");
+}
+
+function getExtraCostText() {
+    var parts = [];
+    $(".extra-cost-row").each(function(){
+        var name = $.trim($(this).find(".extra-cost-name").val()) || '추가';
+        var raw  = $(this).find(".extra-cost-amount").val() || '0';
+        var amt  = parseInt(String(raw).replace(/[^0-9]/g,'')) || 0;
+        if (amt > 0) parts.push(name + " " + fmtNum(amt) + "원");
+    });
+    return parts.join(" / ");
+}
+
 function applyPrices() {
     Object.keys(DEFAULT_PRICES).forEach(function(key) {
         var val = parseFloat(String($("#p_" + key).val()).replace(/,/g, ''));
@@ -354,7 +385,7 @@ function set_sign_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";
 
 		append_html += "<tr>";
@@ -448,7 +479,7 @@ function set_sign_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -527,7 +558,7 @@ function set_sign_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -672,12 +703,16 @@ function hoorex_type(){
 		if($("input[name='channel_option']:checked").length){ //채널문자 품목 선택됨
             append_html += "<tr>";
            	 	append_html += "<th>트러스바</th>";
-            	append_html += "<td><label><input type='radio' name='channel_trusbar' id='channel_trusbar_none' checked='checked'>없음</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar01'>200폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar02'>250폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar03'>300폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar04'>400폭</label></td>";
+            	append_html += "<td><label><input type='radio' name='channel_trusbar' id='channel_trusbar_none' checked='checked'>없음</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar01'>200폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar02'>250폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar03'>300폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar04'>400폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar05'>주문제작</label></td>";
             append_html += "</tr>";
             append_html += "</tr>";
             append_html += "<tr class='channel_trusbar add_row'>";
             	append_html += "<th>트러스바 길이</th>";
             	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_width' placeholder='길이을 입력해주세요.'> mm</td>";
+            append_html += "</tr>";
+            append_html += "<tr class='channel_trusbar_custom add_row'>";
+            	append_html += "<th>트러스바 단가</th>";
+            	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_price' placeholder='m당 단가를 입력해주세요.'> 원/m</td>";
             append_html += "</tr>";
             append_html += "<tr>";
 				append_html += "<th>까치발</th>";
@@ -823,7 +858,7 @@ function hoorex_type(){
 		append_html += "</tr>";	
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -951,7 +986,7 @@ function hoorex_type(){
 			append_html += "</tr>"
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	;	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1072,7 +1107,7 @@ function hoorex_type(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1166,7 +1201,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1260,7 +1295,7 @@ function hoorex_type(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1347,7 +1382,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";		
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1436,7 +1471,7 @@ function hoorex_type(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1571,7 +1606,7 @@ function hoorex_type(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";		
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -1692,7 +1727,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -1787,7 +1822,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -1868,7 +1903,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -1893,8 +1928,13 @@ function hoorex_type(){
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").css({"display":"table-row"});
 			}else{
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").hide();
+				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
 			}
-			
+			if($(this).attr("id") == "channel_trusbar05"){
+				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").css({"display":"table-row"});
+			}else{
+				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
+			}
 		});
     }
 	function channel_size_custom(){
@@ -2183,7 +2223,7 @@ function set_frame_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -2262,7 +2302,7 @@ function set_frame_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";		
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -2339,7 +2379,7 @@ function set_frame_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -2423,7 +2463,7 @@ function set_frame_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -2577,7 +2617,7 @@ function set_actual_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>추가 입력 사항</th>";
@@ -2627,7 +2667,7 @@ function set_actual_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -2671,7 +2711,7 @@ function set_actual_top_option_select(){
 		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -2728,7 +2768,7 @@ function set_actual_top_option_select(){
 		append_html += "</tr>";	
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 		append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -2888,7 +2928,7 @@ function actual_punch(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -2991,7 +3031,7 @@ function actual_punch(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";		
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -3055,7 +3095,7 @@ function actual_punch(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -3102,7 +3142,7 @@ function actual_punch(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='more_order_price' placeholder='추가 금액을 입력해주세요'> 원</td>";
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
@@ -3502,7 +3542,7 @@ function chnnel_taka(){ //채널 타카식
             chnnel_taka_cal();
 
         });
-        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_more_order_count").bind("change keyup paste", function(){
+        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count").bind("change keyup paste", function(){
             chnnel_taka_cal();
         });
     },500);
@@ -5481,7 +5521,7 @@ $(".save_btn").click(function(){
             		}
             	}
             	if(nv("#more_order_price") != 0){
-            		total_html +=" / 추가 금액 : "+$("#more_order_price").val()+"원";
+            		total_html +=" / "+getExtraCostText();
                 }
             	if($("#add_more_text").val().length !=0 ){
             		total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5545,7 +5585,7 @@ $(".save_btn").click(function(){
             		}
             	}
             	if(nv("#more_order_price") != 0){
-            		total_html +=" / 추가 금액 : "+$("#more_order_price").val()+"원";
+            		total_html +=" / "+getExtraCostText();
                 }
             	if($("#add_more_text").val().length !=0 ){
             		total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5607,7 +5647,7 @@ $(".save_btn").click(function(){
             		}
             	}
             	if(nv("#more_order_price") != 0){
-            	total_html +=" / 추가 금액 : "+$("#more_order_price").val()+"원";
+            	total_html +=" / "+getExtraCostText();
                 }
             	if($("#add_more_text").val().length !=0 ){
             	total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5680,7 +5720,7 @@ $(".save_btn").click(function(){
             		total_html +="<br> / 작업 내용 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work_type']:checked").parent("label").text();
                 }
             	if(Number($("#channel_trim_color_custom").val()) != 0){
-            	total_html +="<br> / 추가 금액 : "+$("#more_order_price").val()+"원";
+            	total_html +="<br> / "+getExtraCostText();
                 }
             	if($("#add_more_text").val().length !=0 ){
             	total_html +="<br> / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5733,6 +5773,7 @@ $(".save_btn").click(function(){
                     else if($("#channel_trusbar02").is(":checked")) _tbUnit=40000;
                     else if($("#channel_trusbar03").is(":checked")) _tbUnit=40000;
                     else if($("#channel_trusbar04").is(":checked")) _tbUnit=60000;
+                    else if($("#channel_trusbar05").is(":checked")) _tbUnit=nv("#channel_trusbar_custom_price") || 0;
                     var _tbP = Math.floor(_tbUnit * _tbM);
 
                     // 까치발
@@ -5799,7 +5840,7 @@ $(".save_btn").click(function(){
                 total_html +=" / 재단 비용 : "+$("#actual_more_order_price").val()+" 원";
             }
             if(Number($("#channel_trim_color_custom").val()) != 0){
-                total_html +=" / 추가 금액 : "+$("#more_order_price").val()+"원";
+                total_html +=" / "+getExtraCostText();
             }
             if($("#add_more_text").val().length !=0 ){
                 total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5820,7 +5861,7 @@ $(".save_btn").click(function(){
                 total_html +=" / 코팅 비용 : "+$("#actual_more_order_price").val()+" 원";
             }
             if(Number($("#channel_trim_color_custom").val()) != 0){
-                total_html +=" / 추가 금액 : "+$("#more_order_price").val()+"원";
+                total_html +=" / "+getExtraCostText();
             }
             if($("#add_more_text").val().length !=0 ){
                 total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5843,7 +5884,7 @@ $(".save_btn").click(function(){
                 total_html +=" / 재단 비용 : "+$("#actual_more_order_price").val()+"원";
             }
             if(Number($("#channel_trim_color_custom").val()) != 0){
-                total_html +=" / 추가 금액 : "+$("#more_order_price").val()+"원";
+                total_html +=" / "+getExtraCostText();
             }
             if($("#add_more_text").val().length !=0 ){
                 total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
@@ -5854,11 +5895,11 @@ $(".save_btn").click(function(){
         }
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child05")){ //스카시
     	if($("#skasi_option01").is(":checked")){ //고무
-     		total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 알루미늄 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasicolor_type']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasicolor_count").val()+" 개 / 고무 색상 : "+$("#skasi_color02").val()+" / 크기 : "+$("#skasi_width").val()+" / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / 추가 금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
+     		total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 알루미늄 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasicolor_type']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasicolor_count").val()+" 개 / 고무 색상 : "+$("#skasi_color02").val()+" / 크기 : "+$("#skasi_width").val()+" / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }else if($("#skasi_option02").is(":checked")){ //아크릴
-           total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 아크릴 타입 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic']:checked").parent("label").text()+" / 문자 형태 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasi_acrylic_count").val()+" 개 / 색상 : "+$("#skasi_color01").val()+" / 크기 (mm): "+$("#skasi_width").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / ※ 도색시※ 도색 가지수 : "+$("#skasi_screen_color_count").val()+"개 / 추가 금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
+           total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 아크릴 타입 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic']:checked").parent("label").text()+" / 문자 형태 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasi_acrylic_count").val()+" 개 / 색상 : "+$("#skasi_color01").val()+" / 크기 (mm): "+$("#skasi_width").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / ※ 도색시※ 도색 가지수 : "+$("#skasi_screen_color_count").val()+"개 / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
         }else if($("#skasi_option03").is(":checked")){ //포멕스
-            total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자 형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='pomex_color']:checked").parent("label").text()+" / 가로 : "+$("#skasi_product_width").val()+" mm / 세로 : "+$("#skasi_product_vertical").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / 양면 테이프 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='both_size_tape']:checked").parent("label").text()+" / 수량 : "+$("#pomex_count").val()+"개 / 추가 금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
+            total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자 형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='pomex_color']:checked").parent("label").text()+" / 가로 : "+$("#skasi_product_width").val()+" mm / 세로 : "+$("#skasi_product_vertical").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / 양면 테이프 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='both_size_tape']:checked").parent("label").text()+" / 수량 : "+$("#pomex_count").val()+"개 / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
         }else if($("#skasi_option04").is(":checked")){ //실사 아크릴
             
         }

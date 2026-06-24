@@ -1466,6 +1466,75 @@ input::placeholder {
     border-color: #1a1a2e;
 }
 
+/* ── 추가 금액 동적 목록 ── */
+#extra_cost_list { margin-bottom: 6px; }
+
+.extra-cost-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.extra-cost-name {
+    width: 110px;
+    padding: 7px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+}
+.extra-cost-name:focus { outline: none; border-color: #e94560; background: #fff; }
+
+.extra-cost-amount {
+    width: 130px;
+    padding: 7px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    text-align: right;
+}
+.extra-cost-amount:focus { outline: none; border-color: #e94560; background: #fff; }
+
+.extra-cost-won {
+    font-size: 13px;
+    color: #6b7a92;
+    flex-shrink: 0;
+}
+
+.btn-add-extra {
+    background: #edf2ff;
+    color: #3b6cf7;
+    border: 1px dashed #99b8f7;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-add-extra:hover { background: #dce6ff; }
+
+.btn-remove-extra {
+    background: #fff0f2;
+    color: #e94560;
+    border: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.btn-remove-extra:hover { background: #ffe0e4; }
+
 /* ── 견적 목록 테이블 ── */
 .arc-count {
     font-size: 13px;
