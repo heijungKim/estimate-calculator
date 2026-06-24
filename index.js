@@ -75,7 +75,7 @@ var DEFAULT_PRICES = {
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
     // 공통자재
-    cm_floodlight: 0, cm_timer: 0, cm_smps: 0, cm_led: 0, cm_fluorescent: 0,
+    cm_floodlight: 0, cm_timer: 0, cm_smps: 0, cm_fluorescent: 0,
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
@@ -5472,7 +5472,6 @@ function set_common_material_top(){
         { key: 'cm_floodlight', name: '투광기' },
         { key: 'cm_timer',      name: '타이머' },
         { key: 'cm_smps',       name: 'SMPS' },
-        { key: 'cm_led',        name: 'LED' },
         { key: 'cm_fluorescent', name: '형광등' }
     ];
 
@@ -5481,7 +5480,6 @@ function set_common_material_top(){
 
     var append_html = "";
     CM_ITEMS.forEach(function(item) {
-        var unitPrice = PRICES[item.key] || 0;
         append_html += "<tr>";
         append_html += "<th>" + item.name + "</th>";
         append_html += "<td class='cm-row'>";
@@ -5489,6 +5487,21 @@ function set_common_material_top(){
         append_html += "</td>";
         append_html += "</tr>";
     });
+    append_html += "<tr>";
+    append_html += "<th>LED</th>";
+    append_html += "<td class='cm-row'>";
+    append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_none' checked='checked'>없음</label>";
+    append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_white'>백색</label>";
+    append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_warm'>웜(전구색)</label>";
+    append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_rgb'>RGB</label>";
+    append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_panorama'>파노라마</label>";
+    append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_single'>컬러(적/청/녹)</label>";
+    append_html += "</td>";
+    append_html += "</tr>";
+    append_html += "<tr class='cm_led_qty_row add_row'>";
+    append_html += "<th>LED 수량</th>";
+    append_html += "<td class='cm-row'><input type='number' class='cm-led-qty' id='cm_led_qty' placeholder='수량' min='0' value='0'> 개</td>";
+    append_html += "</tr>";
     append_html += "<tr>";
     append_html += "<th>추가 금액</th>";
     append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
@@ -5499,8 +5512,25 @@ function set_common_material_top(){
     append_html += "</tr>";
     $("#option_table tbody").html(append_html);
 
-    $(".cm-qty").on("input", function(){ _calc_cm_total(); });
+    $(".cm-qty, #cm_led_qty").on("input", function(){ _calc_cm_total(); });
     $(document).on("change", "#more_order_price", function(){ _calc_cm_total(); });
+    $("input[name='cm_led_color']").on("click", function(){
+        if($(this).attr("id") === "cm_led_none"){
+            $(".cm_led_qty_row").hide();
+        } else {
+            $(".cm_led_qty_row").css("display","table-row");
+        }
+        _calc_cm_total();
+    });
+}
+
+function _getCmLedUnit(){
+    if($("#cm_led_white").is(":checked"))    return PRICES.ch_led_white;
+    if($("#cm_led_warm").is(":checked"))     return PRICES.ch_led_warm;
+    if($("#cm_led_rgb").is(":checked"))      return PRICES.ch_led_rgb;
+    if($("#cm_led_panorama").is(":checked")) return PRICES.ch_led_panorama;
+    if($("#cm_led_single").is(":checked"))   return PRICES.ch_led_color;
+    return 0;
 }
 
 function _calc_cm_total(){
@@ -5510,9 +5540,11 @@ function _calc_cm_total(){
         var key = $(this).data("key");
         var qty = parseInt($(this).val()) || 0;
         var unit = PRICES[key] || 0;
-        var sub = qty * unit;
-        total += sub;
+        total += qty * unit;
     });
+    var ledUnit = _getCmLedUnit();
+    var ledQty  = parseInt($("#cm_led_qty").val()) || 0;
+    total += ledQty * ledUnit;
     total += nv("#more_order_price") || 0;
     $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
@@ -6048,6 +6080,13 @@ $(".save_btn").click(function(){
             _cmParts.push(name + " " + qty + "개");
             _cmBd += "<span class='bd_item'>" + name + " <em>" + qty + "개 × " + fmtNum(unit) + "원 = " + fmtNum(sub) + "원</em></span>";
         });
+        var _ledUnit = _getCmLedUnit(), _ledQty = parseInt($("#cm_led_qty").val()) || 0;
+        if(_ledQty > 0 && _ledUnit > 0) {
+            var _ledSub = _ledQty * _ledUnit;
+            var _ledColor = $("input[name='cm_led_color']:checked").parent("label").text();
+            _cmParts.push("LED(" + _ledColor + ") " + _ledQty + "개");
+            _cmBd += "<span class='bd_item'>LED(" + _ledColor + ") <em>" + _ledQty + "개 × " + fmtNum(_ledUnit) + "원 = " + fmtNum(_ledSub) + "원</em></span>";
+        }
         var _cmMoreP = nv("#more_order_price") || 0;
         if(_cmMoreP > 0) _cmBd += "<span class='bd_item'>추가금액 <em>" + fmtNum(_cmMoreP) + "원</em></span>";
         _cmBd += "</span>";

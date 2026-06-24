@@ -43,7 +43,7 @@ var DEFAULT_PRICES = {
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
     // 공통자재
-    cm_floodlight: 0, cm_timer: 0, cm_smps: 0, cm_led: 0, cm_fluorescent: 0
+    cm_floodlight: 0, cm_timer: 0, cm_smps: 0, cm_fluorescent: 0
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
