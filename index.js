@@ -2636,7 +2636,11 @@ function set_actual_top_option_select(){
 			append_html += "<td>";
 				append_html += "<input type='number' id='actual_punch_count' placeholder='타공 개수를 입력해주세요'> 개";
 			append_html += "</td>";
-		append_html += "</tr>";	
+		append_html += "</tr>";
+		append_html += "<tr>";
+			append_html += "<th>수량</th>";
+			append_html += "<td><input type='number' id='flex_quantity' placeholder='수량을 입력해주세요' value='1' min='1'> 개</td>";
+		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>추가 작업</th>";
 			append_html += "<td>";
@@ -3788,6 +3792,9 @@ function whoorex(){ //후렉스
     $(".woosung_wrap .contents_wrap #option_table td label input#frame_product_width,.woosung_wrap .contents_wrap #option_table td input#more_order_price").bind("change keyup paste", function(){
     	whoorex_cal();
     });
+    $("#flex_quantity").bind("change keyup paste", function(){
+    	whoorex_cal();
+    });
    },500);
     
 }
@@ -3829,9 +3836,10 @@ function whoorex_cal(){ //후렉스 계산
     }
 
   
-	console.log(String(Math.floor(total_price + frequency_price + hole_price +nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-    
-    $(".order_info .right_area #order_price").text(String(Math.floor(total_price + frequency_price +hole_price+ nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    var flex_qty = parseInt($("#flex_quantity").val()) || 1;
+    var subtotal = (total_price + frequency_price + hole_price) * flex_qty;
+
+    $(".order_info .right_area #order_price").text(String(Math.floor(subtotal + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 function uv_silsa(){ //UV실사
 	setTimeout(function(){
