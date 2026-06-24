@@ -909,7 +909,6 @@ function hoorex_type(){
 				append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 				append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 				append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-				append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
 			append_html += "</td>";
 		append_html += "</tr>";	
 		append_html += "<tr>";
@@ -1037,8 +1036,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>"
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1158,8 +1156,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1252,8 +1249,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1346,8 +1342,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1433,8 +1428,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1522,8 +1516,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1657,8 +1650,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
@@ -1778,8 +1770,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type06'>멀티캘 부착</label>";
-				append_html += "</td>";
+					append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
