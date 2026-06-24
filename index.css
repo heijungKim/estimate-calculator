@@ -1927,3 +1927,284 @@ input::placeholder {
 
 /* 진행 X일 때 상태 배지 비활성 */
 .st_none { background: #f0f2f5; color: #bbb; }
+
+/* ═══════════════════════════════════════════
+   자재 관리 (materials.html)
+════════════════════════════════════════════ */
+
+.mat-wrap {
+    max-width: 1200px;
+    margin: 36px auto 60px;
+    padding: 0 32px;
+}
+
+/* 페이지 상단 헤더 */
+.mat-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.mat-page-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.mat-page-title .title-bar {
+    width: 4px;
+    height: 20px;
+    background: #e94560;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* 보관 장소 추가 버튼 */
+.mat-add-location-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    background: #0f3460;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+    box-shadow: 0 4px 14px rgba(15,52,96,0.3);
+}
+.mat-add-location-btn:hover {
+    background: #16213e;
+    box-shadow: 0 6px 18px rgba(15,52,96,0.4);
+    transform: translateY(-1px);
+}
+
+/* 탭 바 */
+.mat-tab-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 18px;
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    border: 1.5px solid #e2e8f0;
+    border-bottom: none;
+}
+
+.mat-no-location {
+    color: #aab0bb;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.mat-tab {
+    padding: 8px 20px;
+    background: #f0f2f5;
+    color: #5a6880;
+    border: 1.5px solid #dde1e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+}
+.mat-tab:hover {
+    background: #e4e8f0;
+    color: #1a1a2e;
+}
+.mat-tab.active {
+    background: #e94560;
+    color: #fff;
+    border-color: #e94560;
+    box-shadow: 0 4px 12px rgba(233,69,96,0.3);
+}
+
+/* 콘텐츠 카드 */
+.mat-content-card {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+}
+
+.mat-content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-bottom: 1.5px solid #edf0f5;
+    background: #f7f8fb;
+}
+.mat-content-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.mat-content-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* 자재 추가 버튼 */
+.mat-add-material-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 18px;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 3px 10px rgba(233,69,96,0.3);
+}
+.mat-add-material-btn:hover {
+    background: #d63652;
+    box-shadow: 0 5px 14px rgba(233,69,96,0.4);
+    transform: translateY(-1px);
+}
+
+/* 장소 삭제 버튼 */
+.mat-del-location-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    background: #fff;
+    color: #8892a4;
+    border: 1.5px solid #dde1e9;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+.mat-del-location-btn:hover {
+    background: #fdecea;
+    color: #c62828;
+    border-color: #f5a0a7;
+}
+
+/* 자재 테이블 */
+.mat-table-wrap {
+    overflow-x: auto;
+}
+.mat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.mat-table thead tr {
+    background: #f0f2f5;
+}
+.mat-table thead th {
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #5a6880;
+    text-align: left;
+    border-bottom: 1.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+.mat-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.15s;
+}
+.mat-table tbody tr:hover {
+    background: #fafbff;
+}
+.mat-table tbody tr:last-child {
+    border-bottom: none;
+}
+.mat-table td {
+    padding: 12px 14px;
+    color: #1a1a2e;
+    vertical-align: middle;
+}
+.mat-td-center {
+    text-align: center;
+    color: #8892a4;
+    font-size: 13px;
+}
+.mat-td-name {
+    font-weight: 600;
+}
+.mat-td-notes {
+    color: #8892a4;
+    font-size: 13px;
+}
+.mat-td-actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.mat-empty-row td,
+.mat-loading-row td {
+    text-align: center;
+    color: #aab0bb;
+    font-size: 14px;
+    padding: 32px 0;
+}
+
+/* 자재 수정/삭제 버튼 */
+.mat-btn-edit,
+.mat-btn-del {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1.5px solid;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    margin: 0 2px;
+}
+.mat-btn-edit {
+    background: #fff;
+    color: #0f3460;
+    border-color: #c3d1e8;
+}
+.mat-btn-edit:hover {
+    background: #0f3460;
+    color: #fff;
+}
+.mat-btn-del {
+    background: #fff;
+    color: #c62828;
+    border-color: #f5a0a7;
+}
+.mat-btn-del:hover {
+    background: #e94560;
+    color: #fff;
+    border-color: #e94560;
+}
+
+/* 모달 내 2열 행 */
+.mat-modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* 폼 에러 메시지 */
+.mat-form-error {
+    color: #e94560;
+    font-size: 13px;
+    min-height: 16px;
+    margin-top: -4px;
+}

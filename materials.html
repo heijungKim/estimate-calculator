@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>자재 관리 - 우성디지탈 관리 시스템</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
+        <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">&#9998;</span>
+            <span>견적 계산기</span>
+        </a>
+        <a href="estimates.html" class="nav-item">
+            <span class="nav-icon">&#128196;</span>
+            <span>견적서 관리</span>
+        </a>
+        <a href="vendor.html" class="nav-item">
+            <span class="nav-icon">&#9679;</span>
+            <span>업체 관리</span>
+        </a>
+        <a href="price.html" class="nav-item">
+            <span class="nav-icon">&#128176;</span>
+            <span>단가 설정표</span>
+        </a>
+        <a href="materials.html" class="nav-item active">
+            <span class="nav-icon">&#128230;</span>
+            <span>자재 관리</span>
+        </a>
+    </nav>
+    <button type="button" class="nav-logout" onclick="wsLogout()">
+        <span class="nav-icon">&#9711;</span>
+        <span>로그아웃</span>
+    </button>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="logo.svg" class="logo-img" alt="우성디지탈" />
+            <span class="logo-text">우성디지탈 관리 시스템</span>
+        </div>
+        <p class="header-sub">자재를 보관 장소별로 등록하고 관리하세요</p>
+    </div>
+</header>
+
+<div class="mat-wrap">
+
+    <!-- 상단 헤더: 제목 + 보관 장소 추가 버튼 -->
+    <div class="mat-page-header">
+        <h2 class="mat-page-title">
+            <span class="title-bar"></span>
+            자재 관리
+        </h2>
+        <button type="button" id="btn_add_location" class="mat-add-location-btn">
+            &#43; 보관 장소 추가
+        </button>
+    </div>
+
+    <!-- 보관 장소 탭 목록 -->
+    <div class="mat-tab-bar" id="mat_tab_bar">
+        <div class="mat-no-location" id="mat_no_location">
+            등록된 보관 장소가 없습니다. 보관 장소를 먼저 추가해주세요.
+        </div>
+    </div>
+
+    <!-- 탭 콘텐츠 (자재 목록) -->
+    <div class="mat-content-card" id="mat_content_card" style="display:none;">
+        <div class="mat-content-header">
+            <span class="mat-content-title" id="mat_content_title"></span>
+            <div class="mat-content-actions">
+                <button type="button" id="btn_add_material" class="mat-add-material-btn">
+                    &#43; 자재 추가
+                </button>
+                <button type="button" id="btn_delete_location" class="mat-del-location-btn">
+                    &#128465; 장소 삭제
+                </button>
+            </div>
+        </div>
+
+        <!-- 자재 목록 테이블 -->
+        <div class="mat-table-wrap">
+            <table class="mat-table" id="mat_table">
+                <thead>
+                    <tr>
+                        <th style="width:40px">No.</th>
+                        <th>자재명</th>
+                        <th style="width:100px">수량</th>
+                        <th style="width:80px">단위</th>
+                        <th>비고</th>
+                        <th style="width:100px">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="mat_tbody">
+                    <tr class="mat-empty-row">
+                        <td colspan="6">등록된 자재가 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- ── 보관 장소 추가 모달 ── -->
+<div class="modal_overlay" id="location_modal">
+    <div class="modal_box">
+        <div class="modal_header">
+            <h3>보관 장소 추가</h3>
+            <button type="button" class="modal_close" id="loc_modal_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+            <div class="modal_field">
+                <label for="loc_name_input">보관 장소명</label>
+                <input type="text" id="loc_name_input" placeholder="예: 창고 A, 작업실, 2층 선반" />
+            </div>
+            <p id="loc_form_error" class="mat-form-error"></p>
+        </div>
+        <div class="modal_footer">
+            <button type="button" id="loc_modal_cancel" class="modal_cancel_btn">취소</button>
+            <button type="button" id="loc_modal_confirm" class="modal_save_btn">추가하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── 자재 추가/수정 모달 ── -->
+<div class="modal_overlay" id="material_modal">
+    <div class="modal_box">
+        <div class="modal_header">
+            <h3 id="mat_modal_title">자재 추가</h3>
+            <button type="button" class="modal_close" id="mat_modal_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+            <div class="modal_field">
+                <label for="mat_name_input">자재명 <span style="color:#e94560">*</span></label>
+                <input type="text" id="mat_name_input" placeholder="예: LED 모듈 100W" />
+            </div>
+            <div class="mat-modal-row">
+                <div class="modal_field">
+                    <label for="mat_qty_input">수량</label>
+                    <input type="number" id="mat_qty_input" placeholder="0" min="0" />
+                </div>
+                <div class="modal_field">
+                    <label for="mat_unit_input">단위</label>
+                    <input type="text" id="mat_unit_input" placeholder="개, m, 롤, 박스 등" />
+                </div>
+            </div>
+            <div class="modal_field">
+                <label for="mat_notes_input">비고 <span class="modal_opt">(선택)</span></label>
+                <textarea id="mat_notes_input" rows="2" placeholder="규격, 색상, 기타 메모"></textarea>
+            </div>
+            <p id="mat_form_error" class="mat-form-error"></p>
+        </div>
+        <div class="modal_footer">
+            <button type="button" id="mat_modal_cancel" class="modal_cancel_btn">취소</button>
+            <button type="button" id="mat_modal_confirm" class="modal_save_btn">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="auth.js"></script>
+<script src="materials.js"></script>
+</body>
+</html>
