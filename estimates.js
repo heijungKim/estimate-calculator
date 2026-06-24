@@ -168,12 +168,28 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
 
     var tableRows = [];
     items.forEach(function(item) {
+        var chItemLines = [];
+        if (item.details && item.details.indexOf('[담긴 항목') > -1) {
+            item.details.split('\n').forEach(function(ln) {
+                var m = ln.trim().match(/^\((\d+)\)\s+(.+?)\s+→\s+([\d,]+)원/);
+                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '', unit: '', total: m[3] });
+            });
+        }
         if (item.breakdown) {
             var parts = item.breakdown.split(' / '), added = false;
-            parts.forEach(function(p) { var r = parseBdRow(p); if (r) { tableRows.push(r); added = true; } });
+            parts.forEach(function(p) {
+                if (chItemLines.length > 0 && p.indexOf('담긴 항목 합계') > -1) return;
+                var r = parseBdRow(p);
+                if (r) { tableRows.push(r); added = true; }
+            });
+            chItemLines.forEach(function(r) { tableRows.push(r); added = true; });
             if (!added) tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
         } else {
-            tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
+            if (chItemLines.length > 0) {
+                chItemLines.forEach(function(r) { tableRows.push(r); });
+            } else {
+                tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
+            }
         }
     });
 
