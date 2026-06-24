@@ -4003,39 +4003,41 @@ function soosung_silsa_cal(){ //수성실사 계산
 	if(target_width != 0 && target_vertical != 0){
         if($("#actual_material01").is(":checked")){ //현수막
             if(target_vertical <= 0.9){
-               if(target_width <= 2){
-                  total_price = 6000;
-               }else if(target_width <= 3 && target_width > 2){
-                  total_price = 7000;
-               }else if(target_width <= 4 && target_width > 3){
-                  total_price = 8000;
-               }else if(target_width <= 5 && target_width > 4){
-                  total_price = 10000;
-               }else{
-                   total_price = target_width * 2000;
-               }
+                if(target_width < 3){
+                    total_price = target_width * 2000;
+                }else if(target_width <= 4){
+                    total_price = 7000;
+                }else{
+                    total_price = target_width * 2000;
+                }
             }else if(target_vertical <= 1.1){
-                if(target_width <= 3){
-                  total_price = 10000;
-               }else{
-                   total_price = target_width * 3000;
-               }
+                if(target_width < 3){
+                    total_price = target_width * 3000;
+                }else if(target_width <= 4){
+                    total_price = 10000;
+                }else{
+                    total_price = target_width * 3000;
+                }
             }else if(target_vertical <= 1.27){
-                if(target_width <= 3){
-                  total_price = 10000;
-               }else{
-                   total_price = target_width * 4000;
-               }
-            }else if(target_vertical <= 1.52){
-                if(target_width <= 2){
-                  total_price = 10000;
-               }else{
-                   total_price = target_width * 5000;
-               }
+                if(target_width < 3){
+                    total_price = target_width * 4000;
+                }else if(target_width <= 4){
+                    total_price = 12000;
+                }else{
+                    total_price = target_width * 4000;
+                }
+            }else if(target_vertical <= 1.5){
+                if(target_width < 3){
+                    total_price = target_width * 5000;
+                }else if(target_width <= 4){
+                    total_price = 15000;
+                }else{
+                    total_price = target_width * 5000;
+                }
             }else if(target_vertical <= 1.8){
-                   total_price = target_width * 1.8 * 3000;
-            }else if(target_vertical > 1.8){
-                   total_price = target_width * target_vertical * 3000;
+                total_price = target_width * target_vertical * 4000;
+            }else{
+                total_price = target_width * target_vertical * 5000;
             }
         }else if($("#actual_material02").is(":checked")){ //켈(백색)
             total_price = (target_width * target_vertical) * 10000;
