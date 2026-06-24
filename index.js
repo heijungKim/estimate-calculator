@@ -306,6 +306,8 @@ $(".woosung_wrap .tab_area ul li").click(function(){
 		set_frame_top();
 	}else if($(this).hasClass("child04")){ //실사출력
 		set_actual_top();
+	}else if($(this).hasClass("child06")){ //공통자재
+		set_common_material_top();
 	}else{ // 스카시
 		set_skasi_top();
 	}
@@ -3277,8 +3279,10 @@ $(".woosung_wrap .tab_area ul li").click(function(){
                 
             }
         });
+    }else if($(this).hasClass("child06")){ //공통자재
+        common_material_calc();
     }
-    
+
     $(".order_info .right_area #order_price").text(0);
 });
 
@@ -5461,9 +5465,66 @@ function skasi_pomex_cal(){ //스카시 포멕스 계산
     $("#order_price").text(String(Math.floor((total_price * Number($("#pomex_count").val()))+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
+// ── 공통자재 ─────────────────────────────────────────────────
+function set_common_material_top(){
+    applyPrices();
+    var CM_ITEMS = [
+        { key: 'cm_floodlight', name: '투광기' },
+        { key: 'cm_timer',      name: '타이머' },
+        { key: 'cm_smps',       name: 'SMPS' },
+        { key: 'cm_led',        name: 'LED' },
+        { key: 'cm_fluorescent', name: '형광등' }
+    ];
+
+    var setting_html = "<tr><th colspan='2'>공통자재</th></tr>";
+    $("#option_table thead").html(setting_html);
+
+    var append_html = "";
+    CM_ITEMS.forEach(function(item) {
+        var unitPrice = PRICES[item.key] || 0;
+        append_html += "<tr>";
+        append_html += "<th>" + item.name + "</th>";
+        append_html += "<td class='cm-row'>";
+        append_html += "<span class='cm-unit-price'>단가 <em>" + fmtNum(unitPrice) + "</em>원</span>";
+        append_html += " <input type='number' class='cm-qty' id='cm_qty_" + item.key + "' placeholder='수량' min='0' value='0' data-key='" + item.key + "'> 개";
+        append_html += " <span class='cm-subtotal' id='cm_sub_" + item.key + "'>= 0원</span>";
+        append_html += "</td>";
+        append_html += "</tr>";
+    });
+    append_html += "<tr>";
+    append_html += "<th>추가 금액</th>";
+    append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
+    append_html += "</tr>";
+    append_html += "<tr>";
+    append_html += "<th>추가 입력 사항</th>";
+    append_html += "<td><input type='text' id='add_more_text' placeholder='추가 입력 사항을 입력하세요'></td>";
+    append_html += "</tr>";
+    $("#option_table tbody").html(append_html);
+
+    $(".cm-qty").on("input", function(){ _calc_cm_total(); });
+    $(document).on("change", "#more_order_price", function(){ _calc_cm_total(); });
+}
+
+function _calc_cm_total(){
+    applyPrices();
+    var total = 0;
+    $(".cm-qty").each(function(){
+        var key = $(this).data("key");
+        var qty = parseInt($(this).val()) || 0;
+        var unit = PRICES[key] || 0;
+        var sub = qty * unit;
+        $("#cm_sub_" + key).text("= " + fmtNum(sub) + "원");
+        total += sub;
+    });
+    total += nv("#more_order_price") || 0;
+    $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+}
+
+function common_material_calc(){
+    $(".cm-qty").on("input", function(){ _calc_cm_total(); });
+}
+
 //견적 저장
-
-
 
 $(".save_btn").click(function(){
     // ── 유효성 검사 ──────────────────────────────────────────
@@ -5532,6 +5593,11 @@ $(".save_btn").click(function(){
                     _errs.push("수량을 입력해주세요.");
             }
         }
+    } else if(_tab.hasClass("child06")) { // 공통자재
+        var _hasCmQty = false;
+        $(".cm-qty").each(function(){ if(parseInt($(this).val()) > 0) _hasCmQty = true; });
+        if(!_hasCmQty && nv("#more_order_price") === 0)
+            _errs.push("공통자재 수량 또는 추가 금액을 입력해주세요.");
     }
 
     if(_errs.length === 0 && Number($("#order_price").text().replace(/[^0-9]/g, "")) === 0)
@@ -5970,10 +6036,30 @@ $(".save_btn").click(function(){
         }else if($("#skasi_option03").is(":checked")){ //포멕스
             total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자 형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='pomex_color']:checked").parent("label").text()+" / 가로 : "+$("#skasi_product_width").val()+" mm / 세로 : "+$("#skasi_product_vertical").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / 양면 테이프 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='both_size_tape']:checked").parent("label").text()+" / 수량 : "+$("#pomex_count").val()+"개 / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
         }else if($("#skasi_option04").is(":checked")){ //실사 아크릴
-            
+
         }
+    }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child06")){ //공통자재
+        var _cmParts = [];
+        var _cmBd = "<span class='price_breakdown'>";
+        $(".cm-qty").each(function(){
+            var key = $(this).data("key");
+            var qty = parseInt($(this).val()) || 0;
+            if(qty <= 0) return;
+            var unit = PRICES[key] || 0;
+            var sub = qty * unit;
+            var name = $(this).closest("tr").find("th").text();
+            _cmParts.push(name + " " + qty + "개");
+            _cmBd += "<span class='bd_item'>" + name + " <em>" + qty + "개 × " + fmtNum(unit) + "원 = " + fmtNum(sub) + "원</em></span>";
+        });
+        var _cmMoreP = nv("#more_order_price") || 0;
+        if(_cmMoreP > 0) _cmBd += "<span class='bd_item'>추가금액 <em>" + fmtNum(_cmMoreP) + "원</em></span>";
+        _cmBd += "</span>";
+        total_html = "<li><span class='number'></span>공통자재 / " + _cmParts.join(" / ");
+        if($.trim($("#add_more_text").val())) total_html += " / 추가입력 사항 : " + $("#add_more_text").val();
+        total_html += _cmBd;
+        total_html += " / 견적 비용 : <span class='list_price'>" + $(".order_info .right_area #order_price").text() + "</span> 원</li>";
     }
-  
+
     $("#total_price_wrap .total_list ul").append(total_html);
 
     list_sum_price();
