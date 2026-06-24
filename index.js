@@ -2638,10 +2638,6 @@ function set_actual_top_option_select(){
 			append_html += "</td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
-			append_html += "<th>수량</th>";
-			append_html += "<td><input type='number' id='flex_quantity' placeholder='수량을 입력해주세요' value='1' min='1'> 개</td>";
-		append_html += "</tr>";
-		append_html += "<tr>";
 			append_html += "<th>추가 작업</th>";
 			append_html += "<td>";
 				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order01' checked='checked'>없음</label>";
@@ -2809,7 +2805,13 @@ function set_actual_top_option_select(){
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
 			append_html += "</tr>";	
 	}
+
 	$("#option_table tbody").html(append_html);
+
+	if($("#actual_option01,#actual_option02,#actual_option03,#actual_option04").is(":checked")){
+		$("<tr><th>수량</th><td><input type='number' id='actual_quantity' placeholder='수량' value='1' min='1'> 개</td></tr>")
+			.insertBefore($("#option_table tbody tr:has(th:contains('추가 금액'))"));
+	}
 
 	actual_punch();
 }
@@ -3792,7 +3794,7 @@ function whoorex(){ //후렉스
     $(".woosung_wrap .contents_wrap #option_table td label input#frame_product_width,.woosung_wrap .contents_wrap #option_table td input#more_order_price").bind("change keyup paste", function(){
     	whoorex_cal();
     });
-    $("#flex_quantity").bind("change keyup paste", function(){
+    $("#actual_quantity").bind("change keyup paste", function(){
     	whoorex_cal();
     });
    },500);
@@ -3836,7 +3838,7 @@ function whoorex_cal(){ //후렉스 계산
     }
 
   
-    var flex_qty = parseInt($("#flex_quantity").val()) || 1;
+    var flex_qty = parseInt($("#actual_quantity").val()) || 1;
     var subtotal = (total_price + frequency_price + hole_price) * flex_qty;
 
     $(".order_info .right_area #order_price").text(String(Math.floor(subtotal + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
@@ -3862,6 +3864,7 @@ function uv_silsa(){ //UV실사
         $(".woosung_wrap .contents_wrap #option_table td label input#frame_product_width,.woosung_wrap .contents_wrap #option_table td input#more_order_price,.woosung_wrap .contents_wrap #option_table td label input#frame_product_width,.woosung_wrap .contents_wrap #option_table td input#actual_more_order_price").bind("change keyup paste", function(){
             uv_silsa_cal();
         });
+        $("#actual_quantity").bind("change keyup paste", function(){ uv_silsa_cal(); });
    },500);
 }
 
@@ -3899,7 +3902,8 @@ function uv_silsa_cal(){ //UV실사 계산
 	}else{
         $("#actual_more_order_price").val(0); //재단 가격 입력
     }
-    $("#order_price").text(String(Math.floor(total_price + nv("#actual_more_order_price") + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    var _aqty = parseInt($("#actual_quantity").val()) || 1;
+    $("#order_price").text(String(Math.floor((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function solven_silsa(){ //솔벤실사
@@ -3923,6 +3927,7 @@ function solven_silsa(){ //솔벤실사
         $(".woosung_wrap .contents_wrap #option_table td input#more_order_price").bind("change keyup paste", function(){
             solven_silsa_cal();
         });
+        $("#actual_quantity").bind("change keyup paste", function(){ solven_silsa_cal(); });
    },500);
 }
 
@@ -3958,7 +3963,8 @@ function solven_silsa_cal(){ //솔벤실사 계산
 	}else{
         $("#actual_more_order_price").val(0); //재단 & 코팅 미포함
     }
-    $("#order_price").text(String(Math.floor(total_price + nv("#actual_more_order_price") + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    var _aqty = parseInt($("#actual_quantity").val()) || 1;
+    $("#order_price").text(String(Math.floor((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function soosung_silsa(){ //수성실사
@@ -3982,6 +3988,7 @@ function soosung_silsa(){ //수성실사
         $(".woosung_wrap .contents_wrap #option_table td input#more_order_price").bind("change keyup paste", function(){
             soosung_silsa_cal();
         });
+        $("#actual_quantity").bind("change keyup paste", function(){ soosung_silsa_cal(); });
    },500);
 }
 
@@ -4081,7 +4088,8 @@ function soosung_silsa_cal(){ //수성실사 계산
      }
 
   
-    $("#order_price").text(String(Math.floor(total_price + nv("#actual_more_order_price") + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    var _aqty = parseInt($("#actual_quantity").val()) || 1;
+    $("#order_price").text(String(Math.floor((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function skasi_gomoo(){ //스카시 고무 계산
