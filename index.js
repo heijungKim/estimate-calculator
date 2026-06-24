@@ -204,6 +204,25 @@ function formatCommaInput(el) {
     el.setSelectionRange(newPos, newPos);
 }
 
+function getCommonMaterialTotal() {
+    var t = 0;
+    $(".cm-input").each(function(){ t += parseInt(String(this.value).replace(/[^0-9]/g,'')) || 0; });
+    return t;
+}
+
+function getCommonMaterialText() {
+    var items = [];
+    var ids = [
+        {id:'cm_floodlight', name:'투광기'}, {id:'cm_timer', name:'타이머'},
+        {id:'cm_smps', name:'SMPS'}, {id:'cm_led', name:'LED'}, {id:'cm_fluorescent', name:'형광등'}
+    ];
+    ids.forEach(function(o){
+        var v = parseInt(String($("#"+o.id).val()).replace(/[^0-9]/g,'')) || 0;
+        if(v > 0) items.push(o.name + " " + fmtNum(v) + "원");
+    });
+    return items.join(" / ");
+}
+
 function addExtraCostRow() {
     var $row = $("<div class='extra-cost-row'>" +
         "<input type='text' class='extra-cost-name' placeholder='항목명' />" +
@@ -5974,12 +5993,23 @@ $(".save_btn").click(function(){
   
     $("#total_price_wrap .total_list ul").append(total_html);
 
+    // 공통자재 항목 추가
+    var _cmTotal = getCommonMaterialTotal();
+    if(_cmTotal > 0) {
+        var _cmText = getCommonMaterialText();
+        var _cmHtml = "<li><span class='number'></span>공통자재 / " + _cmText;
+        _cmHtml += "<span class='price_breakdown'><span class='bd_item'>공통자재 <em>" + fmtNum(_cmTotal) + "원</em></span></span>";
+        _cmHtml += " / 견적 비용 : <span class='list_price'>" + fmtNum(_cmTotal) + "</span> 원</li>";
+        $("#total_price_wrap .total_list ul").append(_cmHtml);
+    }
+
     list_sum_price();
     list_delete_func();
 
     // 추가 후 입력값 초기화
     $("#option_table input[type='text'], #option_table input[type='number']").val('');
     $("#option_table textarea").val('');
+    $(".cm-input").val('');
     $(".order_info .right_area #order_price").text('0');
 });
 function list_delete_func(){
@@ -6047,6 +6077,11 @@ $(function(){
 
     // option_table 동적 입력 콤마 포맷
     $(document).on('input', '#option_table input.comma-fmt', function(){
+        formatCommaInput(this);
+    });
+
+    // 공통자재 콤마 포맷
+    $(document).on('input', '.cm-input', function(){
         formatCommaInput(this);
     });
 
