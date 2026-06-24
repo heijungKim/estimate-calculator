@@ -75,7 +75,11 @@ var DEFAULT_PRICES = {
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
     // 공통자재
-    cm_floodlight: 0, cm_timer: 0, cm_smps: 0, cm_fluorescent: 0,
+    cm_floodlight: 0,
+    cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
+    cm_smps_60w: 0, cm_smps_100w: 0, cm_smps_150w: 0, cm_smps_200w: 0, cm_smps_300w: 0, cm_smps_400w: 0, cm_smps_500w: 0,
+    cm_fluorescent: 0,
+    cm_led_ctrl_1ch: 0, cm_led_ctrl_2ch: 0, cm_led_ctrl_3ch: 0,
     cm_led_white: 450, cm_led_warm: 500, cm_led_rgb: 800, cm_led_panorama: 3500, cm_led_color: 500,
 };
 
@@ -5469,40 +5473,66 @@ function skasi_pomex_cal(){ //스카시 포멕스 계산
 // ── 공통자재 ─────────────────────────────────────────────────
 function set_common_material_top(){
     applyPrices();
-    var CM_ITEMS = [
-        { key: 'cm_floodlight', name: '투광기' },
-        { key: 'cm_timer',      name: '타이머' },
-        { key: 'cm_smps',       name: 'SMPS' },
-        { key: 'cm_fluorescent', name: '형광등' }
-    ];
-
     var setting_html = "<tr><th colspan='2'>공통자재</th></tr>";
     $("#option_table thead").html(setting_html);
 
     var append_html = "";
-    CM_ITEMS.forEach(function(item) {
-        append_html += "<tr>";
-        append_html += "<th>" + item.name + "</th>";
-        append_html += "<td class='cm-row'>";
-        append_html += "<input type='number' class='cm-qty' id='cm_qty_" + item.key + "' placeholder='수량' min='0' value='0' data-key='" + item.key + "'> 개";
-        append_html += "</td>";
-        append_html += "</tr>";
-    });
-    append_html += "<tr>";
-    append_html += "<th>LED</th>";
-    append_html += "<td class='cm-row'>";
+
+    // 투광기
+    append_html += "<tr><th>투광기</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-qty' id='cm_qty_cm_floodlight' placeholder='수량' min='0' value='0' data-key='cm_floodlight'> 개";
+    append_html += "</td></tr>";
+
+    // 전자 타이머
+    append_html += "<tr><th>전자 타이머</th><td class='cm-row'>";
+    append_html += "<label><input type='radio' name='cm_timer_spec' id='cm_timer_none' checked='checked'>없음</label>";
+    append_html += "<label><input type='radio' name='cm_timer_spec' id='cm_timer_20a'>20A</label>";
+    append_html += "<label><input type='radio' name='cm_timer_spec' id='cm_timer_30a'>30A</label>";
+    append_html += "<label><input type='radio' name='cm_timer_spec' id='cm_timer_50a'>50A</label>";
+    append_html += "</td></tr>";
+    append_html += "<tr class='cm_timer_qty_row add_row'><th>타이머 수량</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-spec-qty' id='cm_timer_qty' placeholder='수량' min='0' value='0'> 개</td></tr>";
+
+    // SMPS
+    append_html += "<tr><th>SMPS</th><td class='cm-row'>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_none' checked='checked'>없음</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_60w'>60W</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_100w'>100W</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_150w'>150W</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_200w'>200W</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_300w'>300W</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_400w'>400W</label>";
+    append_html += "<label><input type='radio' name='cm_smps_spec' id='cm_smps_500w'>500W</label>";
+    append_html += "</td></tr>";
+    append_html += "<tr class='cm_smps_qty_row add_row'><th>SMPS 수량</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-spec-qty' id='cm_smps_qty' placeholder='수량' min='0' value='0'> 개</td></tr>";
+
+    // 형광등
+    append_html += "<tr><th>형광등</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-qty' id='cm_qty_cm_fluorescent' placeholder='수량' min='0' value='0' data-key='cm_fluorescent'> 개";
+    append_html += "</td></tr>";
+
+    // LED 컨트롤러
+    append_html += "<tr><th>LED 컨트롤러</th><td class='cm-row'>";
+    append_html += "<label><input type='radio' name='cm_ctrl_spec' id='cm_ctrl_none' checked='checked'>없음</label>";
+    append_html += "<label><input type='radio' name='cm_ctrl_spec' id='cm_ctrl_1ch'>1채널</label>";
+    append_html += "<label><input type='radio' name='cm_ctrl_spec' id='cm_ctrl_2ch'>2채널</label>";
+    append_html += "<label><input type='radio' name='cm_ctrl_spec' id='cm_ctrl_3ch'>3채널</label>";
+    append_html += "</td></tr>";
+    append_html += "<tr class='cm_ctrl_qty_row add_row'><th>컨트롤러 수량</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-spec-qty' id='cm_ctrl_qty' placeholder='수량' min='0' value='0'> 개</td></tr>";
+
+    // LED
+    append_html += "<tr><th>LED</th><td class='cm-row'>";
     append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_none' checked='checked'>없음</label>";
     append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_white'>백색</label>";
     append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_warm'>웜(전구색)</label>";
     append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_rgb'>RGB</label>";
     append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_panorama'>파노라마</label>";
     append_html += "<label><input type='radio' name='cm_led_color' id='cm_led_single'>컬러(적/청/녹)</label>";
-    append_html += "</td>";
-    append_html += "</tr>";
-    append_html += "<tr class='cm_led_qty_row add_row'>";
-    append_html += "<th>LED 수량</th>";
-    append_html += "<td class='cm-row'><input type='number' class='cm-led-qty' id='cm_led_qty' placeholder='수량' min='0' value='0'> 개</td>";
-    append_html += "</tr>";
+    append_html += "</td></tr>";
+    append_html += "<tr class='cm_led_qty_row add_row'><th>LED 수량</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-spec-qty' id='cm_led_qty' placeholder='수량' min='0' value='0'> 개</td></tr>";
     append_html += "<tr>";
     append_html += "<th>추가 금액</th>";
     append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
@@ -5513,14 +5543,27 @@ function set_common_material_top(){
     append_html += "</tr>";
     $("#option_table tbody").html(append_html);
 
-    $(".cm-qty, #cm_led_qty").on("input", function(){ _calc_cm_total(); });
+    $(".cm-qty, .cm-spec-qty").on("input", function(){ _calc_cm_total(); });
     $(document).on("change", "#more_order_price", function(){ _calc_cm_total(); });
+
+    $("input[name='cm_timer_spec']").on("click", function(){
+        if($(this).attr("id") === "cm_timer_none") $(".cm_timer_qty_row").hide();
+        else $(".cm_timer_qty_row").css("display","table-row");
+        _calc_cm_total();
+    });
+    $("input[name='cm_smps_spec']").on("click", function(){
+        if($(this).attr("id") === "cm_smps_none") $(".cm_smps_qty_row").hide();
+        else $(".cm_smps_qty_row").css("display","table-row");
+        _calc_cm_total();
+    });
+    $("input[name='cm_ctrl_spec']").on("click", function(){
+        if($(this).attr("id") === "cm_ctrl_none") $(".cm_ctrl_qty_row").hide();
+        else $(".cm_ctrl_qty_row").css("display","table-row");
+        _calc_cm_total();
+    });
     $("input[name='cm_led_color']").on("click", function(){
-        if($(this).attr("id") === "cm_led_none"){
-            $(".cm_led_qty_row").hide();
-        } else {
-            $(".cm_led_qty_row").css("display","table-row");
-        }
+        if($(this).attr("id") === "cm_led_none") $(".cm_led_qty_row").hide();
+        else $(".cm_led_qty_row").css("display","table-row");
         _calc_cm_total();
     });
 }
@@ -5534,18 +5577,41 @@ function _getCmLedUnit(){
     return 0;
 }
 
+function _getCmTimerUnit(){
+    if($("#cm_timer_20a").is(":checked")) return PRICES.cm_timer_20a;
+    if($("#cm_timer_30a").is(":checked")) return PRICES.cm_timer_30a;
+    if($("#cm_timer_50a").is(":checked")) return PRICES.cm_timer_50a;
+    return 0;
+}
+function _getCmSmpsUnit(){
+    if($("#cm_smps_60w").is(":checked"))  return PRICES.cm_smps_60w;
+    if($("#cm_smps_100w").is(":checked")) return PRICES.cm_smps_100w;
+    if($("#cm_smps_150w").is(":checked")) return PRICES.cm_smps_150w;
+    if($("#cm_smps_200w").is(":checked")) return PRICES.cm_smps_200w;
+    if($("#cm_smps_300w").is(":checked")) return PRICES.cm_smps_300w;
+    if($("#cm_smps_400w").is(":checked")) return PRICES.cm_smps_400w;
+    if($("#cm_smps_500w").is(":checked")) return PRICES.cm_smps_500w;
+    return 0;
+}
+function _getCmCtrlUnit(){
+    if($("#cm_ctrl_1ch").is(":checked")) return PRICES.cm_led_ctrl_1ch;
+    if($("#cm_ctrl_2ch").is(":checked")) return PRICES.cm_led_ctrl_2ch;
+    if($("#cm_ctrl_3ch").is(":checked")) return PRICES.cm_led_ctrl_3ch;
+    return 0;
+}
+
 function _calc_cm_total(){
     applyPrices();
     var total = 0;
     $(".cm-qty").each(function(){
         var key = $(this).data("key");
         var qty = parseInt($(this).val()) || 0;
-        var unit = PRICES[key] || 0;
-        total += qty * unit;
+        total += qty * (PRICES[key] || 0);
     });
-    var ledUnit = _getCmLedUnit();
-    var ledQty  = parseInt($("#cm_led_qty").val()) || 0;
-    total += ledQty * ledUnit;
+    total += (parseInt($("#cm_timer_qty").val()) || 0) * _getCmTimerUnit();
+    total += (parseInt($("#cm_smps_qty").val()) || 0) * _getCmSmpsUnit();
+    total += (parseInt($("#cm_ctrl_qty").val()) || 0) * _getCmCtrlUnit();
+    total += (parseInt($("#cm_led_qty").val()) || 0) * _getCmLedUnit();
     total += nv("#more_order_price") || 0;
     $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
@@ -6081,12 +6147,29 @@ $(".save_btn").click(function(){
             _cmParts.push(name + " " + qty + "개");
             _cmBd += "<span class='bd_item'>" + name + " <em>" + qty + "개 × " + fmtNum(unit) + "원 = " + fmtNum(sub) + "원</em></span>";
         });
+        var _timerUnit = _getCmTimerUnit(), _timerQty = parseInt($("#cm_timer_qty").val()) || 0;
+        if(_timerQty > 0 && _timerUnit > 0) {
+            var _timerSpec = $("input[name='cm_timer_spec']:checked").parent("label").text();
+            _cmParts.push("전자타이머(" + _timerSpec + ") " + _timerQty + "개");
+            _cmBd += "<span class='bd_item'>전자타이머(" + _timerSpec + ") <em>" + _timerQty + "개 × " + fmtNum(_timerUnit) + "원 = " + fmtNum(_timerQty * _timerUnit) + "원</em></span>";
+        }
+        var _smpsUnit = _getCmSmpsUnit(), _smpsQty = parseInt($("#cm_smps_qty").val()) || 0;
+        if(_smpsQty > 0 && _smpsUnit > 0) {
+            var _smpsSpec = $("input[name='cm_smps_spec']:checked").parent("label").text();
+            _cmParts.push("SMPS(" + _smpsSpec + ") " + _smpsQty + "개");
+            _cmBd += "<span class='bd_item'>SMPS(" + _smpsSpec + ") <em>" + _smpsQty + "개 × " + fmtNum(_smpsUnit) + "원 = " + fmtNum(_smpsQty * _smpsUnit) + "원</em></span>";
+        }
+        var _ctrlUnit = _getCmCtrlUnit(), _ctrlQty = parseInt($("#cm_ctrl_qty").val()) || 0;
+        if(_ctrlQty > 0 && _ctrlUnit > 0) {
+            var _ctrlSpec = $("input[name='cm_ctrl_spec']:checked").parent("label").text();
+            _cmParts.push("LED컨트롤러(" + _ctrlSpec + ") " + _ctrlQty + "개");
+            _cmBd += "<span class='bd_item'>LED컨트롤러(" + _ctrlSpec + ") <em>" + _ctrlQty + "개 × " + fmtNum(_ctrlUnit) + "원 = " + fmtNum(_ctrlQty * _ctrlUnit) + "원</em></span>";
+        }
         var _ledUnit = _getCmLedUnit(), _ledQty = parseInt($("#cm_led_qty").val()) || 0;
         if(_ledQty > 0 && _ledUnit > 0) {
-            var _ledSub = _ledQty * _ledUnit;
             var _ledColor = $("input[name='cm_led_color']:checked").parent("label").text();
             _cmParts.push("LED(" + _ledColor + ") " + _ledQty + "개");
-            _cmBd += "<span class='bd_item'>LED(" + _ledColor + ") <em>" + _ledQty + "개 × " + fmtNum(_ledUnit) + "원 = " + fmtNum(_ledSub) + "원</em></span>";
+            _cmBd += "<span class='bd_item'>LED(" + _ledColor + ") <em>" + _ledQty + "개 × " + fmtNum(_ledUnit) + "원 = " + fmtNum(_ledQty * _ledUnit) + "원</em></span>";
         }
         var _cmMoreP = nv("#more_order_price") || 0;
         if(_cmMoreP > 0) _cmBd += "<span class='bd_item'>추가금액 <em>" + fmtNum(_cmMoreP) + "원</em></span>";
