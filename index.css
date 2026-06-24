@@ -1927,6 +1927,56 @@ input::placeholder {
 .st_none { background: #f0f2f5; color: #bbb; }
 
 /* ═══════════════════════════════════════════
+   채널문자 반복 섹션 구분
+════════════════════════════════════════════ */
+
+/* 반복 구간 헤더 행 */
+.ch-section-header-tr td {
+    padding: 0 !important;
+    background: transparent;
+}
+.ch-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 8px;
+    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+    border-radius: 0;
+    border-top: 3px solid #e94560;
+    margin-top: 4px;
+}
+.ch-section-icon {
+    font-size: 16px;
+    color: #e94560;
+    flex-shrink: 0;
+}
+.ch-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+.ch-section-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+}
+.ch-section-sub strong {
+    color: #e94560;
+    font-weight: 700;
+}
+
+/* 반복 구간 행 배경 */
+.ch-repeat-row {
+    background: #f5f8ff !important;
+}
+.ch-repeat-row th {
+    background: #edf1fb !important;
+    border-left: 3px solid #0f3460;
+    color: #0f3460 !important;
+    font-size: 13px;
+}
+
+/* ═══════════════════════════════════════════
    채널문자 담기 UI
 ════════════════════════════════════════════ */
 

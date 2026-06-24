@@ -764,20 +764,12 @@ function hoorex_type(){
             append_html += "</tr>";
             append_html += "<tr>";
 				append_html += "<th>까치발</th>";
-                append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>까치발부착</label></td>";
-            append_html += "</tr>";
-            append_html += "<tr class='channel_more_order_option01 add_row'>";
-                append_html += "<th>까치발 크기</th>";
-                append_html += "<td>";
-                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked'>200mm</label>";
-                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>250mm</label>";
-                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>300mm</label>";
-                    append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>400mm</label>";
-                append_html += "</td>";
+                append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>있음</label></td>";
             append_html += "</tr>";
             append_html += "<tr class='channel_more_order_option01 add_row'>";
                 append_html += "<th>까치발 갯수</th>";
                 append_html += "<td>";
+                    append_html += "<input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked' style='display:none'>";
                     append_html += "<input type='number' id='channel_more_order_count' placeholder='까치발 갯수를 입력하세요'/>";
                 append_html += "</td>";
             append_html += "</tr>";
@@ -1944,13 +1936,39 @@ function hoorex_type(){
 		}
 		$("#option_table tbody").html(append_html);
 
-		// 담기 UI 삽입 (추가금액 행 바로 위)
+		// 담기 UI + 섹션 헤더 삽입
 		_chItems = [];
+
+		// 문자형태 행 앞에 반복구간 헤더 삽입
+		var $formRow = $("#option_table tbody tr").filter(function(){
+			return $(this).find("th").first().text().trim() === "문자형태";
+		}).first();
+		var _chSectionHtml =
+			"<tr class='ch-section-header-tr'>" +
+			"<td colspan='2'>" +
+			"<div class='ch-section-header'>" +
+			"<span class='ch-section-icon'>&#8635;</span>" +
+			"<span class='ch-section-title'>문자 항목 설정</span>" +
+			"<span class='ch-section-sub'>아래 옵션을 선택하고 <strong>담기</strong> 버튼으로 항목을 추가하세요 (여러 번 반복 가능)</span>" +
+			"</div>" +
+			"</td></tr>";
+		$(_chSectionHtml).insertBefore($formRow);
+
+		// 문자형태 ~ 추가금액 사이의 rows에 ch-repeat-row 클래스 부여
+		var _inRange = false;
+		$("#option_table tbody tr").each(function(){
+			var thTxt = $(this).find("th").first().text().trim();
+			if(thTxt === "문자형태") _inRange = true;
+			if(thTxt === "추가 금액") { _inRange = false; return; }
+			if(_inRange) $(this).addClass("ch-repeat-row");
+		});
+
+		// 추가금액 행 바로 위에 담기 버튼 행 삽입
 		var $extraRow = $("#option_table tbody tr").filter(function(){
 			return $(this).find("th").first().text().trim() === "추가 금액";
 		}).first();
 		var _chAddHtml =
-			"<tr class='ch-items-row' id='ch_items_header_row'>" +
+			"<tr class='ch-items-row ch-repeat-row' id='ch_items_header_row'>" +
 			"<th>담긴 항목</th>" +
 			"<td>" +
 			"<div id='ch_items_area'></div>" +
