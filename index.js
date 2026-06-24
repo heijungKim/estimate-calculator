@@ -741,6 +741,14 @@ function hoorex_type(){
             	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_width' placeholder='길이을 입력해주세요.'> mm</td>";
             append_html += "</tr>";
             append_html += "<tr class='channel_trusbar_custom add_row'>";
+            	append_html += "<th>주문제작 사이즈</th>";
+            	append_html += "<td>";
+            	append_html += "가로 <input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_w' placeholder='가로' style='width:80px'> mm &nbsp;&nbsp;";
+            	append_html += "세로 <input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_h' placeholder='세로' style='width:80px'> mm &nbsp;&nbsp;";
+            	append_html += "두께 <input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_t' placeholder='두께' style='width:80px'> mm";
+            	append_html += "</td>";
+            append_html += "</tr>";
+            append_html += "<tr class='channel_trusbar_custom add_row'>";
             	append_html += "<th>트러스 주문제작 추가금</th>";
             	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_price' placeholder='추가금을 입력해주세요.'> 원</td>";
             append_html += "</tr>";
@@ -1963,15 +1971,14 @@ function hoorex_type(){
 	}
 	function channel_trusbar(){
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']").click(function(){
-			if($(this).attr("id") != "channel_trusbar_none"){
+			if($(this).attr("id") == "channel_trusbar05"){
+				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").hide();
+				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").css({"display":"table-row"});
+			}else if($(this).attr("id") != "channel_trusbar_none"){
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").css({"display":"table-row"});
+				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
 			}else{
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").hide();
-				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
-			}
-			if($(this).attr("id") == "channel_trusbar05"){
-				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").css({"display":"table-row"});
-			}else{
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
 			}
 		});
@@ -5737,8 +5744,11 @@ $(".save_btn").click(function(){
     	if($("input[name='channel_option']:checked").length){ // 채널문자 품목 선택됨
           		total_html += "<li><span class='number'></span>";
             	total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_option']:checked").parent("label").text();
-            	total_html += "<br> / 트러스바 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']:checked").parent("label").text()+" * 길이"+$(".woosung_wrap .contents_wrap #option_table td input[id='channel_trusbar_width']").val()+"mm";
-            	if($("#channel_trusbar02,#channel_trusbar03,#channel_trusbar04").is(":checked")){
+            	total_html += "<br> / 트러스바 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']:checked").parent("label").text();
+            	if($("#channel_trusbar05").is(":checked")){
+            		total_html +="<br> / 주문제작 사이즈 : "+$("#channel_trusbar_custom_w").val()+"×"+$("#channel_trusbar_custom_h").val()+"×"+$("#channel_trusbar_custom_t").val()+"mm";
+            		total_html +="<br> / 주문제작 추가금 : "+$("#channel_trusbar_custom_price").val()+"원";
+            	}else if(!$("#channel_trusbar_none").is(":checked")){
             		total_html +="<br> / 트러스바 길이 :"+$("#channel_trusbar_width").val()+" mm ";
                 }
             	total_html +="<br> / 까치발 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='channel_more_order']:checked").parent("label").text();
@@ -5851,8 +5861,14 @@ $(".save_btn").click(function(){
                     var bd = "<span class='price_breakdown'>";
                     if(_cnt > 0 && _unit > 0)
                         bd += "<span class='bd_item'>글자 <em>"+_cnt+"자 × "+_fmt(_unitFinal)+"원 = "+_fmt(_charP)+"원</em></span>";
-                    if(_tbP > 0)
-                        bd += "<span class='bd_item'>트러스바 <em>"+_tbM.toFixed(2)+"m × "+_fmt(_tbUnit)+"원/m = "+_fmt(_tbP)+"원</em></span>";
+                    if(_tbP > 0) {
+                        if(_tbCustom > 0) {
+                            var _cw=$("#channel_trusbar_custom_w").val()||'0', _ch=$("#channel_trusbar_custom_h").val()||'0', _ct=$("#channel_trusbar_custom_t").val()||'0';
+                            bd += "<span class='bd_item'>트러스바(주문제작 "+_cw+"×"+_ch+"×"+_ct+"mm) <em>"+_fmt(_tbCustom)+"원</em></span>";
+                        } else {
+                            bd += "<span class='bd_item'>트러스바 <em>"+_tbM.toFixed(2)+"m × "+_fmt(_tbUnit)+"원/m = "+_fmt(_tbP)+"원</em></span>";
+                        }
+                    }
                     if(_ggP > 0)
                         bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmt(_ggUnit)+"원 = "+_fmt(_ggP)+"원</em></span>";
                     if(_ledP > 0)
