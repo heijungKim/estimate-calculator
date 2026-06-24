@@ -74,6 +74,8 @@ var DEFAULT_PRICES = {
     // 솔벤 실사 (m²)
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
+    // 공통자재
+    cm_floodlight: 0, cm_timer: 0, cm_smps: 0, cm_led: 0, cm_fluorescent: 0,
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
@@ -202,25 +204,6 @@ function formatCommaInput(el) {
         }
     }
     el.setSelectionRange(newPos, newPos);
-}
-
-function getCommonMaterialTotal() {
-    var t = 0;
-    $(".cm-input").each(function(){ t += parseInt(String(this.value).replace(/[^0-9]/g,'')) || 0; });
-    return t;
-}
-
-function getCommonMaterialText() {
-    var items = [];
-    var ids = [
-        {id:'cm_floodlight', name:'투광기'}, {id:'cm_timer', name:'타이머'},
-        {id:'cm_smps', name:'SMPS'}, {id:'cm_led', name:'LED'}, {id:'cm_fluorescent', name:'형광등'}
-    ];
-    ids.forEach(function(o){
-        var v = parseInt(String($("#"+o.id).val()).replace(/[^0-9]/g,'')) || 0;
-        if(v > 0) items.push(o.name + " " + fmtNum(v) + "원");
-    });
-    return items.join(" / ");
 }
 
 function addExtraCostRow() {
@@ -5993,23 +5976,12 @@ $(".save_btn").click(function(){
   
     $("#total_price_wrap .total_list ul").append(total_html);
 
-    // 공통자재 항목 추가
-    var _cmTotal = getCommonMaterialTotal();
-    if(_cmTotal > 0) {
-        var _cmText = getCommonMaterialText();
-        var _cmHtml = "<li><span class='number'></span>공통자재 / " + _cmText;
-        _cmHtml += "<span class='price_breakdown'><span class='bd_item'>공통자재 <em>" + fmtNum(_cmTotal) + "원</em></span></span>";
-        _cmHtml += " / 견적 비용 : <span class='list_price'>" + fmtNum(_cmTotal) + "</span> 원</li>";
-        $("#total_price_wrap .total_list ul").append(_cmHtml);
-    }
-
     list_sum_price();
     list_delete_func();
 
     // 추가 후 입력값 초기화
     $("#option_table input[type='text'], #option_table input[type='number']").val('');
     $("#option_table textarea").val('');
-    $(".cm-input").val('');
     $(".order_info .right_area #order_price").text('0');
 });
 function list_delete_func(){
@@ -6080,10 +6052,6 @@ $(function(){
         formatCommaInput(this);
     });
 
-    // 공통자재 콤마 포맷
-    $(document).on('input', '.cm-input', function(){
-        formatCommaInput(this);
-    });
 
     // 견적서 출력 버튼
     $("#btn_print_estimate").click(openPrintModal);
