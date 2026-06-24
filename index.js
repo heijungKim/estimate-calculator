@@ -5485,9 +5485,7 @@ function set_common_material_top(){
         append_html += "<tr>";
         append_html += "<th>" + item.name + "</th>";
         append_html += "<td class='cm-row'>";
-        append_html += "<span class='cm-unit-price'>단가 <em>" + fmtNum(unitPrice) + "</em>원</span>";
-        append_html += " <input type='number' class='cm-qty' id='cm_qty_" + item.key + "' placeholder='수량' min='0' value='0' data-key='" + item.key + "'> 개";
-        append_html += " <span class='cm-subtotal' id='cm_sub_" + item.key + "'>= 0원</span>";
+        append_html += "<input type='number' class='cm-qty' id='cm_qty_" + item.key + "' placeholder='수량' min='0' value='0' data-key='" + item.key + "'> 개";
         append_html += "</td>";
         append_html += "</tr>";
     });
@@ -5513,7 +5511,6 @@ function _calc_cm_total(){
         var qty = parseInt($(this).val()) || 0;
         var unit = PRICES[key] || 0;
         var sub = qty * unit;
-        $("#cm_sub_" + key).text("= " + fmtNum(sub) + "원");
         total += sub;
     });
     total += nv("#more_order_price") || 0;
