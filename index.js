@@ -6850,8 +6850,29 @@ function doPrintEstimate() {
     var items    = getEstimateItems();
     var totalNum = 0;
     items.forEach(function(it){ totalNum += it.priceNum; });
-    openPrintWindow(buildPrintDoc(items, totalNum, customer, manager, notes));
+    var html = buildPrintDoc(items, totalNum, customer, manager, notes);
+    openPrintWindow(html);
     closePrintModal();
+    _savePrintHistory({
+        customer: customer.trim() === '' || customer === '　' ? '' : customer,
+        manager: manager,
+        notes: notes,
+        total: totalNum,
+        totalFormatted: String(totalNum).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+        htmlContent: html,
+        printedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })()
+    });
+}
+
+function _savePrintHistory(data) {
+    try {
+        var cfg = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
+        if (!cfg || !cfg.apiKey) return;
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
+        firebase.firestore().collection('printHistory').add(data)
+            .catch(function(e){ console.warn('출력 내역 저장 실패:', e); });
+    } catch(e){ console.warn('출력 내역 저장 오류:', e); }
 }
 // ─────────────────────────────────────────────────────────
 
