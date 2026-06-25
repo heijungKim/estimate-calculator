@@ -6593,9 +6593,14 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                 // 신형: "#채널메인# (N). name × qty개 = price원"
                 var chMainM = p.match(/^#채널메인#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
                 if (chMainM) {
-                    // 두 번째 담기 항목부터 서브 구분선 삽입
-                    if (chItemLines.length > 0) {
-                        chItemLines.push({ subSep: true });
+                    var _chNo = parseInt(chMainM[1]);
+                    // 담기 항목 여러 개일 때만 번호 헤더 표시 (사전 카운트)
+                    if (!item._chMainCount) {
+                        item._chMainCount = parts.filter(function(pp){ return /^#채널메인#/.test(pp); }).length;
+                    }
+                    if (item._chMainCount > 1) {
+                        var _nos = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+                        chItemLines.push({ itemHeader: true, label: '담기 ' + (_nos[_chNo-1] || _chNo), total: chMainM[4] });
                     }
                     var _qty = parseInt(chMainM[3]);
                     var _total = Number(chMainM[4].replace(/,/g, ''));
@@ -6647,8 +6652,8 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     tableRows.forEach(function(r) {
         if (r.separator) {
             rowsHtml += '<tr class="item-sep"><td colspan="3">' + escHtml(r.label) + '</td><td class="tr item-sep-total">' + escHtml(r.total) + '원</td></tr>';
-        } else if (r.subSep) {
-            rowsHtml += '<tr class="item-sub-sep"><td colspan="4"></td></tr>';
+        } else if (r.itemHeader) {
+            rowsHtml += '<tr class="item-ch-hd"><td colspan="2" class="item-ch-hd-lbl">' + escHtml(r.label) + '</td><td colspan="2" class="item-ch-hd-price">' + escHtml(r.total) + '원</td></tr>';
         } else {
             dataRowCount++;
             rowsHtml += '<tr><td>' + escHtml(r.name) + '</td><td class="tc">' + escHtml(r.qty) + '</td><td class="tr">' + escHtml(r.unit) + '</td><td class="tr">' + escHtml(r.total) + '</td></tr>';
@@ -6682,7 +6687,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     '.items-table td{border:1px solid #000;padding:5px 8px;font-size:9.5pt}' +
     '.items-table td.tc{text-align:center}.items-table td.tr{text-align:right;font-variant-numeric:tabular-nums}' +
     '.item-sep{background:#e8edf5}.item-sep td{border-top:2px solid #4a6fa5;border-bottom:1px solid #4a6fa5;padding:4px 8px;font-weight:bold;font-size:9pt;color:#1a3a6b}.item-sep-total{text-align:right;white-space:nowrap}' +
-    '.item-sub-sep td{padding:0;height:6px;border-left:1px solid #000;border-right:1px solid #000;border-top:1px dashed #aaa;background:#fafafa}' +
+    '.item-ch-hd{background:#f5f0ff}.item-ch-hd td{border-top:2px dashed #7c5cbf;border-bottom:1px solid #c9b8f0;padding:3px 8px;font-size:8.5pt}.item-ch-hd-lbl{font-weight:bold;color:#4a2d8f;letter-spacing:1px}.item-ch-hd-price{text-align:right;color:#4a2d8f;font-weight:bold;white-space:nowrap}' +
     '.items-table tfoot td{border:2px solid #000;font-weight:bold;font-size:9.5pt;padding:5px 8px}' +
     '.items-table tfoot td.tl{text-align:right;letter-spacing:3px}' +
     '.footer-mark{text-align:center;margin-top:12px;font-size:9pt;color:#666;letter-spacing:4px;border-top:1px solid #ccc;padding-top:8px}' +
