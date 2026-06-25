@@ -3675,8 +3675,10 @@ function _getChCurrentItemPrice() {
         else if($("#channel_size_130").is(":checked")) _sz="130";
         else if($("#channel_size_140").is(":checked")) _sz="140";
         else if($("#channel_size_150").is(":checked")) _sz="150";
+        else if($("#channel_size_160").is(":checked")) _sz="160";
+        else if($("#channel_size_170").is(":checked")) _sz="170";
+        else if($("#channel_size_180").is(":checked")) _sz="180";
         if(_sz) chennel_width = PRICES["ch_taka_"+_pricePrefix+"_"+_sz]||0;
-        else if($("#channel_size_160,#channel_size_170,#channel_size_180,#channel_size_190,#channel_size_200").is(":checked")) chennel_width = 60000;
     }
 
     var custom_order = 0;
