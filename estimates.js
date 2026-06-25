@@ -172,7 +172,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
         if (item.details && item.details.indexOf('[담긴 항목') > -1) {
             item.details.split('\n').forEach(function(ln) {
                 var m = ln.trim().match(/^\((\d+)\)\s+(.+?)\s+→\s+([\d,]+)원/);
-                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '', unit: '', total: m[3] });
+                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '1', unit: m[3], total: m[3] });
             });
         }
         if (item.breakdown) {

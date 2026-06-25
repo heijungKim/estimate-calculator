@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 단가 설정 (기본값 - 단가설정 모달에서 변경 가능)
 // ============================================================
 var DEFAULT_PRICES = {
@@ -20,15 +20,15 @@ var DEFAULT_PRICES = {
     // 알루미늄 채널 - 영문 (글자당)
     ch_taka_eng_30: 25000, ch_taka_eng_40: 28000, ch_taka_eng_50: 34000, ch_taka_eng_60: 40000,
     ch_taka_eng_70: 43000, ch_taka_eng_80: 48000, ch_taka_eng_90: 50000, ch_taka_eng_100: 54000,
-    ch_taka_eng_110: 66000, ch_taka_eng_120: 78000, ch_taka_eng_130: 94000, ch_taka_eng_140: 115000, ch_taka_eng_150: 130000,
+    ch_taka_eng_110: 66000, ch_taka_eng_120: 78000, ch_taka_eng_130: 94000, ch_taka_eng_140: 115000, ch_taka_eng_150: 130000, ch_taka_eng_160: 0, ch_taka_eng_170: 0, ch_taka_eng_180: 0,
     // 알루미늄 채널 - 한글 (글자당)
     ch_taka_kor_30: 25000, ch_taka_kor_40: 28000, ch_taka_kor_50: 34000, ch_taka_kor_60: 40000,
     ch_taka_kor_70: 43000, ch_taka_kor_80: 48000, ch_taka_kor_90: 50000, ch_taka_kor_100: 54000,
-    ch_taka_kor_110: 66000, ch_taka_kor_120: 78000, ch_taka_kor_130: 94000, ch_taka_kor_140: 115000, ch_taka_kor_150: 130000,
+    ch_taka_kor_110: 66000, ch_taka_kor_120: 78000, ch_taka_kor_130: 94000, ch_taka_kor_140: 115000, ch_taka_kor_150: 130000, ch_taka_kor_160: 0, ch_taka_kor_170: 0, ch_taka_kor_180: 0,
     // 알루미늄 채널 - 흘림체 (글자당)
     ch_taka_got_30: 25000, ch_taka_got_40: 28000, ch_taka_got_50: 34000, ch_taka_got_60: 40000,
     ch_taka_got_70: 43000, ch_taka_got_80: 48000, ch_taka_got_90: 50000, ch_taka_got_100: 54000,
-    ch_taka_got_110: 66000, ch_taka_got_120: 78000, ch_taka_got_130: 94000, ch_taka_got_140: 115000, ch_taka_got_150: 130000,
+    ch_taka_got_110: 66000, ch_taka_got_120: 78000, ch_taka_got_130: 94000, ch_taka_got_140: 115000, ch_taka_got_150: 130000, ch_taka_got_160: 0, ch_taka_got_170: 0, ch_taka_got_180: 0,
     // 티타늄골드채널 - 영문 (글자당)
     ch_titan_eng_20: 0, ch_titan_eng_25: 0, ch_titan_eng_30: 0, ch_titan_eng_35: 0, ch_titan_eng_40: 0, ch_titan_eng_45: 0, ch_titan_eng_50: 0, ch_titan_eng_60: 0, ch_titan_eng_70: 0, ch_titan_eng_80: 0, ch_titan_eng_90: 0, ch_titan_eng_100: 0,
     // 티타늄골드채널 - 한글 (글자당)
@@ -717,6 +717,22 @@ function hoorex_type(){
 
 //사인탑
 //채널문자
+	// PRICES 키에서 해당 채널 타입의 크기 라디오 버튼을 동적 생성
+	function _chSizeBtns(pricePrefix) {
+		var html = '', sizes = [];
+		Object.keys(PRICES).forEach(function(k) {
+			if (k.indexOf(pricePrefix) === 0) {
+				var sz = parseInt(k.slice(pricePrefix.length));
+				if (!isNaN(sz)) sizes.push(sz);
+			}
+		});
+		sizes.sort(function(a, b) { return a - b; });
+		sizes.forEach(function(sz, i) {
+			html += "<label><input type='radio' name='channel_size' id='channel_size_" + sz + "'" + (i === 0 ? " checked='checked'" : "") + ">" + sz + "cm</label>";
+		});
+		return html;
+	}
+
 	function set_channel_top(){ //사인탑 초기설정
 		$("#option_table thead,#option_table tbody").html("");
 		var setting_html = "";
@@ -787,28 +803,8 @@ function hoorex_type(){
 			append_html += "</tr>";	
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30' checked='checked'>30cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_110'>110cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_120'>120cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_130'>130cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_140'>140cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_150'>150cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_160'>160cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_170'>170cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_180'>180cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_190'>190cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_200'>200cm</label>";
-					//append_html += "<label><input type='radio' name='channel_size' id='channel_size_custom'>직접입력</label>";
-				append_html += "</td>";
-			append_html += "</tr>";	
+				append_html += "<td>" + _chSizeBtns('ch_taka_eng_') + "</td>";
+			append_html += "</tr>";
 			append_html += "<tr class='channel_taka_width add_row'>";
 				append_html += "<th>가로</th>";
 				append_html += "<td><input type='number' id='channel_taka_width' placeholder='가로 사이즈를 입력하세요.'> cm</td>";
@@ -928,18 +924,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30' checked='checked'>30cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
-				append_html += "</td>";
+				append_html += "<td>" + _chSizeBtns('ch_galva_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>트림색상</th>";
@@ -1063,18 +1048,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30' checked='checked'>30cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
-				append_html += "</td>";
+				append_html += "<td>" + _chSizeBtns('ch_gosa_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>입체색상</th>";
@@ -1172,19 +1146,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_20' checked='checked'>20cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_25'>25cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30'>30cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_55'>55cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_65'>65cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-				append_html += "</td>";
+				append_html += "<td>" + _chSizeBtns('ch_epox_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>입체색상</th>";
@@ -1264,20 +1226,8 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_20' checked='checked'>20cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_25'>25cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_30'>30cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_55'>55cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_65'>65cm</label>";
-					append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-				append_html += "</td>";
-			append_html += "</tr>";	
+				append_html += "<td>" + _chSizeBtns('ch_ilche_eng_') + "</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>입체색상</th>";
 				append_html += "<td>";
@@ -1356,18 +1306,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
-											append_html += "<label><input type='radio' name='channel_size' id='channel_size_20' checked='checked'>20cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_25'>25cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_30'>30cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
+						append_html += _chSizeBtns('ch_sten_eng_');
 					append_html += "</td>";
 				append_html += "</tr>";
 				append_html += "<th>입체색상</th>";
@@ -1442,18 +1381,7 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
-											append_html += "<label><input type='radio' name='channel_size' id='channel_size_20' checked='checked'>20cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_25'>25cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_30'>30cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_35'>35cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_40'>40cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_45'>45cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_50'>50cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_60'>60cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_70'>70cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_80'>80cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_90'>90cm</label>";
-						append_html += "<label><input type='radio' name='channel_size' id='channel_size_100'>100cm</label>";
+						append_html += _chSizeBtns('ch_titan_eng_');
 					append_html += "</td>";
 				append_html += "</tr>";
 				append_html += "<th>입체색상</th>";
@@ -5978,39 +5906,50 @@ $(".save_btn").click(function(){
             function _fmtCh(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
             total_html += "<li><span class='number'></span>";
-            total_html += $("input[name='channel_option']:checked").parent("label").text();
+            total_html += "<strong class='li-cat-name'>" + $("input[name='channel_option']:checked").parent("label").text() + "</strong>";
 
-            // ── 고정 옵션 ──
-            total_html += "<br> / 트러스바 : " + $("input[name='channel_trusbar']:checked").parent("label").text();
+            // ── 고정 옵션 (/ 구분자 유지 → getEstimateItems 파싱용) ──
+            total_html += "<span class='li-fixed-opts'>";
+            total_html += " / 트러스바 : " + $("input[name='channel_trusbar']:checked").parent("label").text();
             if($("#channel_trusbar05").is(":checked")){
-                total_html += "<br> / 주문제작 사이즈 : "+$("#channel_trusbar_custom_w").val()+"×"+$("#channel_trusbar_custom_h").val()+"×"+$("#channel_trusbar_custom_t").val()+"mm";
-                total_html += "<br> / 주문제작 추가금 : "+$("#channel_trusbar_custom_price").val()+"원";
+                total_html += " / 주문제작 사이즈 : "+$("#channel_trusbar_custom_w").val()+"×"+$("#channel_trusbar_custom_h").val()+"×"+$("#channel_trusbar_custom_t").val()+"mm";
+                total_html += " / 주문제작 추가금 : "+$("#channel_trusbar_custom_price").val()+"원";
             }else if(!$("#channel_trusbar_none").is(":checked")){
-                total_html += "<br> / 트러스바 길이 : "+$("#channel_trusbar_width").val()+" mm";
+                total_html += " / 트러스바 길이 : "+$("#channel_trusbar_width").val()+" mm";
             }
-            total_html += "<br> / 까치발 : " + $("input[name='channel_more_order']:checked").parent("label").text();
+            total_html += " / 까치발 : " + $("input[name='channel_more_order']:checked").parent("label").text();
             if($("#channel_more_order_option01").is(":checked")){
-                total_html += " (" + $("input[name='ch_ggachi_size']:checked").parent("label").text() + " / " + $("#channel_more_order_count").val() + "개)";
+                total_html += " (" + $("#channel_more_order_count").val() + "개)";
             }
             if($("#channel_complete_none").length && !$("#channel_complete_none").is(":checked")){
-                total_html += "<br> / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
+                total_html += " / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
             } else if($("#channel_complete_normal,#channel_complete_premium").is(":checked")){
-                total_html += "<br> / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
+                total_html += " / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
             }
+            total_html += "</span>";
 
-            // ── 담긴 항목 목록 ──
+            // ── 담긴 항목 목록 (카드형 레이아웃) ──
             if(_chItems.length > 0){
-                total_html += "<br><br><strong>[담긴 항목 " + _chItems.length + "개]</strong>";
+                total_html += "<div class='li-ch-block'>";
+                total_html += "<div class='li-ch-block-hd'>[담긴 항목 " + _chItems.length + "개]</div>";
                 $.each(_chItems, function(i, item){
-                    total_html += "<br> &nbsp;(" + (i+1) + ") " + item.label + " → <em>" + _fmtCh(item.price) + "원</em>";
+                    // label의 " / " → " · " 치환: getEstimateItems replace(/\s*\/\s*/g) 오파싱 방지
+                    var safeLabel = item.label.replace(/\s*\/\s*/g, ' · ');
+                    total_html += "<div class='li-ch-row'>";
+                    total_html += "<span class='li-ch-row-sep'> / </span>"; // 파싱용 구분자 (CSS hidden)
+                    total_html += "<span class='li-ch-row-num'>(" + (i+1) + ")</span>";
+                    total_html += "<span class='li-ch-row-label'>" + safeLabel + "</span>";
+                    total_html += "<em class='li-ch-price'>" + _fmtCh(item.price) + "원</em>";
+                    total_html += "</div>";
                 });
+                total_html += "</div>";
             }
 
             if(nv("#more_order_price") !== 0){
-                total_html += "<br> / " + getExtraCostText();
+                total_html += "<span class='li-fixed-opts'> / " + getExtraCostText() + "</span>";
             }
             if($.trim($("#add_more_text").val()).length !== 0){
-                total_html += "<br> / 추가입력 사항 : " + $("#add_more_text").val();
+                total_html += "<span class='li-fixed-opts'> / 추가입력 사항 : " + $("#add_more_text").val() + "</span>";
             }
 
             // ── 단가 내역 badges ──
@@ -6538,7 +6477,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
         if (item.details && item.details.indexOf('[담긴 항목') > -1) {
             item.details.split('\n').forEach(function(ln) {
                 var m = ln.trim().match(/^\((\d+)\)\s+(.+?)\s+→\s+([\d,]+)원/);
-                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '', unit: '', total: m[3] });
+                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '1', unit: m[3], total: m[3] });
             });
         }
         if (item.breakdown) {
