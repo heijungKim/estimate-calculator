@@ -1920,6 +1920,7 @@ function hoorex_type(){
 			"<td>" +
 			"<div id='ch_items_area'></div>" +
 			"<div class='ch-add-bar'>" +
+			"<input type='text' id='ch_item_detail' placeholder='세부 내역 (선택사항)' style='flex:1;min-width:120px;max-width:280px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:0.9em;'>" +
 			"<button type='button' id='btn_add_ch_item' class='btn-ch-add-item'>+ 담기</button>" +
 			"<span class='ch-item-preview-wrap'> 예상 금액: <em id='ch_item_preview' class='ch-item-preview-val'>-</em></span>" +
 			"</div>" +
@@ -3747,7 +3748,9 @@ function addChannelItem() {
         label += " / 화면작업: " + $("input[name='channel_led_display_work_type']:checked").parent("label").text();
     }
 
-    _chItems.push({ label: label, price: price, ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum });
+    var _detail = $.trim($("#ch_item_detail").val());
+    _chItems.push({ label: label, detail: _detail, price: price, ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum });
+    $("#ch_item_detail").val('');
     renderChItems();
     chnnel_taka_cal();
 }
@@ -3764,9 +3767,10 @@ function renderChItems() {
     }
     var html = "<ul class='ch-items-list'>";
     $.each(_chItems, function(i, item) {
+        var _detailHtml = item.detail ? "<span class='ch-items-detail'>" + item.detail + "</span>" : "";
         html += "<li class='ch-items-item'>" +
             "<span class='ch-items-idx'>" + (i+1) + "</span>" +
-            "<span class='ch-items-label'>" + item.label + "</span>" +
+            "<span class='ch-items-label'>" + item.label + _detailHtml + "</span>" +
             "<span class='ch-items-price'>" + fmt(item.price) + "원</span>" +
             "<button type='button' class='ch-items-remove' data-idx='" + i + "'>×</button>" +
             "</li>";
@@ -5816,7 +5820,7 @@ $(".save_btn").click(function(){
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
                     if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+Math.round(_bD.w*1000)+"×"+Math.round(_bD.h*1000)+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; }
                     if(deungbakP>0){ var _dD=getSignDimensions(),_pos=$("input[name='sigh_deungbak_pos']:checked").attr("id")||"sigh_deungbak_top",_posNm=$("input[name='sigh_deungbak_pos']:checked").parent("label").text(),_len=(_pos==="sigh_deungbak_top"||_pos==="sigh_deungbak_bottom")?_dD.w:(_pos==="sigh_deungbak_left"||_pos==="sigh_deungbak_right")?_dD.h:(_pos==="sigh_deungbak_center")?_dD.w:2*(_dD.w+_dD.h); if($("#sigh_deungbak_galva").is(":checked")) bd+="<span class='bd_item'>등박스(갈바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm"+(_len<=5?" → 5m 이하 기본":" → 300,000 + "+Math.ceil(_len-5)+"m×50,000")+" = "+_fmt(deungbakP)+"원</em></span>"; else{ var _kU=$("#sigh_kyungbak_50").is(":checked")?60000:80000,_kS=Math.ceil(_len/3); bd+="<span class='bd_item'>등박스(경관바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm → "+_kS+"구간 × "+_fmt(_kU)+"원 = "+_fmt(deungbakP)+"원</em></span>"; } }
-                    if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
+                    if(moreP>0) bd+="<span class='bd_item'>추가금액 × 1개 = "+_fmt(moreP)+"원</span>";
                     bd+="</span>"; total_html+=bd;
                 })();
             	total_html +="/ 견적 비용 : <span class='list_price'>";
@@ -5880,7 +5884,7 @@ $(".save_btn").click(function(){
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
                     if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
                     if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
-                    if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
+                    if(moreP>0) bd+="<span class='bd_item'>추가금액 × 1개 = "+_fmt(moreP)+"원</span>";
                     bd+="</span>"; total_html+=bd;
                 })();
             	total_html +="/ 견적 비용 : <span class='list_price'>";
@@ -5947,7 +5951,7 @@ $(".save_btn").click(function(){
                     if(baltongP>0) bd+="<span class='bd_item'>시공발통 <em>"+_fmt(baltongP)+"원</em></span>";
                     if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
                     if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
-                    if(moreP>0) bd+="<span class='bd_item'>추가금액 <em>"+_fmt(moreP)+"원</em></span>";
+                    if(moreP>0) bd+="<span class='bd_item'>추가금액 × 1개 = "+_fmt(moreP)+"원</span>";
                     bd+="</span>"; total_html+=bd;
                 })();
             	total_html +="/ 견적 비용 : <span class='list_price'>";
@@ -6052,12 +6056,13 @@ $(".save_btn").click(function(){
                     _itemsTotal+=it.price;
                     var _qM=it.label.match(/수량:\s*(\d+)/), _qN=_qM?parseInt(_qM[1]):1;
                     var _safeLabel=it.label.replace(/\s*\/\s*/g,' · ');
-                    bd += "<span class='bd_item'>#채널# ("+(i+1)+"). "+_safeLabel+" × "+_qN+"자 = "+_fmtCh(it.price)+"원</span>";
+                    var _detailSuffix = it.detail ? " ["+it.detail+"]" : "";
+                    bd += "<span class='bd_item'>#채널# ("+(i+1)+"). "+_safeLabel+_detailSuffix+" × "+_qN+"자 = "+_fmtCh(it.price)+"원</span>";
                     if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = "+_fmtCh(it.ledPrice)+"원</span>";
                 });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
                 var _moreP=nv("#more_order_price")||0;
-                if(_moreP>0) bd += "<span class='bd_item'>추가금액 <em>"+_fmtCh(_moreP)+"원</em></span>";
+                if(_moreP>0) bd += "<span class='bd_item'>추가금액 × 1개 = "+_fmtCh(_moreP)+"원</span>";
                 bd += "</span>";
                 total_html += bd;
             })();
@@ -6189,7 +6194,7 @@ $(".save_btn").click(function(){
             _cmBd += "<span class='bd_item'>LED(" + _ledColor + ") <em>" + _ledQty + "개 × " + fmtNum(_ledUnit) + "원 = " + fmtNum(_ledQty * _ledUnit) + "원</em></span>";
         }
         var _cmMoreP = nv("#more_order_price") || 0;
-        if(_cmMoreP > 0) _cmBd += "<span class='bd_item'>추가금액 <em>" + fmtNum(_cmMoreP) + "원</em></span>";
+        if(_cmMoreP > 0) _cmBd += "<span class='bd_item'>추가금액 × 1개 = " + fmtNum(_cmMoreP) + "원</span>";
         _cmBd += "</span>";
         total_html = "<li><span class='number'></span>공통자재 / " + _cmParts.join(" / ");
         if($.trim($("#add_more_text").val())) total_html += " / 추가입력 사항 : " + $("#add_more_text").val();

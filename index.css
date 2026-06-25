@@ -2083,6 +2083,13 @@ input::placeholder {
     color: #2d3a52;
     font-weight: 500;
 }
+.ch-items-detail {
+    display: block;
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-top: 2px;
+    font-weight: 400;
+}
 .ch-items-price {
     flex-shrink: 0;
     font-weight: 700;
