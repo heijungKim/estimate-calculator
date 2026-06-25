@@ -73,6 +73,34 @@
         <button type="button" id="btn_ph_refresh" class="ph-refresh-btn">&#8635; 새로고침</button>
     </div>
 
+    <!-- 검색 패널 -->
+    <div class="ph-search-panel">
+        <div class="ph-search-row">
+            <div class="ph-search-group">
+                <label class="ph-search-label">기간</label>
+                <div class="ph-date-range">
+                    <input type="date" id="ph_date_from" class="ph-search-input ph-date-input" />
+                    <span class="ph-date-sep">~</span>
+                    <input type="date" id="ph_date_to" class="ph-search-input ph-date-input" />
+                </div>
+            </div>
+            <div class="ph-search-group">
+                <label class="ph-search-label">고객명</label>
+                <input type="text" id="ph_search_customer" class="ph-search-input" placeholder="수신처 입력" />
+            </div>
+            <div class="ph-search-group">
+                <label class="ph-search-label">담당자</label>
+                <input type="text" id="ph_search_manager" class="ph-search-input" placeholder="담당자 입력" />
+            </div>
+        </div>
+        <div class="ph-search-actions">
+            <button type="button" id="btn_ph_search" class="ph-search-btn">&#128269; 검색</button>
+            <button type="button" id="btn_ph_reset" class="ph-reset-btn">초기화</button>
+        </div>
+    </div>
+
+    <div class="ph-result-info" id="ph_result_info" style="display:none;"></div>
+
     <div class="ph-card" id="ph_list">
         <p class="ph-empty">불러오는 중…</p>
     </div>
