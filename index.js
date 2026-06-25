@@ -6287,21 +6287,30 @@ function reformatBreakdown($li) {
     function tipHtml(unitLabel){
         return '<span class="bd-unit-q">?<span class="bd-unit-tip">단가: ' + esc(unitLabel) + '</span></span>';
     }
-    // 일반 텍스트에서 단가 추출
+    // 일반 텍스트에서 단가 추출 (우선순위 순)
     function extractUnit(txt) {
         if (/정액/.test(txt)) return null;
-        // "N개 × M원" 패턴 (까치발, SMPS)
+        // 1. "N개 × M원" (까치발/SMPS/LED/공통자재: 가장 명확)
         var m1 = txt.match(/(\d[\d,]*)개\s*×\s*([\d,]+)원/);
         if (m1) return m1[2] + '원/개';
-        // "/m" 포함 (트러스바 m당)
-        var m2 = txt.match(/([\d,]+)원\/m/);
-        if (m2) return m2[1] + '원/m';
-        // "× N개 = M원"
-        var m3 = txt.match(/×\s+(\d+)개\s+=\s+([\d,]+)원/);
-        if (m3) { var n=parseInt(m3[1]),t=Number(m3[2].replace(/,/g,'')); return fmtN(Math.round(t/n))+'원/개'; }
-        // "× N식 = M원" (N > 1 이면 의미 있는 단가)
-        var m4 = txt.match(/×\s+(\d+)식\s+=\s+([\d,]+)원/);
-        if (m4) { var n=parseInt(m4[1]),t=Number(m4[2].replace(/,/g,'')); return n>1?fmtN(Math.round(t/n))+'원/식':null; }
+        // 2. "N원/m²" (화면작업/뒷판작업/실사출력)
+        var m2 = txt.match(/([\d,]+)원\/m²/);
+        if (m2) return m2[1] + '원/m²';
+        // 3. "N원/m" (스텐몰딩/트러스바 m당) — m² 포함 텍스트 제외
+        var m3 = txt.match(/([\d,]+)원\/m(?![²])/);
+        if (m3) return m3[1] + '원/m';
+        // 4. "m²) × N원 =" (색상도장: 면적×단가=합계)
+        var m4 = txt.match(/m²\)\s*×\s*([\d,]+)원\s*=/);
+        if (m4) return m4[1] + '원/m²';
+        // 5. "× N원 =" (기본가/등박스 등: 단가가 직접 표기)
+        var m5 = txt.match(/×\s+([\d,]+)원\s*=/);
+        if (m5) return m5[1] + '원';
+        // 6. "× N개 = M원" (완조립/추가금액 등: 역산)
+        var m6 = txt.match(/×\s+(\d+)개\s+=\s+([\d,]+)원/);
+        if (m6) { var n=parseInt(m6[1]),t=Number(m6[2].replace(/,/g,'')); return fmtN(Math.round(t/n))+'원/개'; }
+        // 7. "× N식 = M원" (N > 1인 경우만)
+        var m7 = txt.match(/×\s+(\d+)식\s+=\s+([\d,]+)원/);
+        if (m7) { var n=parseInt(m7[1]),t=Number(m7[2].replace(/,/g,'')); return n>1?fmtN(Math.round(t/n))+'원/식':null; }
         return null;
     }
 
