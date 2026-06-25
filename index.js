@@ -6538,7 +6538,8 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                     var _qty = parseInt(chM[3]);
                     var _total = Number(chM[4].replace(/,/g, ''));
                     var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
-                    chItemLines.push({ name: item.category + ' - ' + chM[2], qty: String(_qty), unit: _f(_unit), total: chM[4] });
+                    var _cleanLabel = chM[2].replace(/수량:\s*\d+자\s*·?\s*/g, '').replace(/·\s*$/g, '').trim();
+                    chItemLines.push({ name: item.category + ' - ' + _cleanLabel, qty: String(_qty), unit: _f(_unit), total: chM[4] });
                     added = true;
                     return;
                 }
