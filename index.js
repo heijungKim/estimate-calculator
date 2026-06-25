@@ -6015,6 +6015,10 @@ $(".save_btn").click(function(){
                 var bd = "<span class='price_breakdown'>";
                 // 트러스바
                 var _tbMm = nv("#channel_trusbar_width") || 0, _tbM = _tbMm/1000, _tbUnit=0, _tbCustom=0;
+                var _tbPok = $("#channel_trusbar01").is(":checked") ? "200폭" :
+                             $("#channel_trusbar02").is(":checked") ? "250폭" :
+                             $("#channel_trusbar03").is(":checked") ? "300폭" :
+                             $("#channel_trusbar04").is(":checked") ? "400폭" : "";
                 if($("#channel_trusbar01").is(":checked")) _tbUnit=30000;
                 else if($("#channel_trusbar02").is(":checked")) _tbUnit=40000;
                 else if($("#channel_trusbar03").is(":checked")) _tbUnit=40000;
@@ -6023,9 +6027,9 @@ $(".save_btn").click(function(){
                 var _tbP = Math.floor(_tbUnit*_tbM)+_tbCustom;
                 if(_tbP>0){
                     if(_tbCustom>0){
-                        bd += "<span class='bd_item'>트러스바 주문제작 <em>"+_fmtCh(_tbCustom)+"원</em></span>";
+                        bd += "<span class='bd_item'>트러스바 주문제작 × 1식 = "+_fmtCh(_tbCustom)+"원</span>";
                     }else{
-                        bd += "<span class='bd_item'>트러스바 <em>"+_tbM.toFixed(2)+"m × "+_fmtCh(_tbUnit)+"원/m = "+_fmtCh(_tbP)+"원</em></span>";
+                        bd += "<span class='bd_item'>트러스바("+_tbPok+"/"+_tbMm+"mm/"+_fmtCh(_tbUnit)+"원/m) × 1식 = "+_fmtCh(_tbP)+"원</span>";
                     }
                 }
                 // 까치발
@@ -6038,7 +6042,7 @@ $(".save_btn").click(function(){
                 if(_ggP>0) bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmtCh(_ggUnit)+"원 = "+_fmtCh(_ggP)+"원</em></span>";
                 // 완조립
                 var _compP=$("#channel_complete_normal").is(":checked")?100000:($("#channel_complete_premium").is(":checked")?150000:0);
-                if(_compP>0) bd += "<span class='bd_item'>완조립 <em>"+_fmtCh(_compP)+"원</em></span>";
+                if(_compP>0){ var _compType=$("#channel_complete_normal").is(":checked")?"일반":"프리미엄"; bd += "<span class='bd_item'>완조립("+_compType+") × 1개 = "+_fmtCh(_compP)+"원</span>"; }
                 // SMPS
                 var _chSmpsUnit=_getChSmpsUnit(), _chSmpsQty=parseInt($("#ch_smps_qty").val())||0, _chSmpsP=_chSmpsUnit*_chSmpsQty;
                 if(_chSmpsP>0) bd += "<span class='bd_item'>SMPS("+$("input[name='ch_smps_spec']:checked").parent("label").text()+") <em>"+_chSmpsQty+"개 × "+_fmtCh(_chSmpsUnit)+"원 = "+_fmtCh(_chSmpsP)+"원</em></span>";
@@ -6520,10 +6524,18 @@ function parseBdRow(t) {
         var before = t.substring(0, mulIdx).trim();
         var after  = t.substring(mulIdx + 1, eqIdx).trim();
         var totalPart = t.substring(eqIdx + 1).trim();
-        var tM = totalPart.match(/([\d,]+)/), uM = after.match(/([\d,]+)/);
-        var total = tM ? tM[1] : '', unit = uM ? uM[1] : '';
-        var qty = '', qtyM = before.match(/\s+(\d+)[개자]$/);
-        if (qtyM) { qty = qtyM[1]; before = before.substring(0, before.length - qtyM[0].length).trim(); }
+        var tM = totalPart.match(/([\d,]+)/);
+        var total = tM ? tM[1] : '', unit = '', qty = '';
+        var qtyOnlyM = after.match(/^(\d+)[개자식]?$/);
+        if (qtyOnlyM) {
+            qty = qtyOnlyM[1];
+            unit = total;
+        } else {
+            var uM = after.match(/([\d,]+)/);
+            unit = uM ? uM[1] : '';
+            var qtyM = before.match(/\s+(\d+)[개자]$/);
+            if (qtyM) { qty = qtyM[1]; before = before.substring(0, before.length - qtyM[0].length).trim(); }
+        }
         return { name: before, qty: qty, unit: unit, total: total };
     }
     var m2 = t.match(/^(.+?)\s+([\d,]+)원?$/);
