@@ -793,6 +793,8 @@ function hoorex_type(){
             	append_html += "<th>완조립</th>";
             	append_html += "<td><label><input type='radio' name='channel_complete' id='channel_complete_none' checked='checked'>없음</label><label><input type='radio' name='channel_complete' id='channel_complete_normal'>일반 완조립</label><label><input type='radio' name='channel_complete' id='channel_complete_premium'>고급 완조립</label></td>";
             append_html += "</tr>";	
+			}
+			if($("#channel_option01").is(":checked")){ // 알루미늄 채널
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
