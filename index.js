@@ -6048,11 +6048,11 @@ $(".save_btn").click(function(){
                 var _tb = _calcTrusbar(), _tbP = _tb.price;
                 if(_tbP > 0){
                     if(_tb.isCustom){
-                        bd += "<span class='bd_item'>트러스바 주문제작 × 1식 = "+_fmtCh(_tbP)+"원</span>";
+                        bd += "<span class='bd_item'>트러스바 주문제작 × 1식 = <em>"+_fmtCh(_tbP)+"원</em></span>";
                     }else if(_tb.isFixed){
-                        bd += "<span class='bd_item'>트러스바("+_tb.pok+"/"+_tb.mm+"mm/정액) × 1식 = "+_fmtCh(_tbP)+"원</span>";
+                        bd += "<span class='bd_item'>트러스바("+_tb.pok+"/"+_tb.mm+"mm/정액) × 1식 = <em>"+_fmtCh(_tbP)+"원</em></span>";
                     }else{
-                        bd += "<span class='bd_item'>트러스바("+_tb.pok+"/"+_tb.mm+"mm/"+_fmtCh(_tb.ratePerM)+"원/m) × 1식 = "+_fmtCh(_tbP)+"원</span>";
+                        bd += "<span class='bd_item'>트러스바("+_tb.pok+"/"+_tb.mm+"mm/"+_fmtCh(_tb.ratePerM)+"원/m) × 1식 = <em>"+_fmtCh(_tbP)+"원</em></span>";
                     }
                 }
                 // 까치발
@@ -6065,7 +6065,7 @@ $(".save_btn").click(function(){
                 if(_ggP>0) bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmtCh(_ggUnit)+"원 = "+_fmtCh(_ggP)+"원</em></span>";
                 // 완조립
                 var _compP=$("#channel_complete_normal").is(":checked")?100000:($("#channel_complete_premium").is(":checked")?150000:0);
-                if(_compP>0){ var _compType=$("#channel_complete_normal").is(":checked")?"일반":"프리미엄"; bd += "<span class='bd_item'>완조립("+_compType+") × 1개 = "+_fmtCh(_compP)+"원</span>"; }
+                if(_compP>0){ var _compType=$("#channel_complete_normal").is(":checked")?"일반":"프리미엄"; bd += "<span class='bd_item'>완조립("+_compType+") × 1개 = <em>"+_fmtCh(_compP)+"원</em></span>"; }
                 // SMPS
                 var _chSmpsUnit=_getChSmpsUnit(), _chSmpsQty=parseInt($("#ch_smps_qty").val())||0, _chSmpsP=_chSmpsUnit*_chSmpsQty;
                 if(_chSmpsP>0) bd += "<span class='bd_item'>SMPS("+$("input[name='ch_smps_spec']:checked").parent("label").text()+") <em>"+_chSmpsQty+"개 × "+_fmtCh(_chSmpsUnit)+"원 = "+_fmtCh(_chSmpsP)+"원</em></span>";
@@ -6076,11 +6076,11 @@ $(".save_btn").click(function(){
                     var _qN = it.qty || 1;
                     var _detailSuffix = it.detail ? " ["+it.detail+"]" : "";
                     var _mainName = (it.channelTypeName||"채널문자") + " " + (it.sizeText||"");
-                    bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = "+_fmtCh(it.price)+"원</span>";
+                    bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = <em>"+_fmtCh(it.price)+"원</em></span>";
                     if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+"</span>";
                     if(it.trimColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 뚜껑: "+it.trimColorText+"</span>";
                     if(it.solidColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 입체(몸통): "+it.solidColorText+"</span>";
-                    if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = "+_fmtCh(it.ledPrice)+"원</span>";
+                    if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = <em>"+_fmtCh(it.ledPrice)+"원</em></span>";
                     if(it.dispWorkName) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 화면작업: "+it.dispWorkName+"</span>";
                 });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
@@ -6593,6 +6593,10 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                 // 신형: "#채널메인# (N). name × qty개 = price원"
                 var chMainM = p.match(/^#채널메인#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
                 if (chMainM) {
+                    // 두 번째 담기 항목부터 서브 구분선 삽입
+                    if (chItemLines.length > 0) {
+                        chItemLines.push({ subSep: true });
+                    }
                     var _qty = parseInt(chMainM[3]);
                     var _total = Number(chMainM[4].replace(/,/g, ''));
                     var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
@@ -6643,6 +6647,8 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     tableRows.forEach(function(r) {
         if (r.separator) {
             rowsHtml += '<tr class="item-sep"><td colspan="3">' + escHtml(r.label) + '</td><td class="tr item-sep-total">' + escHtml(r.total) + '원</td></tr>';
+        } else if (r.subSep) {
+            rowsHtml += '<tr class="item-sub-sep"><td colspan="4"></td></tr>';
         } else {
             dataRowCount++;
             rowsHtml += '<tr><td>' + escHtml(r.name) + '</td><td class="tc">' + escHtml(r.qty) + '</td><td class="tr">' + escHtml(r.unit) + '</td><td class="tr">' + escHtml(r.total) + '</td></tr>';
@@ -6676,6 +6682,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     '.items-table td{border:1px solid #000;padding:5px 8px;font-size:9.5pt}' +
     '.items-table td.tc{text-align:center}.items-table td.tr{text-align:right;font-variant-numeric:tabular-nums}' +
     '.item-sep{background:#e8edf5}.item-sep td{border-top:2px solid #4a6fa5;border-bottom:1px solid #4a6fa5;padding:4px 8px;font-weight:bold;font-size:9pt;color:#1a3a6b}.item-sep-total{text-align:right;white-space:nowrap}' +
+    '.item-sub-sep td{padding:0;height:6px;border-left:1px solid #000;border-right:1px solid #000;border-top:1px dashed #aaa;background:#fafafa}' +
     '.items-table tfoot td{border:2px solid #000;font-weight:bold;font-size:9.5pt;padding:5px 8px}' +
     '.items-table tfoot td.tl{text-align:right;letter-spacing:3px}' +
     '.footer-mark{text-align:center;margin-top:12px;font-size:9pt;color:#666;letter-spacing:4px;border-top:1px solid #ccc;padding-top:8px}' +
