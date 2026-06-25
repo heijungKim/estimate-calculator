@@ -793,6 +793,23 @@ function hoorex_type(){
             	append_html += "<th>완조립</th>";
             	append_html += "<td><label><input type='radio' name='channel_complete' id='channel_complete_none' checked='checked'>없음</label><label><input type='radio' name='channel_complete' id='channel_complete_normal'>일반 완조립</label><label><input type='radio' name='channel_complete' id='channel_complete_premium'>고급 완조립</label></td>";
             append_html += "</tr>";	
+            append_html += "<tr>";
+            	append_html += "<th>SMPS</th>";
+            	append_html += "<td>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_none' checked='checked'>없음</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_60w'>60W</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_100w'>100W</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_150w'>150W</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_200w'>200W</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_300w'>300W</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_400w'>400W</label>";
+            		append_html += "<label><input type='radio' name='ch_smps_spec' id='ch_smps_500w'>500W</label>";
+            	append_html += "</td>";
+            append_html += "</tr>";
+            append_html += "<tr class='ch_smps_qty_row add_row'>";
+            	append_html += "<th>SMPS 수량</th>";
+            	append_html += "<td><input type='number' id='ch_smps_qty' placeholder='수량' min='0' value='0'> 개</td>";
+            append_html += "</tr>";
 			}
 			if($("#channel_option01").is(":checked")){ // 알루미늄 채널
 			append_html += "<tr>";
@@ -3547,7 +3564,12 @@ function chnnel_taka(){ //채널 타카식
             chnnel_taka_cal();
 
         });
-        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count").bind("change keyup paste", function(){
+        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count,#ch_smps_qty").bind("change keyup paste", function(){
+            chnnel_taka_cal();
+        });
+        $("input[name='ch_smps_spec']").click(function(){
+            if($(this).attr("id") === "ch_smps_none") $(".ch_smps_qty_row").hide();
+            else $(".ch_smps_qty_row").css("display","table-row");
             chnnel_taka_cal();
         });
     },500);
@@ -3780,7 +3802,8 @@ function chnnel_taka_cal(){ //채널 타카 계산
     var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
     $("#ch_item_preview").text(previewPrice > 0 ? fmt(previewPrice) + "원" : "-");
 
-    var total = Math.floor(trusbar_price + ggachi_price + complete_price + items_total + nv("#more_order_price"));
+    var smps_price = (parseInt($("#ch_smps_qty").val()) || 0) * _getChSmpsUnit();
+    var total = Math.floor(trusbar_price + ggachi_price + complete_price + items_total + smps_price + nv("#more_order_price"));
     $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 function whoorex(){ //후렉스
@@ -5592,6 +5615,16 @@ function _getCmSmpsUnit(){
     if($("#cm_smps_500w").is(":checked")) return PRICES.cm_smps_500w;
     return 0;
 }
+function _getChSmpsUnit(){
+    if($("#ch_smps_60w").is(":checked"))  return PRICES.cm_smps_60w;
+    if($("#ch_smps_100w").is(":checked")) return PRICES.cm_smps_100w;
+    if($("#ch_smps_150w").is(":checked")) return PRICES.cm_smps_150w;
+    if($("#ch_smps_200w").is(":checked")) return PRICES.cm_smps_200w;
+    if($("#ch_smps_300w").is(":checked")) return PRICES.cm_smps_300w;
+    if($("#ch_smps_400w").is(":checked")) return PRICES.cm_smps_400w;
+    if($("#ch_smps_500w").is(":checked")) return PRICES.cm_smps_500w;
+    return 0;
+}
 function _getCmCtrlUnit(){
     if($("#cm_ctrl_1ch").is(":checked")) return PRICES.cm_led_ctrl_1ch;
     if($("#cm_ctrl_2ch").is(":checked")) return PRICES.cm_led_ctrl_2ch;
@@ -5928,6 +5961,11 @@ $(".save_btn").click(function(){
             } else if($("#channel_complete_normal,#channel_complete_premium").is(":checked")){
                 total_html += " / 완조립 : " + $("input[name='channel_complete']:checked").parent("label").text();
             }
+            if(!$("#ch_smps_none").is(":checked")){
+                var _smpsSpec = $("input[name='ch_smps_spec']:checked").parent("label").text();
+                var _smpsQtyVal = parseInt($("#ch_smps_qty").val()) || 0;
+                total_html += " / SMPS : " + _smpsSpec + " " + _smpsQtyVal + "개";
+            }
             total_html += "</span>";
 
             // ── 담긴 항목 목록 (카드형 레이아웃) ──
@@ -5983,6 +6021,9 @@ $(".save_btn").click(function(){
                 // 완조립
                 var _compP=$("#channel_complete_normal").is(":checked")?100000:($("#channel_complete_premium").is(":checked")?150000:0);
                 if(_compP>0) bd += "<span class='bd_item'>완조립 <em>"+_fmtCh(_compP)+"원</em></span>";
+                // SMPS
+                var _chSmpsUnit=_getChSmpsUnit(), _chSmpsQty=parseInt($("#ch_smps_qty").val())||0, _chSmpsP=_chSmpsUnit*_chSmpsQty;
+                if(_chSmpsP>0) bd += "<span class='bd_item'>SMPS("+$("input[name='ch_smps_spec']:checked").parent("label").text()+") <em>"+_chSmpsQty+"개 × "+_fmtCh(_chSmpsUnit)+"원 = "+_fmtCh(_chSmpsP)+"원</em></span>";
                 // 담긴 항목 합계
                 var _itemsTotal=0;
                 $.each(_chItems,function(i,it){ _itemsTotal+=it.price; });
