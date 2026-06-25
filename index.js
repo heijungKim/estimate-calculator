@@ -6029,9 +6029,14 @@ $(".save_btn").click(function(){
                 // SMPS
                 var _chSmpsUnit=_getChSmpsUnit(), _chSmpsQty=parseInt($("#ch_smps_qty").val())||0, _chSmpsP=_chSmpsUnit*_chSmpsQty;
                 if(_chSmpsP>0) bd += "<span class='bd_item'>SMPS("+$("input[name='ch_smps_spec']:checked").parent("label").text()+") <em>"+_chSmpsQty+"개 × "+_fmtCh(_chSmpsUnit)+"원 = "+_fmtCh(_chSmpsP)+"원</em></span>";
-                // 담긴 항목 합계
+                // 담긴 항목 개별 내역
                 var _itemsTotal=0;
-                $.each(_chItems,function(i,it){ _itemsTotal+=it.price; });
+                $.each(_chItems,function(i,it){
+                    _itemsTotal+=it.price;
+                    var _qM=it.label.match(/수량:\s*(\d+)/), _qN=_qM?parseInt(_qM[1]):1;
+                    var _safeLabel=it.label.replace(/\s*\/\s*/g,' · ');
+                    bd += "<span class='bd_item'>#채널# ("+(i+1)+"). "+_safeLabel+" × "+_qN+"자 = "+_fmtCh(it.price)+"원</span>";
+                });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
                 var _moreP=nv("#more_order_price")||0;
                 if(_moreP>0) bd += "<span class='bd_item'>추가금액 <em>"+_fmtCh(_moreP)+"원</em></span>";
@@ -6522,15 +6527,19 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     var tableRows = [];
     items.forEach(function(item) {
         var chItemLines = [];
-        if (item.details && item.details.indexOf('[담긴 항목') > -1) {
-            item.details.split('\n').forEach(function(ln) {
-                var m = ln.trim().match(/^\((\d+)\)\s+(.+?)\s+→\s+([\d,]+)원/);
-                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '1', unit: m[3], total: m[3] });
-            });
-        }
         if (item.breakdown) {
             var parts = item.breakdown.split(' / '), added = false;
             parts.forEach(function(p) {
+                // 채널문자 개별 항목: "#채널# (N). label × qty자 = price원"
+                var chM = p.match(/^#채널#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)자\s+=\s+([\d,]+)원/);
+                if (chM) {
+                    var _qty = parseInt(chM[3]);
+                    var _total = Number(chM[4].replace(/,/g, ''));
+                    var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
+                    chItemLines.push({ name: item.category + ' - ' + chM[2], qty: _qty + '자', unit: _f(_unit), total: chM[4] });
+                    added = true;
+                    return;
+                }
                 if (chItemLines.length > 0 && p.indexOf('담긴 항목 합계') > -1) return;
                 var r = parseBdRow(p);
                 if (r) { tableRows.push(r); added = true; }
@@ -6538,11 +6547,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
             chItemLines.forEach(function(r) { tableRows.push(r); added = true; });
             if (!added) tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
         } else {
-            if (chItemLines.length > 0) {
-                chItemLines.forEach(function(r) { tableRows.push(r); });
-            } else {
-                tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
-            }
+            tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
         }
     });
 
