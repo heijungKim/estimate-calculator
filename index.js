@@ -3719,7 +3719,7 @@ function addChannelItem() {
     var label = "";
     label += "문자형태: " + $("input[name='channel_text_form']:checked").parent("label").text();
     label += " / 크기: " + $("input[name='channel_size']:checked").parent("label").text();
-    label += " / 수량: " + qty + "자";
+    label += " / 수량: " + qty + "개";
 
     var trimColor = $("input[name='channel_trim_color']:checked").parent("label").text();
     if(trimColor) label += " / 트림: " + trimColor;
@@ -6538,7 +6538,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                     var _qty = parseInt(chM[3]);
                     var _total = Number(chM[4].replace(/,/g, ''));
                     var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
-                    var _cleanLabel = chM[2].replace(/수량:\s*\d+자\s*·?\s*/g, '').replace(/·\s*$/g, '').trim();
+                    var _cleanLabel = chM[2].replace(/수량:\s*\d+[자개]\s*·?\s*/g, '').replace(/·\s*$/g, '').trim();
                     chItemLines.push({ name: item.category + ' - ' + _cleanLabel, qty: String(_qty), unit: _f(_unit), total: chM[4] });
                     added = true;
                     return;
