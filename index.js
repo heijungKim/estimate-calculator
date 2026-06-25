@@ -833,7 +833,7 @@ function hoorex_type(){
 				append_html += "<td><input type='number' id='channel_taka_vertical' placeholder='세로 사이즈를 입력하세요.'> cm</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
-				append_html += "<th>트림색상</th>";
+				append_html += "<th>뚜껑 색상</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_black'>흑색</label>";
@@ -853,9 +853,9 @@ function hoorex_type(){
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-			append_html += "<th>입체색상</th>";
+			append_html += "<th>입체 색상(몸통)</th>";
 			append_html += "<td>";
-				append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+				append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 				append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
 				append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>컬러</label>";
 			append_html += "</td>";
@@ -946,7 +946,7 @@ function hoorex_type(){
 				append_html += "<td>" + _chSizeBtns('ch_galva_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>트림색상</th>";
+				append_html += "<th>뚜껑 색상</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_black'>흑색</label>";
@@ -960,9 +960,9 @@ function hoorex_type(){
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
@@ -1070,9 +1070,9 @@ function hoorex_type(){
 				append_html += "<td>" + _chSizeBtns('ch_gosa_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_gold'>금색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_silver'>은색</label>";
@@ -1168,9 +1168,9 @@ function hoorex_type(){
 				append_html += "<td>" + _chSizeBtns('ch_epox_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1248,9 +1248,9 @@ function hoorex_type(){
 				append_html += "<td>" + _chSizeBtns('ch_ilche_eng_') + "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1328,9 +1328,9 @@ function hoorex_type(){
 						append_html += _chSizeBtns('ch_sten_eng_');
 					append_html += "</td>";
 				append_html += "</tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1403,9 +1403,9 @@ function hoorex_type(){
 						append_html += _chSizeBtns('ch_titan_eng_');
 					append_html += "</td>";
 				append_html += "</tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1494,7 +1494,7 @@ function hoorex_type(){
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>트림색상</th>";
+				append_html += "<th>뚜껑 색상</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_black'>흑색</label>";
@@ -1508,9 +1508,9 @@ function hoorex_type(){
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
@@ -1627,9 +1627,9 @@ function hoorex_type(){
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>입체색상</th>";
+				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
 				append_html += "</td>";
@@ -3697,7 +3697,9 @@ function _getChCurrentItemPrice() {
     else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.ch_led_color * _ledCnt;
 
     var qty = Number($("#channel_content").val()) || 0;
-    return Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
+    var _basePrice = Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
+    if($("#channel_solid_color_none").is(":checked")) return Math.floor(_basePrice * 1.006);
+    return _basePrice;
 }
 
 // ── 담기 버튼: 현재 폼 항목을 _chItems에 추가 ──────────────────
