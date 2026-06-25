@@ -717,16 +717,22 @@ function hoorex_type(){
 
 //사인탑
 //채널문자
-	// PRICES 키에서 해당 채널 타입의 크기 라디오 버튼을 동적 생성
+	// 단가표 기준 크기 라디오 버튼 동적 생성: DEFAULT_PRICES 키 = 단가표 행
+	// 단가가 설정된(> 0) 크기만 표시하되, 전체 미설정 시 모든 크기 표시(초기 상태 대비)
 	function _chSizeBtns(pricePrefix) {
-		var html = '', sizes = [];
-		Object.keys(PRICES).forEach(function(k) {
+		var html = '', allSizes = [], pricedSizes = [];
+		Object.keys(DEFAULT_PRICES).forEach(function(k) {
 			if (k.indexOf(pricePrefix) === 0) {
 				var sz = parseInt(k.slice(pricePrefix.length));
-				if (!isNaN(sz)) sizes.push(sz);
+				if (!isNaN(sz)) {
+					allSizes.push(sz);
+					if (PRICES[k] > 0) pricedSizes.push(sz);
+				}
 			}
 		});
-		sizes.sort(function(a, b) { return a - b; });
+		allSizes.sort(function(a, b) { return a - b; });
+		pricedSizes.sort(function(a, b) { return a - b; });
+		var sizes = pricedSizes.length > 0 ? pricedSizes : allSizes;
 		sizes.forEach(function(sz, i) {
 			html += "<label><input type='radio' name='channel_size' id='channel_size_" + sz + "'" + (i === 0 ? " checked='checked'" : "") + ">" + sz + "cm</label>";
 		});
