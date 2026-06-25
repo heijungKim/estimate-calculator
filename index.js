@@ -3805,26 +3805,31 @@ function renderChItems() {
     });
 }
 
+// 트러스바 계산: 5000mm 미만 정액 / 5000mm 이상 m당 단가
+function _calcTrusbar() {
+    var mm = nv("#channel_trusbar_width") || 0;
+    if ($("#channel_trusbar05").is(":checked")) {
+        return { price: nv("#channel_trusbar_custom_price") || 0, pok: "", isCustom: true };
+    }
+    var pok = "", fixedPrice = 0, ratePerM = 0;
+    if      ($("#channel_trusbar00").is(":checked")) { pok = "150폭"; fixedPrice = 150000; ratePerM = 30000; }
+    else if ($("#channel_trusbar01").is(":checked")) { pok = "200폭"; fixedPrice = 150000; ratePerM = 30000; }
+    else if ($("#channel_trusbar02").is(":checked")) { pok = "250폭"; fixedPrice = 200000; ratePerM = 40000; }
+    else if ($("#channel_trusbar03").is(":checked")) { pok = "300폭"; fixedPrice = 200000; ratePerM = 40000; }
+    else if ($("#channel_trusbar04").is(":checked")) { pok = "400폭"; fixedPrice = 350000; ratePerM = 70000; }
+    if (!pok || mm <= 0) return { price: 0, pok: pok, mm: mm, isFixed: true, isCustom: false, ratePerM: 0 };
+    var isFixed = mm < 5000;
+    var price = isFixed ? fixedPrice : Math.floor(mm / 1000 * ratePerM);
+    return { price: price, pok: pok, mm: mm, isFixed: isFixed, isCustom: false, ratePerM: ratePerM };
+}
+
 function chnnel_taka_cal(){ //채널 타카 계산
     applyPrices(); // 단가 패널 최신값을 PRICES에 반영
-    var trusbar_width = nv("#channel_trusbar_width") / 1000;
     var trusbar_price = 0;
     var ggachi_price = 0;
     var complete_price = 0;
 
-    if($("#channel_trusbar00").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_150 * trusbar_width;
-    }else if($("#channel_trusbar01").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_200 * trusbar_width;
-    }else if($("#channel_trusbar02").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_250 * trusbar_width;
-    }else if($("#channel_trusbar03").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_300 * trusbar_width;
-    }else if($("#channel_trusbar04").is(":checked")){
-        trusbar_price = PRICES.ch_trusbar_400 * trusbar_width;
-    }else if($("#channel_trusbar05").is(":checked")){
-        trusbar_price = nv("#channel_trusbar_custom_price") || 0;
-    }
+    trusbar_price = _calcTrusbar().price;
 
     if($("#channel_more_order_option01").is(":checked")){ //까치발 - 트러스바 폭 기준 단가 연동
         var _chGgUnit = PRICES.ch_ggachi_200; // 기본값
@@ -6040,24 +6045,14 @@ $(".save_btn").click(function(){
             (function(){
                 var bd = "<span class='price_breakdown'>";
                 // 트러스바
-                var _tbMm = nv("#channel_trusbar_width") || 0, _tbM = _tbMm/1000, _tbUnit=0, _tbCustom=0;
-                var _tbPok = $("#channel_trusbar00").is(":checked") ? "150폭" :
-                             $("#channel_trusbar01").is(":checked") ? "200폭" :
-                             $("#channel_trusbar02").is(":checked") ? "250폭" :
-                             $("#channel_trusbar03").is(":checked") ? "300폭" :
-                             $("#channel_trusbar04").is(":checked") ? "400폭" : "";
-                if($("#channel_trusbar00").is(":checked")) _tbUnit=PRICES.ch_trusbar_150;
-                else if($("#channel_trusbar01").is(":checked")) _tbUnit=PRICES.ch_trusbar_200;
-                else if($("#channel_trusbar02").is(":checked")) _tbUnit=PRICES.ch_trusbar_250;
-                else if($("#channel_trusbar03").is(":checked")) _tbUnit=PRICES.ch_trusbar_300;
-                else if($("#channel_trusbar04").is(":checked")) _tbUnit=PRICES.ch_trusbar_400;
-                else if($("#channel_trusbar05").is(":checked")) _tbCustom=nv("#channel_trusbar_custom_price")||0;
-                var _tbP = Math.floor(_tbUnit*_tbM)+_tbCustom;
-                if(_tbP>0){
-                    if(_tbCustom>0){
-                        bd += "<span class='bd_item'>트러스바 주문제작 × 1식 = "+_fmtCh(_tbCustom)+"원</span>";
+                var _tb = _calcTrusbar(), _tbP = _tb.price;
+                if(_tbP > 0){
+                    if(_tb.isCustom){
+                        bd += "<span class='bd_item'>트러스바 주문제작 × 1식 = "+_fmtCh(_tbP)+"원</span>";
+                    }else if(_tb.isFixed){
+                        bd += "<span class='bd_item'>트러스바("+_tb.pok+"/"+_tb.mm+"mm/정액) × 1식 = "+_fmtCh(_tbP)+"원</span>";
                     }else{
-                        bd += "<span class='bd_item'>트러스바("+_tbPok+"/"+_tbMm+"mm/"+_fmtCh(_tbUnit)+"원/m) × 1식 = "+_fmtCh(_tbP)+"원</span>";
+                        bd += "<span class='bd_item'>트러스바("+_tb.pok+"/"+_tb.mm+"mm/"+_fmtCh(_tb.ratePerM)+"원/m) × 1식 = "+_fmtCh(_tbP)+"원</span>";
                     }
                 }
                 // 까치발
