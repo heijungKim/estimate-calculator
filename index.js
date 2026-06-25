@@ -6600,7 +6600,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                     }
                     if (item._chMainCount > 1) {
                         var _nos = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
-                        chItemLines.push({ itemHeader: true, label: '담기 ' + (_nos[_chNo-1] || _chNo), total: chMainM[4] });
+                        chItemLines.push({ itemHeader: true, label: '세부 항목 ' + (_nos[_chNo-1] || _chNo), total: chMainM[4] });
                     }
                     var _qty = parseInt(chMainM[3]);
                     var _total = Number(chMainM[4].replace(/,/g, ''));
