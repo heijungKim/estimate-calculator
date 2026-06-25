@@ -64,7 +64,7 @@ var DEFAULT_PRICES = {
     // 채널문자 기타
     ch_ggachi_200: 2000, ch_ggachi_250: 2500, ch_ggachi_300: 3000, ch_ggachi_400: 3500,
     ch_complete: 100000,
-    ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
+    ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
     flex_uv_double: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
     // UV 실사 (m²)
@@ -768,7 +768,7 @@ function hoorex_type(){
 		if($("input[name='channel_option']:checked").length){ //채널문자 품목 선택됨
             append_html += "<tr>";
            	 	append_html += "<th>트러스바</th>";
-            	append_html += "<td><label><input type='radio' name='channel_trusbar' id='channel_trusbar_none' checked='checked'>없음</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar01'>200폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar02'>250폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar03'>300폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar04'>400폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar05'>주문제작</label></td>";
+            	append_html += "<td><label><input type='radio' name='channel_trusbar' id='channel_trusbar_none' checked='checked'>없음</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar00'>150폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar01'>200폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar02'>250폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar03'>300폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar04'>400폭</label><label><input type='radio' name='channel_trusbar' id='channel_trusbar05'>주문제작</label></td>";
             append_html += "</tr>";
             append_html += "</tr>";
             append_html += "<tr class='channel_trusbar add_row'>";
@@ -3812,7 +3812,9 @@ function chnnel_taka_cal(){ //채널 타카 계산
     var ggachi_price = 0;
     var complete_price = 0;
 
-    if($("#channel_trusbar01").is(":checked")){
+    if($("#channel_trusbar00").is(":checked")){
+        trusbar_price = PRICES.ch_trusbar_150 * trusbar_width;
+    }else if($("#channel_trusbar01").is(":checked")){
         trusbar_price = PRICES.ch_trusbar_200 * trusbar_width;
     }else if($("#channel_trusbar02").is(":checked")){
         trusbar_price = PRICES.ch_trusbar_250 * trusbar_width;
@@ -6039,14 +6041,16 @@ $(".save_btn").click(function(){
                 var bd = "<span class='price_breakdown'>";
                 // 트러스바
                 var _tbMm = nv("#channel_trusbar_width") || 0, _tbM = _tbMm/1000, _tbUnit=0, _tbCustom=0;
-                var _tbPok = $("#channel_trusbar01").is(":checked") ? "200폭" :
+                var _tbPok = $("#channel_trusbar00").is(":checked") ? "150폭" :
+                             $("#channel_trusbar01").is(":checked") ? "200폭" :
                              $("#channel_trusbar02").is(":checked") ? "250폭" :
                              $("#channel_trusbar03").is(":checked") ? "300폭" :
                              $("#channel_trusbar04").is(":checked") ? "400폭" : "";
-                if($("#channel_trusbar01").is(":checked")) _tbUnit=30000;
-                else if($("#channel_trusbar02").is(":checked")) _tbUnit=40000;
-                else if($("#channel_trusbar03").is(":checked")) _tbUnit=40000;
-                else if($("#channel_trusbar04").is(":checked")) _tbUnit=60000;
+                if($("#channel_trusbar00").is(":checked")) _tbUnit=PRICES.ch_trusbar_150;
+                else if($("#channel_trusbar01").is(":checked")) _tbUnit=PRICES.ch_trusbar_200;
+                else if($("#channel_trusbar02").is(":checked")) _tbUnit=PRICES.ch_trusbar_250;
+                else if($("#channel_trusbar03").is(":checked")) _tbUnit=PRICES.ch_trusbar_300;
+                else if($("#channel_trusbar04").is(":checked")) _tbUnit=PRICES.ch_trusbar_400;
                 else if($("#channel_trusbar05").is(":checked")) _tbCustom=nv("#channel_trusbar_custom_price")||0;
                 var _tbP = Math.floor(_tbUnit*_tbM)+_tbCustom;
                 if(_tbP>0){
