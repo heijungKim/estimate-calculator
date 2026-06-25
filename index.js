@@ -6230,9 +6230,9 @@ $(".save_btn").click(function(){
     list_sum_price();
     list_delete_func();
 
-    // 추가 후 입력값 초기화
-    $("#option_table input[type='text'], #option_table input[type='number']").val('');
-    $("#option_table textarea").val('');
+    // 추가 후 폼 전체 초기화 (현재 탭 재실행)
+    _chItems = [];
+    $(".woosung_wrap .tab_area ul li.active").trigger("click");
     $(".order_info .right_area #order_price").text('0');
 });
 function list_delete_func(){
@@ -6583,7 +6583,9 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     var estNo = String(Math.floor(Math.random() * 9000) + 1000);
 
     var tableRows = [];
-    items.forEach(function(item) {
+    items.forEach(function(item, itemIdx) {
+        // 항목 구분 헤더 행
+        tableRows.push({ separator: true, label: (itemIdx + 1) + '. ' + item.category, total: _f(item.priceNum) });
         var chItemLines = [];
         if (item.breakdown) {
             var parts = item.breakdown.split(' / '), added = false;
@@ -6637,10 +6639,16 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     });
 
     var rowsHtml = '';
+    var dataRowCount = 0;
     tableRows.forEach(function(r) {
-        rowsHtml += '<tr><td>' + escHtml(r.name) + '</td><td class="tc">' + escHtml(r.qty) + '</td><td class="tr">' + escHtml(r.unit) + '</td><td class="tr">' + escHtml(r.total) + '</td></tr>';
+        if (r.separator) {
+            rowsHtml += '<tr class="item-sep"><td colspan="3">' + escHtml(r.label) + '</td><td class="tr item-sep-total">' + escHtml(r.total) + '원</td></tr>';
+        } else {
+            dataRowCount++;
+            rowsHtml += '<tr><td>' + escHtml(r.name) + '</td><td class="tc">' + escHtml(r.qty) + '</td><td class="tr">' + escHtml(r.unit) + '</td><td class="tr">' + escHtml(r.total) + '</td></tr>';
+        }
     });
-    for (var ei = tableRows.length; ei < 15; ei++) rowsHtml += '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
+    for (var ei = dataRowCount; ei < 12; ei++) rowsHtml += '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
 
     var managerLine = manager ? '<tr><td class="il">담&nbsp;&nbsp;&nbsp;당:</td><td>' + escHtml(manager) + '</td></tr>' : '';
     var notesBlock = notes ? '<div class="notes-box"><strong>비고</strong><br>' + escHtml(notes).replace(/\n/g,'<br>') + '</div>' : '';
@@ -6667,6 +6675,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     '.items-table th{border:2px solid #000;padding:6px 8px;background:#f0f0f0;font-size:9.5pt;text-align:center;font-weight:bold}' +
     '.items-table td{border:1px solid #000;padding:5px 8px;font-size:9.5pt}' +
     '.items-table td.tc{text-align:center}.items-table td.tr{text-align:right;font-variant-numeric:tabular-nums}' +
+    '.item-sep{background:#e8edf5}.item-sep td{border-top:2px solid #4a6fa5;border-bottom:1px solid #4a6fa5;padding:4px 8px;font-weight:bold;font-size:9pt;color:#1a3a6b}.item-sep-total{text-align:right;white-space:nowrap}' +
     '.items-table tfoot td{border:2px solid #000;font-weight:bold;font-size:9.5pt;padding:5px 8px}' +
     '.items-table tfoot td.tl{text-align:right;letter-spacing:3px}' +
     '.footer-mark{text-align:center;margin-top:12px;font-size:9pt;color:#666;letter-spacing:4px;border-top:1px solid #ccc;padding-top:8px}' +
