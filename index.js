@@ -6508,7 +6508,9 @@ function parseBdRow(t) {
         var totalPart = t.substring(eqIdx + 1).trim();
         var tM = totalPart.match(/([\d,]+)/), uM = after.match(/([\d,]+)/);
         var total = tM ? tM[1] : '', unit = uM ? uM[1] : '';
-        return { name: before, qty: '', unit: unit, total: total };
+        var qty = '', qtyM = before.match(/\s+(\d+)[개자]$/);
+        if (qtyM) { qty = qtyM[1]; before = before.substring(0, before.length - qtyM[0].length).trim(); }
+        return { name: before, qty: qty, unit: unit, total: total };
     }
     var m2 = t.match(/^(.+?)\s+([\d,]+)원?$/);
     if (m2) return { name: m2[1].trim(), qty: '', unit: '', total: m2[2] };
@@ -6536,7 +6538,7 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                     var _qty = parseInt(chM[3]);
                     var _total = Number(chM[4].replace(/,/g, ''));
                     var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
-                    chItemLines.push({ name: item.category + ' - ' + chM[2], qty: _qty + '자', unit: _f(_unit), total: chM[4] });
+                    chItemLines.push({ name: item.category + ' - ' + chM[2], qty: String(_qty), unit: _f(_unit), total: chM[4] });
                     added = true;
                     return;
                 }
