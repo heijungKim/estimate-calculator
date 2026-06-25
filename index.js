@@ -3727,14 +3727,27 @@ function addChannelItem() {
     var solidColor = $("input[name='channel_solid_color']:checked").parent("label").text();
     if(solidColor) label += " / 입체: " + solidColor;
 
-    var ledColor = $("input[name='channel_led_color']:checked").parent("label").text();
-    if(ledColor && !$("#channel_led_color_none").is(":checked")) label += " / LED: " + ledColor;
+    applyPrices();
+    var _ledCntNum = parseInt($(".channel_led_count td span").text()) || 0;
+    var _ledColorText = '', _ledUnitP = 0;
+    if(!$("#channel_led_color_none").is(":checked")){
+        _ledColorText = $("input[name='channel_led_color']:checked").parent("label").text();
+        if($("#channel_led_color_white").is(":checked"))        _ledUnitP = PRICES.ch_led_white;
+        else if($("#channel_led_color_wram").is(":checked"))    _ledUnitP = PRICES.ch_led_warm;
+        else if($("#channel_led_color_rgb").is(":checked"))     _ledUnitP = PRICES.ch_led_rgb;
+        else if($("#channel_led_color_panorama").is(":checked"))_ledUnitP = PRICES.ch_led_panorama;
+        else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) _ledUnitP = PRICES.ch_led_color;
+    }
+    var _ledPriceNum = _ledUnitP * _ledCntNum;
+
+    if(_ledColorText && _ledCntNum > 0) label += " / LED: " + _ledColorText + " " + _ledCntNum + "개";
+    else if(_ledColorText)              label += " / LED: " + _ledColorText;
 
     if($("#channel_led_display_work_yes").is(":checked")){
         label += " / 화면작업: " + $("input[name='channel_led_display_work_type']:checked").parent("label").text();
     }
 
-    _chItems.push({ label: label, price: price });
+    _chItems.push({ label: label, price: price, ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum });
     renderChItems();
     chnnel_taka_cal();
 }
@@ -6036,6 +6049,7 @@ $(".save_btn").click(function(){
                     var _qM=it.label.match(/수량:\s*(\d+)/), _qN=_qM?parseInt(_qM[1]):1;
                     var _safeLabel=it.label.replace(/\s*\/\s*/g,' · ');
                     bd += "<span class='bd_item'>#채널# ("+(i+1)+"). "+_safeLabel+" × "+_qN+"자 = "+_fmtCh(it.price)+"원</span>";
+                    if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = "+_fmtCh(it.ledPrice)+"원</span>";
                 });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
                 var _moreP=nv("#more_order_price")||0;
@@ -6540,6 +6554,15 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                     var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
                     var _cleanLabel = chM[2].replace(/수량:\s*\d+[자개]\s*·?\s*/g, '').replace(/·\s*$/g, '').trim();
                     chItemLines.push({ name: item.category + ' - ' + _cleanLabel, qty: String(_qty), unit: _f(_unit), total: chM[4] });
+                    added = true;
+                    return;
+                }
+                // LED 상세: "#채널LED# LED(color) × cnt개 = price원"
+                var ledM = p.match(/^#채널LED#\s+LED\((.+?)\)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+                if (ledM) {
+                    var _lc = parseInt(ledM[2]), _lt = Number(ledM[3].replace(/,/g,''));
+                    var _lu = _lc > 0 ? Math.round(_lt / _lc) : 0;
+                    chItemLines.push({ name: '└ LED(' + ledM[1] + ')', qty: String(_lc), unit: _f(_lu), total: ledM[3] });
                     added = true;
                     return;
                 }
