@@ -6268,11 +6268,69 @@ function reformatLiDisplay($li) {
     });
 }
 
+function reformatBreakdown($li) {
+    if ($li.hasClass('bd-fmted')) return;
+    $li.addClass('bd-fmted');
+
+    var $pb = $li.find('.price_breakdown');
+    if (!$pb.length) return;
+
+    var bdTexts = [];
+    $pb.find('.bd_item').each(function() { bdTexts.push($(this).text().trim()); });
+    if (!bdTexts.length) return;
+
+    var chCount = bdTexts.filter(function(t){ return /^#채널메인#/.test(t); }).length;
+    var nos = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function priceBold(label, price){ return esc(label) + ' = <strong>' + esc(price) + '원</strong>'; }
+
+    var html = '';
+    bdTexts.forEach(function(txt) {
+        // 채널 메인 항목
+        var mainM = txt.match(/^#채널메인#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+        if (mainM) {
+            if (chCount > 1) {
+                var n = parseInt(mainM[1]);
+                html += '<div class="bd-ch-hdr">세부 항목 ' + (nos[n-1]||n) + '<span class="bd-ch-hdr-price">' + esc(mainM[4]) + '원</span></div>';
+            }
+            html += '<span class="bd-chip bd-chip-main">' + priceBold(esc(mainM[2]) + ' × ' + mainM[3] + '개', mainM[4]) + '</span>';
+            return;
+        }
+        // 채널 서브 옵션
+        var subM = txt.match(/^#채널서브#\s+\(\d+\)\.\s+(.+)/);
+        if (subM) {
+            html += '<span class="bd-chip bd-chip-sub">└ ' + esc(subM[1]) + '</span>';
+            return;
+        }
+        // 채널 LED
+        var ledM = txt.match(/^#채널LED#\s+LED\((.+?)\)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+        if (ledM) {
+            html += '<span class="bd-chip bd-chip-main">└ LED(' + esc(ledM[1]) + ') × ' + ledM[2] + '개 = <strong>' + esc(ledM[3]) + '원</strong></span>';
+            return;
+        }
+        // 담긴 항목 합계 — 생략 (개별 항목이 이미 표시됨)
+        if (/담긴 항목 합계/.test(txt)) return;
+        // 일반 항목 (트러스바/까치발/완조립/SMPS/추가금액 등)
+        var genM = txt.match(/^(.+?)\s+=\s+([\d,]+)원$/);
+        if (genM) {
+            html += '<span class="bd-chip">' + priceBold(genM[1], genM[2]) + '</span>';
+        } else if (txt) {
+            html += '<span class="bd-chip">' + esc(txt) + '</span>';
+        }
+    });
+
+    if (!html) return;
+    $pb.hide();
+    $('<div class="bd-visual">' + html + '</div>').insertAfter($pb);
+}
+
 function list_sum_price(){
     var total_price = 0;
 	  $(".total_list ul li").each(function(i){
         $(this).find(".number").text((i+1)+". ");
         reformatLiDisplay($(this));
+        reformatBreakdown($(this));
        if($(this).find(".remove_btn").length == 0){
        	$(this).append("<span class='remove_btn'></span>");
        }
