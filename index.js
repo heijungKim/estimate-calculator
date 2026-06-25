@@ -6283,7 +6283,27 @@ function reformatBreakdown($li) {
     var nos = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
 
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function priceBold(label, price){ return esc(label) + ' = <strong>' + esc(price) + '원</strong>'; }
+    function fmtN(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+    function tipHtml(unitLabel){
+        return '<span class="bd-unit-q">?<span class="bd-unit-tip">단가: ' + esc(unitLabel) + '</span></span>';
+    }
+    // 일반 텍스트에서 단가 추출
+    function extractUnit(txt) {
+        if (/정액/.test(txt)) return null;
+        // "N개 × M원" 패턴 (까치발, SMPS)
+        var m1 = txt.match(/(\d[\d,]*)개\s*×\s*([\d,]+)원/);
+        if (m1) return m1[2] + '원/개';
+        // "/m" 포함 (트러스바 m당)
+        var m2 = txt.match(/([\d,]+)원\/m/);
+        if (m2) return m2[1] + '원/m';
+        // "× N개 = M원"
+        var m3 = txt.match(/×\s+(\d+)개\s+=\s+([\d,]+)원/);
+        if (m3) { var n=parseInt(m3[1]),t=Number(m3[2].replace(/,/g,'')); return fmtN(Math.round(t/n))+'원/개'; }
+        // "× N식 = M원" (N > 1 이면 의미 있는 단가)
+        var m4 = txt.match(/×\s+(\d+)식\s+=\s+([\d,]+)원/);
+        if (m4) { var n=parseInt(m4[1]),t=Number(m4[2].replace(/,/g,'')); return n>1?fmtN(Math.round(t/n))+'원/식':null; }
+        return null;
+    }
 
     var html = '';
     bdTexts.forEach(function(txt) {
@@ -6294,7 +6314,12 @@ function reformatBreakdown($li) {
                 var n = parseInt(mainM[1]);
                 html += '<div class="bd-ch-hdr">세부 항목 ' + (nos[n-1]||n) + '<span class="bd-ch-hdr-price">' + esc(mainM[4]) + '원</span></div>';
             }
-            html += '<span class="bd-chip bd-chip-main">' + priceBold(esc(mainM[2]) + ' × ' + mainM[3] + '개', mainM[4]) + '</span>';
+            var qty = parseInt(mainM[3]), total = Number(mainM[4].replace(/,/g,''));
+            var unit = qty > 0 ? Math.round(total/qty) : total;
+            html += '<span class="bd-chip bd-chip-main">'
+                  + esc(mainM[2]) + ' × ' + mainM[3] + '개 = <strong>' + esc(mainM[4]) + '원</strong>'
+                  + tipHtml(fmtN(unit) + '원/자')
+                  + '</span>';
             return;
         }
         // 채널 서브 옵션
@@ -6303,18 +6328,27 @@ function reformatBreakdown($li) {
             html += '<span class="bd-chip bd-chip-sub">└ ' + esc(subM[1]) + '</span>';
             return;
         }
-        // 채널 LED
+        // LED
         var ledM = txt.match(/^#채널LED#\s+LED\((.+?)\)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
         if (ledM) {
-            html += '<span class="bd-chip bd-chip-main">└ LED(' + esc(ledM[1]) + ') × ' + ledM[2] + '개 = <strong>' + esc(ledM[3]) + '원</strong></span>';
+            var qty = parseInt(ledM[2]), total = Number(ledM[3].replace(/,/g,''));
+            var unit = qty > 0 ? Math.round(total/qty) : total;
+            html += '<span class="bd-chip bd-chip-main">'
+                  + '└ LED(' + esc(ledM[1]) + ') × ' + ledM[2] + '개 = <strong>' + esc(ledM[3]) + '원</strong>'
+                  + tipHtml(fmtN(unit) + '원/개')
+                  + '</span>';
             return;
         }
-        // 담긴 항목 합계 — 생략 (개별 항목이 이미 표시됨)
+        // 담긴 항목 합계 — 생략
         if (/담긴 항목 합계/.test(txt)) return;
-        // 일반 항목 (트러스바/까치발/완조립/SMPS/추가금액 등)
+        // 일반 항목
         var genM = txt.match(/^(.+?)\s+=\s+([\d,]+)원$/);
         if (genM) {
-            html += '<span class="bd-chip">' + priceBold(genM[1], genM[2]) + '</span>';
+            var unitL = extractUnit(txt);
+            html += '<span class="bd-chip">'
+                  + esc(genM[1]) + ' = <strong>' + esc(genM[2]) + '원</strong>'
+                  + (unitL ? tipHtml(unitL) : '')
+                  + '</span>';
         } else if (txt) {
             html += '<span class="bd-chip">' + esc(txt) + '</span>';
         }
