@@ -6077,7 +6077,7 @@ $(".save_btn").click(function(){
                     var _detailSuffix = it.detail ? " ["+it.detail+"]" : "";
                     var _mainName = (it.channelTypeName||"채널문자") + " " + (it.sizeText||"");
                     bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = <em>"+_fmtCh(it.price)+"원</em></span>";
-                    if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+"</span>";
+                    if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+(it.baseUnit>0?" @"+it.baseUnit:"")+"</span>";
                     if(it.trimColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 뚜껑: "+it.trimColorText+"</span>";
                     if(it.solidColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 입체(몸통): "+it.solidColorText+"</span>";
                     if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = <em>"+_fmtCh(it.ledPrice)+"원</em></span>";
@@ -6334,7 +6334,13 @@ function reformatBreakdown($li) {
         // 채널 서브 옵션
         var subM = txt.match(/^#채널서브#\s+\(\d+\)\.\s+(.+)/);
         if (subM) {
-            html += '<span class="bd-chip bd-chip-sub">└ ' + esc(subM[1]) + '</span>';
+            var subTxt = subM[1];
+            var atM = subTxt.match(/^(.+?)\s+@(\d+)$/);
+            if (atM) {
+                html += '<span class="bd-chip bd-chip-sub">└ ' + esc(atM[1]) + tipHtml(fmtN(parseInt(atM[2])) + '원/개') + '</span>';
+            } else {
+                html += '<span class="bd-chip bd-chip-sub">└ ' + esc(subTxt) + '</span>';
+            }
             return;
         }
         // LED
@@ -6713,7 +6719,8 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                 // 신형: "#채널서브# (N). 옵션명" – 설명 행 (가격 없음)
                 var chSubM = p.match(/^#채널서브#\s+\((\d+)\)\.\s+(.+)$/);
                 if (chSubM) {
-                    chItemLines.push({ name: '└ ' + chSubM[2], qty: '-', unit: '-', total: '-' });
+                    var _subName = chSubM[2].replace(/\s+@\d+$/, '');
+                    chItemLines.push({ name: '└ ' + _subName, qty: '-', unit: '-', total: '-' });
                     added = true;
                     return;
                 }
