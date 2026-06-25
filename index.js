@@ -3585,6 +3585,7 @@ function chnnel_taka(){ //채널 타카식
     },500);
 }
 // ── 채널문자 글자단가(현재 폼 상태) 계산 ──────────────────────
+var _lastChBaseUnit = 0, _lastChCustomOrder = 0;
 function _getChCurrentItemPrice() {
     applyPrices();
     var _pricePrefix;
@@ -3711,6 +3712,8 @@ function _getChCurrentItemPrice() {
 
     var qty = Number($("#channel_content").val()) || 0;
     var _basePrice = Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
+    _lastChBaseUnit = chennel_width;
+    _lastChCustomOrder = custom_order;
     if($("#channel_solid_color_none").is(":checked")) return Math.floor(_basePrice * 1.006);
     return _basePrice;
 }
@@ -3720,24 +3723,22 @@ function addChannelItem() {
     var qty = Number($("#channel_content").val()) || 0;
     if(qty <= 0) { alert("수량(글자 수)을 입력해주세요."); return; }
 
-    var price = _getChCurrentItemPrice();
+    var price = _getChCurrentItemPrice(); // 호출 후 _lastChBaseUnit, _lastChCustomOrder 세팅됨
     if(price <= 0) { alert("크기 또는 문자형태를 선택해주세요."); return; }
 
-    var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
-
-    // 항목 라벨 조합
-    var label = "";
-    label += "문자형태: " + $("input[name='channel_text_form']:checked").parent("label").text();
-    label += " / 크기: " + $("input[name='channel_size']:checked").parent("label").text();
-    label += " / 수량: " + qty + "개";
-
-    var trimColor = $("input[name='channel_trim_color']:checked").parent("label").text();
-    if(trimColor) label += " / 트림: " + trimColor;
-
-    var solidColor = $("input[name='channel_solid_color']:checked").parent("label").text();
-    if(solidColor) label += " / 입체: " + solidColor;
-
     applyPrices();
+
+    // 컴포넌트 텍스트 수집
+    var _channelTypeName = $("input[name='channel_option']:checked").parent("label").text().trim() || "채널문자";
+    var _sizeText        = $("input[name='channel_size']:checked").parent("label").text().trim();
+    var _textFormText    = $("input[name='channel_text_form']:checked").parent("label").text().trim();
+    var _trimColorText   = $("input[name='channel_trim_color']:checked").parent("label").text().trim();
+    var _solidColorText  = $("input[name='channel_solid_color']:checked").parent("label").text().trim();
+    var _dispWorkName    = "";
+    if($("#channel_led_display_work_yes").is(":checked")){
+        _dispWorkName = $("input[name='channel_led_display_work_type']:checked").parent("label").text().trim();
+    }
+
     var _ledCntNum = parseInt($(".channel_led_count td span").text()) || 0;
     var _ledColorText = '', _ledUnitP = 0;
     if(!$("#channel_led_color_none").is(":checked")){
@@ -3750,15 +3751,25 @@ function addChannelItem() {
     }
     var _ledPriceNum = _ledUnitP * _ledCntNum;
 
+    // UI 표시용 라벨 (기존 호환)
+    var label = _channelTypeName + " " + _sizeText;
+    label += " / 수량: " + qty + "개";
+    label += " / 문자형태: " + _textFormText;
+    if(_trimColorText)  label += " / 트림: " + _trimColorText;
+    if(_solidColorText) label += " / 입체: " + _solidColorText;
     if(_ledColorText && _ledCntNum > 0) label += " / LED: " + _ledColorText + " " + _ledCntNum + "개";
     else if(_ledColorText)              label += " / LED: " + _ledColorText;
-
-    if($("#channel_led_display_work_yes").is(":checked")){
-        label += " / 화면작업: " + $("input[name='channel_led_display_work_type']:checked").parent("label").text();
-    }
+    if(_dispWorkName)   label += " / 화면작업: " + _dispWorkName;
 
     var _detail = $.trim($("#ch_item_detail").val());
-    _chItems.push({ label: label, detail: _detail, price: price, ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum });
+    _chItems.push({
+        label: label, detail: _detail, price: price,
+        channelTypeName: _channelTypeName, sizeText: _sizeText,
+        textFormText: _textFormText, trimColorText: _trimColorText,
+        solidColorText: _solidColorText, dispWorkName: _dispWorkName,
+        qty: qty, baseUnit: _lastChBaseUnit, customOrder: _lastChCustomOrder,
+        ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum
+    });
     $("#ch_item_detail").val('');
     renderChItems();
     chnnel_taka_cal();
@@ -6059,15 +6070,19 @@ $(".save_btn").click(function(){
                 // SMPS
                 var _chSmpsUnit=_getChSmpsUnit(), _chSmpsQty=parseInt($("#ch_smps_qty").val())||0, _chSmpsP=_chSmpsUnit*_chSmpsQty;
                 if(_chSmpsP>0) bd += "<span class='bd_item'>SMPS("+$("input[name='ch_smps_spec']:checked").parent("label").text()+") <em>"+_chSmpsQty+"개 × "+_fmtCh(_chSmpsUnit)+"원 = "+_fmtCh(_chSmpsP)+"원</em></span>";
-                // 담긴 항목 개별 내역
+                // 담긴 항목 개별 내역 (항목별 컴포넌트 분리)
                 var _itemsTotal=0;
                 $.each(_chItems,function(i,it){
                     _itemsTotal+=it.price;
-                    var _qM=it.label.match(/수량:\s*(\d+)/), _qN=_qM?parseInt(_qM[1]):1;
-                    var _safeLabel=it.label.replace(/\s*\/\s*/g,' · ');
+                    var _qN = it.qty || 1;
                     var _detailSuffix = it.detail ? " ["+it.detail+"]" : "";
-                    bd += "<span class='bd_item'>#채널# ("+(i+1)+"). "+_safeLabel+_detailSuffix+" × "+_qN+"자 = "+_fmtCh(it.price)+"원</span>";
+                    var _mainName = (it.channelTypeName||"채널문자") + " " + (it.sizeText||"");
+                    bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = "+_fmtCh(it.price)+"원</span>";
+                    if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+"</span>";
+                    if(it.trimColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 뚜껑: "+it.trimColorText+"</span>";
+                    if(it.solidColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 입체(몸통): "+it.solidColorText+"</span>";
                     if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = "+_fmtCh(it.ledPrice)+"원</span>";
+                    if(it.dispWorkName) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 화면작업: "+it.dispWorkName+"</span>";
                 });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
                 var _moreP=nv("#more_order_price")||0;
@@ -6574,8 +6589,25 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
         if (item.breakdown) {
             var parts = item.breakdown.split(' / '), added = false;
             parts.forEach(function(p) {
-                // 채널문자 개별 항목: "#채널# (N). label × qty자 = price원"
-                var chM = p.match(/^#채널#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)자\s+=\s+([\d,]+)원/);
+                // 신형: "#채널메인# (N). name × qty개 = price원"
+                var chMainM = p.match(/^#채널메인#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+                if (chMainM) {
+                    var _qty = parseInt(chMainM[3]);
+                    var _total = Number(chMainM[4].replace(/,/g, ''));
+                    var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
+                    chItemLines.push({ name: chMainM[2], qty: String(_qty), unit: _f(_unit), total: chMainM[4] });
+                    added = true;
+                    return;
+                }
+                // 신형: "#채널서브# (N). 옵션명" – 설명 행 (가격 없음)
+                var chSubM = p.match(/^#채널서브#\s+\((\d+)\)\.\s+(.+)$/);
+                if (chSubM) {
+                    chItemLines.push({ name: '└ ' + chSubM[2], qty: '-', unit: '-', total: '-' });
+                    added = true;
+                    return;
+                }
+                // 구형 호환: "#채널# (N). label × qty자 = price원"
+                var chM = p.match(/^#채널#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)[자개]\s+=\s+([\d,]+)원/);
                 if (chM) {
                     var _qty = parseInt(chM[3]);
                     var _total = Number(chM[4].replace(/,/g, ''));
