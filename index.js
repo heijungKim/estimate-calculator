@@ -3683,7 +3683,8 @@ function _getChCurrentItemPrice() {
 
     var custom_order = 0;
     if($("#channel_led_display_work_yes").is(":checked")){
-        if($("#channel_led_display_work_type01,#channel_led_display_work_type02").is(":checked"))      custom_order = 0.2;
+        if($("#channel_led_display_work_type01").is(":checked"))           custom_order = 0.3;
+        else if($("#channel_led_display_work_type02").is(":checked"))      custom_order = 0.2;
         else if($("#channel_led_display_work_type03").is(":checked")) custom_order = 0.4;
         else if($("#channel_led_display_work_type04").is(":checked")) custom_order = 0.3;
         else if($("#channel_led_display_work_type05").is(":checked")) custom_order = 0.5;
