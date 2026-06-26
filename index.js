@@ -6074,7 +6074,7 @@ $(".save_btn").click(function(){
                     if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
                     if(ledCnt>0&&ledP>0) bd+="<span class='bd_item'>LED <em>"+ledCnt+"개 × 4,500원 = "+_fmt(ledP)+"원</em></span>";
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
-                    if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
+                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(Math.round(_bD.w*1000))+"×"+_fmt(Math.round(_bD.h*1000))+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; var backdropColorP=getBackdropColorPrice(); if(backdropColorP>0) bd+="<span class='bd_item'>뒷판 색상작업 <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원</em></span>"; }
                     if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
@@ -6141,7 +6141,7 @@ $(".save_btn").click(function(){
                     if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
                     if(ledCnt>0&&ledP>0) bd+="<span class='bd_item'>LED <em>"+ledCnt+"개 × 4,500원 = "+_fmt(ledP)+"원</em></span>";
                     if(baltongP>0) bd+="<span class='bd_item'>시공발통 <em>"+_fmt(baltongP)+"원</em></span>";
-                    if(backdropP>0) bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(backdropP)+"원</em></span>";
+                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(Math.round(_bD.w*1000))+"×"+_fmt(Math.round(_bD.h*1000))+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; var backdropColorP=getBackdropColorPrice(); if(backdropColorP>0) bd+="<span class='bd_item'>뒷판 색상작업 <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원</em></span>"; }
                     if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
