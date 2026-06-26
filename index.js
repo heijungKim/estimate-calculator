@@ -1973,7 +1973,7 @@ function hoorex_type(){
                 $(".channel_galva_notgosa_row").css("display","table-row");
             }
             if(id === "channel_galva_laser"){
-                $("#ch_height_custom_label").css("display","inline");
+                $("#ch_height_custom_label").css("display","inline-flex");
             } else {
                 $("#ch_height_custom_label").hide();
                 if($("#channel_solid_height_custom").is(":checked")){
@@ -1988,7 +1988,7 @@ function hoorex_type(){
         $("input[name='channel_sten_type']").click(function(){
             var id = $(this).attr("id");
             if(id === "channel_sten_laser"){
-                $("#ch_height_custom_label").css("display","inline");
+                $("#ch_height_custom_label").css("display","inline-flex");
             } else {
                 $("#ch_height_custom_label").hide();
                 if($("#channel_solid_height_custom").is(":checked")){
