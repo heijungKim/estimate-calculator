@@ -186,6 +186,9 @@ function getAnglePrice(count) {
     return 0;
 }
 
+// ── 최종 가격 10원 단위 반올림 ────────────────────────────
+function _r10(v){ return Math.round(v/10)*10; }
+
 // ── 콤마 제거 후 숫자 반환 헬퍼 ────────────────────────────
 function nv(sel) {
     return Number(($(sel).val() || '').toString().replace(/,/g, ''));
@@ -3403,7 +3406,7 @@ function sign_top_01_cal(){ //사인탑_비조명 계산
     var backdrop_price = getBackdropPrice();
     var backdrop_color_price = getBackdropColorPrice();
     var deungbak_price = getDeungbakPrice();
-    $("#order_price").text(String(Math.floor(total_price+color_price+angle_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(_r10(total_price+color_price+angle_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function sign_top_02(){ //사인탑_조명
@@ -3521,7 +3524,7 @@ function sign_top_02_cal(){ //사인탑_조명 계산
     var backdrop_price = getBackdropPrice();
     var backdrop_color_price = getBackdropColorPrice();
     var deungbak_price = getDeungbakPrice();
-	$("#order_price").text(String(Math.floor(total_price+color_price+angle_price+led_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+	$("#order_price").text(String(_r10(total_price+color_price+angle_price+led_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
 
@@ -3632,7 +3635,7 @@ function sign_top_03_cal(){ //사인탑_돌출 계산
     var backdrop_price = getBackdropPrice();
     var backdrop_color_price = getBackdropColorPrice();
     var deungbak_price = getDeungbakPrice();
-	$("#order_price").text(String(Math.floor(total_price+woorex_price+led_price+color_price+bal_tong_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+	$("#order_price").text(String(_r10(total_price+woorex_price+led_price+color_price+bal_tong_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
 
@@ -3996,7 +3999,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
     $("#ch_item_preview").text(previewPrice > 0 ? fmt(previewPrice) + "원" : "-");
 
     var smps_price = (parseInt($("#ch_smps_qty").val()) || 0) * _getChSmpsUnit();
-    var total = Math.floor(trusbar_price + ggachi_price + complete_price + items_total + smps_price + nv("#more_order_price"));
+    var total = _r10(trusbar_price + ggachi_price + complete_price + items_total + smps_price + nv("#more_order_price"));
     $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 function whoorex(){ //후렉스
@@ -4067,7 +4070,7 @@ function whoorex_cal(){ //후렉스 계산
     var flex_qty = parseInt($("#actual_quantity").val()) || 1;
     var subtotal = (total_price + frequency_price + hole_price) * flex_qty;
 
-    $(".order_info .right_area #order_price").text(String(Math.floor(subtotal + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $(".order_info .right_area #order_price").text(String(_r10(subtotal + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 function uv_silsa(){ //UV실사
 	setTimeout(function(){
@@ -4129,7 +4132,7 @@ function uv_silsa_cal(){ //UV실사 계산
         $("#actual_more_order_price").val(0); //재단 가격 입력
     }
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
-    $("#order_price").text(String(Math.floor((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(_r10((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function solven_silsa(){ //솔벤실사
@@ -4190,7 +4193,7 @@ function solven_silsa_cal(){ //솔벤실사 계산
         $("#actual_more_order_price").val(0); //재단 & 코팅 미포함
     }
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
-    $("#order_price").text(String(Math.floor((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(_r10((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function soosung_silsa(){ //수성실사
@@ -4317,7 +4320,7 @@ function soosung_silsa_cal(){ //수성실사 계산
 
   
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
-    $("#order_price").text(String(Math.floor((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(_r10((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function skasi_gomoo(){ //스카시 고무 계산
@@ -4599,7 +4602,7 @@ function skasi_gomoo_cal(){ //스카시 고무 계산
         price = price * 1.5;
     }
 
-	$("#order_price").text(String(Math.floor(((total_count*price)+nv("#more_order_price")))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+	$("#order_price").text(String(_r10((total_count*price)+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
     //console.log(Math.floor(total_price + nv("#actual_more_order_price") + nv("#more_order_price")));
 }
 
@@ -5287,7 +5290,7 @@ function skasi_acrylic_cal(){ //스카시 아크릴 계산
     
  
     
-	$("#order_price").text(String(Math.floor(((total_price)+nv("#more_order_price")))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+	$("#order_price").text(String(_r10((total_price)+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
 
@@ -5682,7 +5685,7 @@ function skasi_pomex_cal(){ //스카시 포멕스 계산
         total_price = total_price ;
     }
 
-    $("#order_price").text(String(Math.floor((total_price * Number($("#pomex_count").val()))+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(_r10((total_price * Number($("#pomex_count").val()))+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 // ── 공통자재 ─────────────────────────────────────────────────
@@ -5838,7 +5841,7 @@ function _calc_cm_total(){
     total += (parseInt($("#cm_ctrl_qty").val()) || 0) * _getCmCtrlUnit();
     total += (parseInt($("#cm_led_qty").val()) || 0) * _getCmLedUnit();
     total += nv("#more_order_price") || 0;
-    $("#order_price").text(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(_r10(total)).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function common_material_calc(){
@@ -6529,7 +6532,7 @@ function list_sum_price(){
        }
     	total_price = total_price + Number($(this).find(".list_price").text().replace(/[^0-9]/g, ""));
     });
-    $("#total_price_wrap .price_info .right_area .price").html(String(Math.floor(total_price)).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#total_price_wrap .price_info .right_area .price").html(String(_r10(total_price)).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
     saveToStorage();
 }
 
