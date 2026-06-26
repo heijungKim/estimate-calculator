@@ -33,6 +33,7 @@ var DEFAULT_PRICES = {
     ch_epox_kor_20: 0, ch_epox_kor_25: 0, ch_epox_kor_30: 0, ch_epox_kor_35: 0, ch_epox_kor_40: 0, ch_epox_kor_45: 0, ch_epox_kor_50: 0, ch_epox_kor_55: 0, ch_epox_kor_60: 0, ch_epox_kor_65: 0, ch_epox_kor_70: 0,
     ch_epox_got_20: 0, ch_epox_got_25: 0, ch_epox_got_30: 0, ch_epox_got_35: 0, ch_epox_got_40: 0, ch_epox_got_45: 0, ch_epox_got_50: 0, ch_epox_got_55: 0, ch_epox_got_60: 0, ch_epox_got_65: 0, ch_epox_got_70: 0,
     ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
+    ch_led_pos_jeon: 0, ch_led_pos_hu: 0, ch_led_pos_jeonhu: 0,
     ch_ggachi_200: 2000, ch_ggachi_250: 2500, ch_ggachi_300: 3000, ch_ggachi_400: 3500,
     ch_complete: 100000,
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
