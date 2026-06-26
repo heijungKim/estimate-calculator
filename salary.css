@@ -1,0 +1,207 @@
+/* ── 급여 계산 페이지 ── */
+.sal-wrap {
+    max-width: 900px;
+    margin: 40px auto 60px;
+    padding: 0 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.sal-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+    padding: 32px 36px;
+}
+
+.sal-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 28px;
+}
+
+.sal-card-title .title-bar {
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: #e94560;
+    border-radius: 2px;
+}
+
+.sal-result-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #3b6cf7;
+    margin-left: 4px;
+}
+
+/* 입력 폼 */
+.sal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 28px;
+}
+
+.sal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sal-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.sal-field input,
+.sal-field select {
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    transition: border-color 0.18s;
+}
+
+.sal-field input:focus,
+.sal-field select:focus {
+    outline: none;
+    border-color: #e94560;
+    background: #fff;
+}
+
+.sal-radio-group {
+    display: flex;
+    gap: 18px;
+    padding: 10px 14px;
+    background: #fafbfc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.sal-radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #1a1a2e;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.sal-radio input[type="radio"] {
+    padding: 0;
+    border: none;
+    background: none;
+    width: auto;
+    cursor: pointer;
+}
+
+.sal-btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+    justify-content: flex-end;
+}
+
+.btn-sal-calc {
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #e94560, #c0392b);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.18s;
+}
+.btn-sal-calc:hover { opacity: 0.88; }
+
+.btn-sal-reset {
+    padding: 12px 24px;
+    background: #f0f2f5;
+    color: #4a5568;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.18s;
+}
+.btn-sal-reset:hover { background: #e2e8f0; }
+
+/* 결과 영역 */
+.sal-result-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1.5px solid #edf0f5;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.sal-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 20px;
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.1s;
+}
+.sal-result-item:last-child { border-bottom: none; }
+.sal-result-item:hover { background: #f9fafc; }
+
+.sal-result-item.highlight {
+    background: #f5f7fa;
+    font-weight: 700;
+}
+
+.sal-result-item.total {
+    background: #fff8f8;
+}
+
+.sal-result-item.net {
+    background: linear-gradient(135deg, #1a1a2e, #2d2d4e);
+}
+.sal-result-item.net .sal-result-label,
+.sal-result-item.net .sal-result-value {
+    color: #fff;
+}
+.sal-result-item.net .sal-result-value {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.sal-result-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.sal-result-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    font-variant-numeric: tabular-nums;
+}
+
+.sal-result-value.deduct {
+    color: #e94560;
+}
+
+.sal-result-note {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #9fa8be;
+    line-height: 1.6;
+}

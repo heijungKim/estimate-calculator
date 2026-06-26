@@ -1,0 +1,266 @@
+/* ── 직원 관리 페이지 ── */
+.emp-wrap {
+    max-width: 1100px;
+    margin: 40px auto 60px;
+    padding: 0 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* 최저임금 정보 패널 */
+.emp-info-panel {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4e 100%);
+    border-radius: 18px;
+    padding: 28px 36px;
+    gap: 0;
+}
+
+.emp-info-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+
+.emp-info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9fa8be;
+    letter-spacing: 0.3px;
+}
+
+.emp-info-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+.emp-info-divider {
+    width: 1px;
+    height: 50px;
+    background: rgba(255,255,255,0.12);
+    margin: 0 24px;
+}
+
+/* 직원 카드 */
+.emp-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+    padding: 32px 36px;
+}
+
+.emp-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 28px;
+}
+
+.emp-card-title .title-bar {
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: #e94560;
+    border-radius: 2px;
+}
+
+.emp-count {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8892a4;
+}
+
+.btn-emp-add {
+    margin-left: auto;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, #e94560, #c0392b);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.18s;
+}
+.btn-emp-add:hover { opacity: 0.88; }
+
+/* 직원 테이블 */
+.emp-table-wrap {
+    overflow-x: auto;
+}
+
+.emp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    color: #1a1a2e;
+}
+
+.emp-table thead tr {
+    background: #f5f7fa;
+    border-bottom: 2px solid #edf0f5;
+}
+
+.emp-table th {
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7a92;
+    text-align: left;
+    white-space: nowrap;
+}
+.emp-table th.tc { text-align: center; }
+.emp-table th.tr { text-align: right; }
+
+.emp-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.12s;
+}
+.emp-table tbody tr:hover { background: #f9fafc; }
+.emp-table tbody tr:last-child { border-bottom: none; }
+
+.emp-table td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    color: #2d3748;
+}
+.emp-table td.tc { text-align: center; }
+.emp-table td.tr { text-align: right; font-variant-numeric: tabular-nums; }
+
+.emp-name {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.emp-memo-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    background: #edf2ff;
+    color: #3b6cf7;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: help;
+}
+
+.emp-salary-cell {
+    font-weight: 600;
+    color: #1a6e3a;
+}
+
+.emp-monthly-cell {
+    font-size: 12px;
+    color: #6b7a92;
+}
+
+.emp-actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 6px;
+}
+
+.btn-edit {
+    padding: 5px 14px;
+    background: #edf2ff;
+    color: #3b6cf7;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-edit:hover { background: #dce6ff; }
+
+.btn-delete {
+    padding: 5px 14px;
+    background: #fff0f2;
+    color: #e94560;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-delete:hover { background: #ffe0e4; }
+
+.emp-empty {
+    text-align: center;
+    color: #8892a4;
+    font-size: 14px;
+    padding: 40px 0;
+}
+
+/* 폼 그리드 */
+.emp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-field.full {
+    grid-column: 1 / -1;
+}
+
+.form-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.form-field.required label::after {
+    content: ' *';
+    color: #e94560;
+}
+
+.form-field input,
+.form-field textarea {
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    transition: border-color 0.18s;
+    resize: vertical;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+    outline: none;
+    border-color: #e94560;
+    background: #fff;
+}
+
+.form-field input.error {
+    border-color: #e94560;
+    background: #fff5f6;
+}
+
+.emp-form-error {
+    font-size: 13px;
+    color: #e94560;
+    margin-top: 10px;
+    min-height: 18px;
+}

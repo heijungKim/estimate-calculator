@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>급여 계산 - 우성디지탈 관리 시스템</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="salary.css" />
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
+        <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">&#9998;</span>
+            <span>견적 계산기</span>
+        </a>
+        <a href="estimates.html" class="nav-item">
+            <span class="nav-icon">&#128196;</span>
+            <span>견적서 관리</span>
+        </a>
+        <a href="vendor.html" class="nav-item">
+            <span class="nav-icon">&#9679;</span>
+            <span>업체 관리</span>
+        </a>
+        <a href="price.html" class="nav-item">
+            <span class="nav-icon">&#128176;</span>
+            <span>단가 설정표</span>
+        </a>
+        <a href="materials.html" class="nav-item">
+            <span class="nav-icon">&#128230;</span>
+            <span>자재 관리</span>
+        </a>
+        <a href="print_history.html" class="nav-item">
+            <span class="nav-icon">&#128424;</span>
+            <span>출력 내역</span>
+        </a>
+        <a href="employees.html" class="nav-item">
+            <span class="nav-icon">&#128100;</span>
+            <span>직원 관리</span>
+        </a>
+        <a href="salary.html" class="nav-item active">
+            <span class="nav-icon">&#128184;</span>
+            <span>급여 계산</span>
+        </a>
+    </nav>
+    <button type="button" class="nav-logout" onclick="wsLogout()">
+        <span class="nav-icon">&#9711;</span>
+        <span>로그아웃</span>
+    </button>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="logo.svg" class="logo-img" alt="우성디지탈" />
+            <span class="logo-text">우성디지탈 관리 시스템</span>
+        </div>
+        <p class="header-sub">직원 급여를 계산하세요</p>
+    </div>
+</header>
+
+<div class="sal-wrap">
+
+    <!-- 입력 카드 -->
+    <div class="sal-card">
+        <div class="sal-card-title">
+            <span class="title-bar"></span>
+            급여 계산
+        </div>
+
+        <div class="sal-form-grid">
+            <!-- 직원 선택 -->
+            <div class="sal-field">
+                <label for="sal_emp">직원 선택</label>
+                <select id="sal_emp">
+                    <option value="">-- 직접 입력 --</option>
+                </select>
+            </div>
+            <div class="sal-field">
+                <label for="sal_name">이름</label>
+                <input type="text" id="sal_name" placeholder="홍길동" />
+            </div>
+
+            <!-- 급여 기준 -->
+            <div class="sal-field">
+                <label>급여 기준</label>
+                <div class="sal-radio-group">
+                    <label class="sal-radio"><input type="radio" name="sal_type" id="sal_type_annual" checked /> 연봉 기준</label>
+                    <label class="sal-radio"><input type="radio" name="sal_type" id="sal_type_hourly" /> 시급 기준</label>
+                </div>
+            </div>
+
+            <div class="sal-field" id="sal_annual_field">
+                <label for="sal_annual">연봉 (원)</label>
+                <input type="number" id="sal_annual" placeholder="예: 30000000" min="0" />
+            </div>
+            <div class="sal-field" id="sal_hourly_field" style="display:none">
+                <label for="sal_hourly">시급 (원)</label>
+                <input type="number" id="sal_hourly" placeholder="예: 10320" min="0" />
+            </div>
+
+            <!-- 근무 정보 -->
+            <div class="sal-field">
+                <label for="sal_work_days">월 근무일수 (일)</label>
+                <input type="number" id="sal_work_days" value="22" min="1" max="31" />
+            </div>
+            <div class="sal-field">
+                <label for="sal_work_hours">일 근무시간 (시간)</label>
+                <input type="number" id="sal_work_hours" value="8" min="1" max="24" step="0.5" />
+            </div>
+
+            <!-- 추가 수당 -->
+            <div class="sal-field">
+                <label for="sal_overtime">초과 근무시간 (시간)</label>
+                <input type="number" id="sal_overtime" value="0" min="0" step="0.5" />
+            </div>
+            <div class="sal-field">
+                <label for="sal_bonus">상여금 / 추가 수당 (원)</label>
+                <input type="number" id="sal_bonus" value="0" min="0" />
+            </div>
+        </div>
+
+        <div class="sal-btn-row">
+            <button type="button" id="btn_sal_calc" class="btn-sal-calc">&#128200; 계산하기</button>
+            <button type="button" id="btn_sal_reset" class="btn-sal-reset">초기화</button>
+        </div>
+    </div>
+
+    <!-- 결과 카드 -->
+    <div class="sal-card" id="sal_result_card" style="display:none">
+        <div class="sal-card-title">
+            <span class="title-bar"></span>
+            계산 결과
+            <span id="sal_result_name" class="sal-result-name"></span>
+        </div>
+
+        <div class="sal-result-grid">
+            <div class="sal-result-item">
+                <span class="sal-result-label">기본급 (월)</span>
+                <span class="sal-result-value" id="res_base">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">초과 근무 수당</span>
+                <span class="sal-result-value" id="res_overtime">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">상여금 / 추가 수당</span>
+                <span class="sal-result-value" id="res_bonus">-</span>
+            </div>
+            <div class="sal-result-item highlight">
+                <span class="sal-result-label">총 지급액</span>
+                <span class="sal-result-value" id="res_gross">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">국민연금 (4.5%)</span>
+                <span class="sal-result-value deduct" id="res_pension">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">건강보험 (3.545%)</span>
+                <span class="sal-result-value deduct" id="res_health">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">장기요양보험 (0.4591%)</span>
+                <span class="sal-result-value deduct" id="res_care">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">고용보험 (0.9%)</span>
+                <span class="sal-result-value deduct" id="res_employ">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">소득세 (간이세액)</span>
+                <span class="sal-result-value deduct" id="res_tax">-</span>
+            </div>
+            <div class="sal-result-item">
+                <span class="sal-result-label">지방소득세 (10%)</span>
+                <span class="sal-result-value deduct" id="res_local_tax">-</span>
+            </div>
+            <div class="sal-result-item total">
+                <span class="sal-result-label">공제 합계</span>
+                <span class="sal-result-value" id="res_deduct_total">-</span>
+            </div>
+            <div class="sal-result-item net">
+                <span class="sal-result-label">&#10003; 실수령액</span>
+                <span class="sal-result-value" id="res_net">-</span>
+            </div>
+        </div>
+
+        <p class="sal-result-note">※ 소득세는 간이세액표 기준 단일 부양가족(본인) 기준 추정값입니다. 실제 세액은 다를 수 있습니다.</p>
+    </div>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="auth.js"></script>
+<script src="salary.js"></script>
+</body>
+</html>

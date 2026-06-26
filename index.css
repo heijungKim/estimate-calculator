@@ -61,7 +61,11 @@ body {
 .sidebar-nav {
     padding-top: 8px;
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
 
 .nav-item {
     display: flex;

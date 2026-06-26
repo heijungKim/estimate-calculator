@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>직원 관리 - 우성디지탈 관리 시스템</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="employees.css" />
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
+        <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">&#9998;</span>
+            <span>견적 계산기</span>
+        </a>
+        <a href="estimates.html" class="nav-item">
+            <span class="nav-icon">&#128196;</span>
+            <span>견적서 관리</span>
+        </a>
+        <a href="vendor.html" class="nav-item">
+            <span class="nav-icon">&#9679;</span>
+            <span>업체 관리</span>
+        </a>
+        <a href="price.html" class="nav-item">
+            <span class="nav-icon">&#128176;</span>
+            <span>단가 설정표</span>
+        </a>
+        <a href="materials.html" class="nav-item">
+            <span class="nav-icon">&#128230;</span>
+            <span>자재 관리</span>
+        </a>
+        <a href="print_history.html" class="nav-item">
+            <span class="nav-icon">&#128424;</span>
+            <span>출력 내역</span>
+        </a>
+        <a href="employees.html" class="nav-item active">
+            <span class="nav-icon">&#128100;</span>
+            <span>직원 관리</span>
+        </a>
+        <a href="salary.html" class="nav-item">
+            <span class="nav-icon">&#128184;</span>
+            <span>급여 계산</span>
+        </a>
+    </nav>
+    <button type="button" class="nav-logout" onclick="wsLogout()">
+        <span class="nav-icon">&#9711;</span>
+        <span>로그아웃</span>
+    </button>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="logo.svg" class="logo-img" alt="우성디지탈" />
+            <span class="logo-text">우성디지탈 관리 시스템</span>
+        </div>
+        <p class="header-sub">직원을 등록하고 관리하세요</p>
+    </div>
+</header>
+
+<div class="emp-wrap">
+
+    <!-- 최저임금 정보 패널 -->
+    <div class="emp-info-panel">
+        <div class="emp-info-item">
+            <span class="emp-info-label">&#128176; 2026년 최저시급</span>
+            <span class="emp-info-value" id="min_hourly">10,320원</span>
+        </div>
+        <div class="emp-info-divider"></div>
+        <div class="emp-info-item">
+            <span class="emp-info-label">&#128197; 최저 월급 (209h)</span>
+            <span class="emp-info-value" id="min_monthly">2,156,880원</span>
+        </div>
+        <div class="emp-info-divider"></div>
+        <div class="emp-info-item">
+            <span class="emp-info-label">&#128200; 최저 연봉</span>
+            <span class="emp-info-value" id="min_annual">25,882,560원</span>
+        </div>
+    </div>
+
+    <!-- 직원 목록 카드 -->
+    <div class="emp-card">
+        <div class="emp-card-title">
+            <span class="title-bar"></span>
+            등록된 직원 목록
+            <span class="emp-count" id="emp_count">0명</span>
+            <button type="button" id="btn_add_emp" class="btn-emp-add">+ 직원 등록</button>
+        </div>
+        <div id="emp_list_area">
+            <p class="emp-empty">등록된 직원이 없습니다.</p>
+        </div>
+    </div>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- ── 직원 등록/수정 모달 ── -->
+<div class="modal_overlay" id="emp_form_modal">
+    <div class="modal_box">
+        <div class="modal_header">
+            <h3 id="emp_form_title">직원 등록</h3>
+            <button type="button" class="modal_close" id="emp_modal_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+            <div class="emp-form-grid">
+                <div class="form-field required">
+                    <label for="emp_name">이름</label>
+                    <input type="text" id="emp_name" placeholder="홍길동" />
+                </div>
+                <div class="form-field">
+                    <label for="emp_phone">연락처</label>
+                    <input type="text" id="emp_phone" placeholder="010-0000-0000" />
+                </div>
+                <div class="form-field">
+                    <label for="emp_join_date">입사일</label>
+                    <input type="date" id="emp_join_date" />
+                </div>
+                <div class="form-field">
+                    <label for="emp_salary">연봉 (원)</label>
+                    <input type="number" id="emp_salary" placeholder="예: 30000000" min="0" />
+                </div>
+                <div class="form-field full">
+                    <label for="emp_memo">메모 <span class="modal_opt">(선택)</span></label>
+                    <textarea id="emp_memo" rows="2" placeholder="직책, 담당 업무 등"></textarea>
+                </div>
+            </div>
+            <p class="emp-form-error" id="emp_form_error"></p>
+        </div>
+        <div class="modal_footer">
+            <button id="emp_form_cancel" class="modal_cancel_btn">취소</button>
+            <button id="emp_form_save" class="modal_save_btn">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="auth.js"></script>
+<script src="employees.js"></script>
+</body>
+</html>
