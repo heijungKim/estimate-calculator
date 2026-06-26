@@ -2070,58 +2070,64 @@ function hoorex_type(){
 		});
 
 	}
-	function _chLedCountBySize(){
+	function _chGetLedCount(){
 		if(!$("#channel_option05").is(":checked")){
-			if($("#channel_size_20").is(":checked"))       $(".channel_led_count td span").text("10개");
-			else if($("#channel_size_30").is(":checked"))  $(".channel_led_count td span").text("15개");
-			else if($("#channel_size_40").is(":checked"))  $(".channel_led_count td span").text("20개");
-			else if($("#channel_size_50").is(":checked"))  $(".channel_led_count td span").text("30개");
-			else if($("#channel_size_60").is(":checked"))  $(".channel_led_count td span").text("35개");
-			else if($("#channel_size_70").is(":checked"))  $(".channel_led_count td span").text("45개");
-			else if($("#channel_size_80").is(":checked"))  $(".channel_led_count td span").text("60개");
-			else if($("#channel_size_90").is(":checked"))  $(".channel_led_count td span").text("70개");
-			else if($("#channel_size_100").is(":checked")) $(".channel_led_count td span").text("80개");
-			else if($("#channel_size_110").is(":checked")) $(".channel_led_count td span").text("100개");
-			else if($("#channel_size_120").is(":checked")) $(".channel_led_count td span").text("115개");
-			else if($("#channel_size_130").is(":checked")) $(".channel_led_count td span").text("140개");
-			else if($("#channel_size_140").is(":checked")) $(".channel_led_count td span").text("160개");
-			else if($("#channel_size_150").is(":checked")) $(".channel_led_count td span").text("180개");
-			else if($("#channel_size_160").is(":checked")) $(".channel_led_count td span").text("200개");
-			else if($("#channel_size_170").is(":checked")) $(".channel_led_count td span").text("220개");
-			else if($("#channel_size_180").is(":checked")) $(".channel_led_count td span").text("240개");
-			else if($("#channel_size_190").is(":checked")) $(".channel_led_count td span").text("260개");
-			else if($("#channel_size_200").is(":checked")) $(".channel_led_count td span").text("280개");
-			else if($("#channel_size_210").is(":checked")) $(".channel_led_count td span").text("300개");
-			else if($("#channel_size_220").is(":checked")) $(".channel_led_count td span").text("320개");
-			else if($("#channel_size_230").is(":checked")) $(".channel_led_count td span").text("340개");
-			else if($("#channel_size_240").is(":checked")) $(".channel_led_count td span").text("360개");
-			else if($("#channel_size_250").is(":checked")) $(".channel_led_count td span").text("380개");
-			else if($("#channel_size_300").is(":checked")) $(".channel_led_count td span").text("540개");
-			else $(".channel_led_count td span").text("0개");
+			if($("#channel_size_20").is(":checked"))       return 10;
+			else if($("#channel_size_30").is(":checked"))  return 15;
+			else if($("#channel_size_40").is(":checked"))  return 20;
+			else if($("#channel_size_50").is(":checked"))  return 30;
+			else if($("#channel_size_60").is(":checked"))  return 35;
+			else if($("#channel_size_70").is(":checked"))  return 45;
+			else if($("#channel_size_80").is(":checked"))  return 60;
+			else if($("#channel_size_90").is(":checked"))  return 70;
+			else if($("#channel_size_100").is(":checked")) return 80;
+			else if($("#channel_size_110").is(":checked")) return 100;
+			else if($("#channel_size_120").is(":checked")) return 115;
+			else if($("#channel_size_130").is(":checked")) return 140;
+			else if($("#channel_size_140").is(":checked")) return 160;
+			else if($("#channel_size_150").is(":checked")) return 180;
+			else if($("#channel_size_160").is(":checked")) return 200;
+			else if($("#channel_size_170").is(":checked")) return 220;
+			else if($("#channel_size_180").is(":checked")) return 240;
+			else if($("#channel_size_190").is(":checked")) return 260;
+			else if($("#channel_size_200").is(":checked")) return 280;
+			else if($("#channel_size_210").is(":checked")) return 300;
+			else if($("#channel_size_220").is(":checked")) return 320;
+			else if($("#channel_size_230").is(":checked")) return 340;
+			else if($("#channel_size_240").is(":checked")) return 360;
+			else if($("#channel_size_250").is(":checked")) return 380;
+			else if($("#channel_size_300").is(":checked")) return 540;
+			else return 0;
 		}else{
-			if($("#channel_size_20").is(":checked"))       $(".channel_led_count td span").text("20개");
-			else if($("#channel_size_25").is(":checked"))  $(".channel_led_count td span").text("25개");
-			else if($("#channel_size_30").is(":checked"))  $(".channel_led_count td span").text("30개");
-			else if($("#channel_size_35").is(":checked"))  $(".channel_led_count td span").text("35개");
-			else if($("#channel_size_40").is(":checked"))  $(".channel_led_count td span").text("40개");
-			else if($("#channel_size_45").is(":checked"))  $(".channel_led_count td span").text("45개");
-			else if($("#channel_size_50").is(":checked"))  $(".channel_led_count td span").text("50개");
-			else if($("#channel_size_60").is(":checked"))  $(".channel_led_count td span").text("60개");
-			else if($("#channel_size_70").is(":checked"))  $(".channel_led_count td span").text("70개");
-			else if($("#channel_size_80").is(":checked"))  $(".channel_led_count td span").text("90개");
-			else if($("#channel_size_90").is(":checked"))  $(".channel_led_count td span").text("130개");
-			else if($("#channel_size_100").is(":checked")) $(".channel_led_count td span").text("140개");
-			else $(".channel_led_count td span").text("0개");
+			if($("#channel_size_20").is(":checked"))       return 20;
+			else if($("#channel_size_25").is(":checked"))  return 25;
+			else if($("#channel_size_30").is(":checked"))  return 30;
+			else if($("#channel_size_35").is(":checked"))  return 35;
+			else if($("#channel_size_40").is(":checked"))  return 40;
+			else if($("#channel_size_45").is(":checked"))  return 45;
+			else if($("#channel_size_50").is(":checked"))  return 50;
+			else if($("#channel_size_60").is(":checked"))  return 60;
+			else if($("#channel_size_70").is(":checked"))  return 70;
+			else if($("#channel_size_80").is(":checked"))  return 90;
+			else if($("#channel_size_90").is(":checked"))  return 130;
+			else if($("#channel_size_100").is(":checked")) return 140;
+			else return 0;
 		}
+	}
+	function _chLedCountBySize(){
+		var cnt = _chGetLedCount();
+		$(".channel_led_count td span").text(cnt > 0 ? cnt + "개" : "0개");
 	}
 	function channel_led_count_set(){
 		var isNewLed = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked"));
 		if(isNewLed){
 			var jeonOn = $("#channel_led_jeon_yes").is(":checked");
 			var huOn   = $("#channel_led_hu_yes").is(":checked");
+			var est = _chGetLedCount();
 			if(jeonOn){
 				$(".channel_led_jeon_color_row").css("display","table-row");
 				$(".ch_led_jeon_count_row").css("display","table-row");
+				if(est > 0) $("#ch_led_jeon_count").val(est);
 			} else {
 				$(".channel_led_jeon_color_row").hide();
 				$(".ch_led_jeon_count_row").hide();
@@ -2130,6 +2136,7 @@ function hoorex_type(){
 				$(".channel_led_hu_color_row").css("display","table-row");
 				$(".ch_led_hu_count_row").css("display","table-row");
 				$(".ch_led_hu_ggachi_row").css("display","table-row");
+				if(est > 0) $("#ch_led_hu_count").val(est);
 			} else {
 				$(".channel_led_hu_color_row").hide();
 				$(".ch_led_hu_count_row").hide();
