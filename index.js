@@ -133,7 +133,7 @@ function getBackdropPrice() {
     if(!$("#sigh_backdrop_yes").is(":checked")) return 0;
     var d = getSignDimensions();
     if(d.w <= 0 || d.h <= 0) return 0;
-    return d.w * d.h * 3000;
+    return (d.w + d.h + d.w + d.h) * 6000;
 }
 
 function getDeungbakPrice() {
@@ -5940,7 +5940,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(); total_html+=" / 뒷판작업 : "+Math.round(_bd.w*1000)+"×"+Math.round(_bd.h*1000)+"mm"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : ("+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+"+"+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+")mm × 6,000원/m"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -5976,7 +5976,7 @@ $(".save_btn").click(function(){
                         else bd+="<span class='bd_item'>스텐몰딩 <em>둘레 "+_fmt(Math.round((tw*2+tv*2)*1000))+"mm × "+_fmt(PRICES.sign_sten_molding)+"원/m = "+_fmt(colorP)+"원</em></span>";
                     }
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
-                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+Math.round(_bD.w*1000)+"×"+Math.round(_bD.h*1000)+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; }
+                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropP)+"원</em></span>"; }
                     if(deungbakP>0){ var _dD=getSignDimensions(),_pos=$("input[name='sigh_deungbak_pos']:checked").attr("id")||"sigh_deungbak_top",_posNm=$("input[name='sigh_deungbak_pos']:checked").parent("label").text(),_len=(_pos==="sigh_deungbak_top"||_pos==="sigh_deungbak_bottom")?_dD.w:(_pos==="sigh_deungbak_left"||_pos==="sigh_deungbak_right")?_dD.h:(_pos==="sigh_deungbak_center")?_dD.w:2*(_dD.w+_dD.h); if($("#sigh_deungbak_galva").is(":checked")) bd+="<span class='bd_item'>등박스(갈바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm"+(_len<=5?" → 5m 이하 기본":" → 300,000 + "+Math.ceil(_len-5)+"m×50,000")+" = "+_fmt(deungbakP)+"원</em></span>"; else{ var _kU=$("#sigh_kyungbak_50").is(":checked")?60000:80000,_kS=Math.ceil(_len/3); bd+="<span class='bd_item'>등박스(경관바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm → "+_kS+"구간 × "+_fmt(_kU)+"원 = "+_fmt(deungbakP)+"원</em></span>"; } }
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
@@ -6004,7 +6004,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(); total_html+=" / 뒷판작업 : "+Math.round(_bd.w*1000)+"×"+Math.round(_bd.h*1000)+"mm"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : ("+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+"+"+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+")mm × 6,000원/m"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -6066,7 +6066,7 @@ $(".save_btn").click(function(){
                 }
             	total_html +="/ 시공발통 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_baltong']:checked").parent("label").text();
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(); total_html+=" / 뒷판작업 : "+Math.round(_bd.w*1000)+"×"+Math.round(_bd.h*1000)+"mm"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : ("+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+"+"+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+")mm × 6,000원/m"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
