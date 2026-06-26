@@ -766,6 +766,26 @@ function hoorex_type(){
 	}
 	function set_channel_top_option_select(){
 		var append_html = "";
+		if($("#channel_option02").is(":checked")){
+			append_html += "<tr>";
+				append_html += "<th>채널 종류</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_glja' checked='checked'>글자채널(입체글자형)</label>";
+					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_laser'>레이저타공채널(박스/바)</label>";
+					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_gosa'>오사이채널(캡/프레임형)</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+		}
+		if($("#channel_option06").is(":checked")){
+			append_html += "<tr>";
+				append_html += "<th>채널 종류</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_glja' checked='checked'>글자채널(입체글자형)</label>";
+					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_laser'>레이저타공채널(박스/바)</label>";
+					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_gosa'>오사이채널(캡/프레임형)</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+		}
 		if($("input[name='channel_option']:checked").length){ //채널문자 품목 선택됨
             append_html += "<tr>";
            	 	append_html += "<th>트러스바</th>";
@@ -936,14 +956,6 @@ function hoorex_type(){
 			append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
 		append_html += "</tr>";		
 		}else if($("#channel_option02").is(":checked")){ // 갈바채널
-			append_html += "<tr>";
-				append_html += "<th>채널 종류</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_glja' checked='checked'>글자채널(입체글자형)</label>";
-					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_laser'>레이저타공채널(박스/바)</label>";
-					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_gosa'>오사이채널(캡/프레임형)</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>소재</th>";
 				append_html += "<td>";
@@ -1253,14 +1265,6 @@ function hoorex_type(){
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
 			append_html += "</tr>";	
 		}else if($("#channel_option06").is(":checked")){ // 스텐채널
-			append_html += "<tr>";
-				append_html += "<th>채널 종류</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_glja' checked='checked'>글자채널(입체글자형)</label>";
-					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_laser'>레이저타공채널(박스/바)</label>";
-					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_gosa'>오사이채널(캡/프레임형)</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>소재</th>";
 				append_html += "<td>";
