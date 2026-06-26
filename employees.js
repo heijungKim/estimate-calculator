@@ -146,7 +146,7 @@ function openEmpModal(emp) {
     $('#emp_name').removeClass('error');
     $('body').css('overflow', 'hidden');
     $('#emp_form_modal').fadeIn(180, function(){ $(this).css('display','flex'); });
-    setTimeout(function() { $('#emp_name').focus(); }, 200);
+    setTimeout(function() { $('#emp_name')[0].focus({ preventScroll: true }); }, 200);
 }
 
 function closeEmpModal() {
@@ -235,6 +235,6 @@ $(function() {
             ? (idx <= 0 ? focusable.length - 1 : idx - 1)
             : (idx >= focusable.length - 1 ? 0 : idx + 1);
 
-        focusable.eq(next).focus();
+        focusable.eq(next)[0].focus({ preventScroll: true });
     });
 });
