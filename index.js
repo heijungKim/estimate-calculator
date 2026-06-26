@@ -1082,10 +1082,6 @@ function hoorex_type(){
 				append_html += "<th>후광 LED 개수</th>";
 				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
 			append_html += "</tr>";
-			append_html += "<tr class='ch_led_hu_ggachi_row add_row'>";
-				append_html += "<th>까치발 개수 (후광)</th>";
-				append_html += "<td><input type='number' id='ch_led_hu_ggachi_count' min='0' placeholder='까치발 개수를 입력하세요'></td>";
-			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
 				append_html += "<td><span>0개</span></td>";
@@ -1371,10 +1367,6 @@ function hoorex_type(){
 				append_html += "<th>후광 LED 개수</th>";
 				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
 			append_html += "</tr>";
-			append_html += "<tr class='ch_led_hu_ggachi_row add_row'>";
-				append_html += "<th>까치발 개수 (후광)</th>";
-				append_html += "<td><input type='number' id='ch_led_hu_ggachi_count' min='0' placeholder='까치발 개수를 입력하세요'></td>";
-			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
 				append_html += "<td><span>0개</span></td>";
@@ -1484,10 +1476,6 @@ function hoorex_type(){
 			append_html += "<tr class='ch_led_hu_count_row add_row'>";
 				append_html += "<th>후광 LED 개수</th>";
 				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='ch_led_hu_ggachi_row add_row'>";
-				append_html += "<th>까치발 개수 (후광)</th>";
-				append_html += "<td><input type='number' id='ch_led_hu_ggachi_count' min='0' placeholder='까치발 개수를 입력하세요'></td>";
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
