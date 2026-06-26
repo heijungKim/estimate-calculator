@@ -6754,7 +6754,7 @@ function getEstimateItems($src) {
     $lis.each(function(i) {
         var $li = $(this);
         var priceText = $li.find(".list_price").text().trim();
-        var priceNum  = Number(priceText.replace(/[^0-9]/g, ''));
+        var priceNum  = _r10(Number(priceText.replace(/[^0-9]/g, '')));
 
         var $clone = $li.clone();
         $clone.find(".remove_btn, .price_breakdown, .number").remove();
@@ -6997,6 +6997,7 @@ function doPrintEstimate() {
     var items    = getEstimateItems();
     var totalNum = 0;
     items.forEach(function(it){ totalNum += it.priceNum; });
+    totalNum = _r10(totalNum);
     var html = buildPrintDoc(items, totalNum, customer, manager, notes);
     openPrintWindow(html);
     closePrintModal();
@@ -7091,6 +7092,7 @@ function saveEstimate(name, date, company) {
     $ul.find("li").each(function(){
         totalNum += Number($(this).find(".list_price").text().replace(/[^0-9]/g, ''));
     });
+    totalNum = _r10(totalNum);
 
     var arc = {
         id:             'est_' + Date.now(),
