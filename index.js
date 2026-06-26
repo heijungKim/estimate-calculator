@@ -6264,59 +6264,69 @@ $(document).on("keydown", ".list_price_input", function(e) {
     if (e.key === "Escape") $(this).blur();
 });
 
-// ── bd_item em 클릭 → 회색 배지 금액 편집 (단가 비례, PRICES 불변) ──
-$(document).on("click", ".bd_item em", function(e) {
+// ── .bd-chip .bd-price 클릭 → 회색 배지 금액 편집 (단가 비례, PRICES 불변) ──
+$(document).on("click", ".bd-chip .bd-price", function(e) {
     e.stopPropagation();
-    var $em = $(this);
-    if ($em.hasClass("bd-editing")) return;
+    var $strong = $(this);
+    var $chip = $strong.closest(".bd-chip");
+    if ($chip.hasClass("bd-price-editing")) return;
 
-    var origText = $em.text();
-    var totalMatch = origText.match(/([\d,]+)원\s*$/);
+    var $li = $chip.closest("li");
+    var bdIdx = parseInt($chip.data("bd-idx"), 10);
+    var $bdEm = $li.find(".price_breakdown .bd_item").eq(bdIdx).find("em");
+
+    var origEmText = $bdEm.text();
+    var totalMatch = origEmText.match(/([\d,]+)원\s*$/);
     if (!totalMatch) return;
     var oldTotal = parseInt(totalMatch[1].replace(/,/g, ""), 10);
     if (!oldTotal) return;
 
-    $em.data("bd-orig", origText).addClass("bd-editing");
-
-    // 끝 "N원" 앞 텍스트 유지, 숫자 부분만 input으로 교체
-    var prefix = origText.replace(/([\d,]+)원\s*$/, "");
-    $em.html(prefix + '<input type="number" class="bd-price-input" value="' + oldTotal + '" min="0" />원');
-    $em.find("input").focus().select();
+    $chip.addClass("bd-price-editing").data("bd-em-orig", origEmText).data("bd-idx-saved", bdIdx);
+    $strong.html('<input type="number" class="bd-price-input" value="' + oldTotal + '" min="0" />원');
+    $strong.find("input").focus().select();
 });
 
 $(document).on("blur", ".bd-price-input", function() {
     var $input = $(this);
-    var $em = $input.closest("em");
-    var newTotal = _r10(parseInt($input.val(), 10) || 0);
-    var origText = $em.data("bd-orig") || "";
+    if ($input.data("bd-cancelled")) return;
 
-    var totalMatch = origText.match(/([\d,]+)원\s*$/);
+    var $strong = $input.closest("strong");
+    var $chip = $strong.closest(".bd-chip");
+    var $li = $chip.closest("li");
+    var newTotal = _r10(parseInt($input.val(), 10) || 0);
+
+    var bdIdx = parseInt($chip.data("bd-idx-saved"), 10);
+    var $bdEm = $li.find(".price_breakdown .bd_item").eq(bdIdx).find("em");
+    var origEmText = $chip.data("bd-em-orig") || $bdEm.text();
+
+    var totalMatch = origEmText.match(/([\d,]+)원\s*$/);
     var oldTotal = totalMatch ? parseInt(totalMatch[1].replace(/,/g, ""), 10) : newTotal;
     var ratio = oldTotal > 0 ? newTotal / oldTotal : 1;
 
     // em 내 단가 비례 재계산
-    var newText = origText;
-    // × N원/m²
-    newText = newText.replace(/(× )([\d,]+)(원\/m²)/g, function(_, pre, num, suf) {
+    var newEmText = origEmText;
+    newEmText = newEmText.replace(/(× )([\d,]+)(원\/m²)/g, function(_, pre, num, suf) {
         return pre + _r10(Math.round(parseInt(num.replace(/,/g,""),10) * ratio)).toLocaleString("ko-KR") + suf;
     });
-    // × N원/m (²제외)
-    newText = newText.replace(/(× )([\d,]+)(원\/m)(?!²)/g, function(_, pre, num, suf) {
+    newEmText = newEmText.replace(/(× )([\d,]+)(원\/m)(?!²)/g, function(_, pre, num, suf) {
         return pre + _r10(Math.round(parseInt(num.replace(/,/g,""),10) * ratio)).toLocaleString("ko-KR") + suf;
     });
-    // × N원 = (개당 단가)
-    newText = newText.replace(/(× )([\d,]+)(원)(?=\s*=)/g, function(_, pre, num, won) {
+    newEmText = newEmText.replace(/(× )([\d,]+)(원)(?=\s*=)/g, function(_, pre, num, won) {
         return pre + _r10(Math.round(parseInt(num.replace(/,/g,""),10) * ratio)).toLocaleString("ko-KR") + won;
     });
-    // 총액(끝) 교체
-    newText = newText.replace(/([\d,]+)(원\s*)$/, newTotal.toLocaleString("ko-KR") + "$2");
+    newEmText = newEmText.replace(/([\d,]+)(원\s*)$/, newTotal.toLocaleString("ko-KR") + "$2");
 
-    $em.removeClass("bd-editing").text(newText);
+    $bdEm.text(newEmText);
 
-    // 부모 li의 list_price → bd_item 합계로 갱신
-    var $li = $em.closest("li");
+    // 비주얼 재구성
+    $chip.removeClass("bd-price-editing");
+    $li.find(".bd-visual").remove();
+    $li.removeClass("bd-fmted");
+    reformatBreakdown($li);
+
+    // list_price → bd_item 합계로 갱신
     var bdSum = 0;
-    $li.find(".bd_item em").each(function() {
+    $li.find(".price_breakdown .bd_item em").each(function() {
         var m = $(this).text().match(/([\d,]+)원\s*$/);
         if (m) bdSum += parseInt(m[1].replace(/,/g, ""), 10);
     });
@@ -6327,11 +6337,17 @@ $(document).on("blur", ".bd-price-input", function() {
 });
 
 $(document).on("keydown", ".bd-price-input", function(e) {
-    if (e.key === "Enter") $(this).blur();
+    if (e.key === "Enter") { $(this).blur(); return; }
     if (e.key === "Escape") {
-        var $em = $(this).closest("em");
-        $em.removeClass("bd-editing").text($em.data("bd-orig") || "");
-        list_sum_price();
+        e.preventDefault();
+        $(this).data("bd-cancelled", true);
+        var $chip = $(this).closest(".bd-chip");
+        var $li = $chip.closest("li");
+        $chip.removeClass("bd-price-editing");
+        $li.find(".bd-visual").remove();
+        $li.removeClass("bd-fmted");
+        reformatBreakdown($li);
+        $(this).off("blur").remove();
     }
 });
 
@@ -6408,7 +6424,8 @@ function reformatBreakdown($li) {
     }
 
     var html = '';
-    bdTexts.forEach(function(txt) {
+    bdTexts.forEach(function(txt, bdIdx) {
+        var di = ' data-bd-idx="' + bdIdx + '"';
         // 채널 메인 항목
         var mainM = txt.match(/^#채널메인#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
         if (mainM) {
@@ -6418,8 +6435,8 @@ function reformatBreakdown($li) {
             }
             var qty = parseInt(mainM[3]), total = Number(mainM[4].replace(/,/g,''));
             var unit = qty > 0 ? Math.round(total/qty) : total;
-            html += '<span class="bd-chip bd-chip-main">'
-                  + esc(mainM[2]) + ' × ' + mainM[3] + '개 = <strong>' + esc(mainM[4]) + '원</strong>'
+            html += '<span class="bd-chip bd-chip-main"' + di + '>'
+                  + esc(mainM[2]) + ' × ' + mainM[3] + '개 = <strong class="bd-price">' + esc(mainM[4]) + '원</strong>'
                   + tipHtml(fmtN(unit) + '원/자')
                   + '</span>';
             return;
@@ -6430,9 +6447,9 @@ function reformatBreakdown($li) {
             var subTxt = subM[1];
             var atM = subTxt.match(/^(.+?)\s+@(\d+)$/);
             if (atM) {
-                html += '<span class="bd-chip bd-chip-sub">└ ' + esc(atM[1]) + tipHtml(fmtN(parseInt(atM[2])) + '원/개') + '</span>';
+                html += '<span class="bd-chip bd-chip-sub"' + di + '>└ ' + esc(atM[1]) + tipHtml(fmtN(parseInt(atM[2])) + '원/개') + '</span>';
             } else {
-                html += '<span class="bd-chip bd-chip-sub">└ ' + esc(subTxt) + '</span>';
+                html += '<span class="bd-chip bd-chip-sub"' + di + '>└ ' + esc(subTxt) + '</span>';
             }
             return;
         }
@@ -6441,8 +6458,8 @@ function reformatBreakdown($li) {
         if (ledM) {
             var qty = parseInt(ledM[2]), total = Number(ledM[3].replace(/,/g,''));
             var unit = qty > 0 ? Math.round(total/qty) : total;
-            html += '<span class="bd-chip bd-chip-main">'
-                  + '└ LED(' + esc(ledM[1]) + ') × ' + ledM[2] + '개 = <strong>' + esc(ledM[3]) + '원</strong>'
+            html += '<span class="bd-chip bd-chip-main"' + di + '>'
+                  + '└ LED(' + esc(ledM[1]) + ') × ' + ledM[2] + '개 = <strong class="bd-price">' + esc(ledM[3]) + '원</strong>'
                   + tipHtml(fmtN(unit) + '원/개')
                   + '</span>';
             return;
@@ -6453,12 +6470,12 @@ function reformatBreakdown($li) {
         var genM = txt.match(/^(.+?)\s+=\s+([\d,]+)원$/);
         if (genM) {
             var unitL = extractUnit(txt);
-            html += '<span class="bd-chip">'
-                  + esc(genM[1]) + ' = <strong>' + esc(genM[2]) + '원</strong>'
+            html += '<span class="bd-chip"' + di + '>'
+                  + esc(genM[1]) + ' = <strong class="bd-price">' + esc(genM[2]) + '원</strong>'
                   + (unitL ? tipHtml(unitL) : '')
                   + '</span>';
         } else if (txt) {
-            html += '<span class="bd-chip">' + esc(txt) + '</span>';
+            html += '<span class="bd-chip"' + di + '>' + esc(txt) + '</span>';
         }
     });
 

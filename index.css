@@ -1051,11 +1051,13 @@ input::placeholder {
     font-style: normal;
     font-weight: 700;
     color: #1a1a2e;
+}
+.bd-chip .bd-price {
     cursor: pointer;
     border-bottom: 1px dotted transparent;
     transition: border-color 0.15s;
 }
-.bd_item em:hover {
+.bd-chip .bd-price:hover {
     border-bottom-color: #8892a4;
 }
 .bd-price-input {
