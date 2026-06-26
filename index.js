@@ -5984,13 +5984,9 @@ $(".save_btn").click(function(){
                     var backdropP=getBackdropPrice(), deungbakP=getDeungbakPrice(), moreP=nv("#more_order_price");
                     var bd="<span class='price_breakdown'>";
                     if(displayP>0) bd+="<span class='bd_item'>화면작업 <em>"+_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm × "+_fmt(dUnit)+"원/m² = "+_fmt(displayP)+"원</em></span>";
-                    if(colorP>0){
-                        if($("#sigh_frame_color_custom").is(":checked")) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm("+Math.round(tw*tv)+"m²) × "+_fmt(PRICES.sign_color_paint_nol)+"원 = "+_fmt(colorP)+"원</em></span>";
-                        else bd+="<span class='bd_item'>스텐몰딩 <em>둘레 "+_fmt(Math.round((tw*2+tv*2)*1000))+"mm × "+_fmt(PRICES.sign_sten_molding)+"원/m = "+_fmt(colorP)+"원</em></span>";
-                    }
+                    (function(){ var backdropColorP=getBackdropColorPrice(),_bD=getSignDimensions(); if(colorP>0||backdropColorP>0){ if($("#sigh_frame_color_custom").is(":checked")){ var txt=""; if(colorP>0) txt+=_fmt(Math.round(tw*1000))+"×"+_fmt(Math.round(tv*1000))+"mm("+Math.round(tw*tv)+"m²) × "+_fmt(PRICES.sign_color_paint_nol)+"원 = "+_fmt(colorP)+"원"; if(backdropColorP>0) txt+=(colorP>0?" / ":"")+"("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원"; bd+="<span class='bd_item'>색상도장 <em>"+txt+"</em></span>"; } else if(colorP>0) bd+="<span class='bd_item'>스텐몰딩 <em>둘레 "+_fmt(Math.round((tw*2+tv*2)*1000))+"mm × "+_fmt(PRICES.sign_sten_molding)+"원/m = "+_fmt(colorP)+"원</em></span>"; } })();
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
                     if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(Math.round(_bD.w*1000))+"×"+_fmt(Math.round(_bD.h*1000))+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; }
-                    (function(){ var backdropColorP=getBackdropColorPrice(); if(backdropColorP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>색상도장(프레임) <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원</em></span>"; } })();
                     if(deungbakP>0){ var _dD=getSignDimensions(),_pos=$("input[name='sigh_deungbak_pos']:checked").attr("id")||"sigh_deungbak_top",_posNm=$("input[name='sigh_deungbak_pos']:checked").parent("label").text(),_len=(_pos==="sigh_deungbak_top"||_pos==="sigh_deungbak_bottom")?_dD.w:(_pos==="sigh_deungbak_left"||_pos==="sigh_deungbak_right")?_dD.h:(_pos==="sigh_deungbak_center")?_dD.w:2*(_dD.w+_dD.h); if($("#sigh_deungbak_galva").is(":checked")) bd+="<span class='bd_item'>등박스(갈바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm"+(_len<=5?" → 5m 이하 기본":" → 300,000 + "+Math.ceil(_len-5)+"m×50,000")+" = "+_fmt(deungbakP)+"원</em></span>"; else{ var _kU=$("#sigh_kyungbak_50").is(":checked")?60000:80000,_kS=Math.ceil(_len/3); bd+="<span class='bd_item'>등박스(경관바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm → "+_kS+"구간 × "+_fmt(_kU)+"원 = "+_fmt(deungbakP)+"원</em></span>"; } }
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
@@ -6051,11 +6047,10 @@ $(".save_btn").click(function(){
                     var backdropP=getBackdropPrice(), deungbakP=getDeungbakPrice(), moreP=nv("#more_order_price");
                     var bd="<span class='price_breakdown'>";
                     if(displayP>0) bd+="<span class='bd_item'>화면작업 <em>"+_fmt(displayP)+"원</em></span>";
-                    if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
+                    (function(){ var backdropColorP=getBackdropColorPrice(),_bD=getSignDimensions(); if(colorP>0||backdropColorP>0){ if($("#sigh_frame_color_custom").is(":checked")){ var txt=""; if(colorP>0) txt+=_fmt(colorP)+"원"; if(backdropColorP>0) txt+=(colorP>0?" / ":"")+"("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원"; bd+="<span class='bd_item'>색상도장 <em>"+txt+"</em></span>"; } else if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>"; } })();
                     if(ledCnt>0&&ledP>0) bd+="<span class='bd_item'>LED <em>"+ledCnt+"개 × 4,500원 = "+_fmt(ledP)+"원</em></span>";
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
                     if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(Math.round(_bD.w*1000))+"×"+_fmt(Math.round(_bD.h*1000))+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; }
-                    (function(){ var backdropColorP=getBackdropColorPrice(); if(backdropColorP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>색상도장(프레임) <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원</em></span>"; } })();
                     if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
@@ -6119,11 +6114,10 @@ $(".save_btn").click(function(){
                     var bd="<span class='price_breakdown'>";
                     if(baseP>0) bd+="<span class='bd_item'>기본가 <em>"+_fmt(Math.round(tv*1000))+"mm × "+_fmt(baseUnit)+"원 = "+_fmt(baseP)+"원</em></span>";
                     if(woorexP>0) bd+="<span class='bd_item'>화면작업(앞뒤) <em>"+_fmt(woorexP)+"원</em></span>";
-                    if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>";
+                    (function(){ var backdropColorP=getBackdropColorPrice(),_bD=getSignDimensions(); if(colorP>0||backdropColorP>0){ if($("#sigh_frame_color_custom").is(":checked")){ var txt=""; if(colorP>0) txt+=_fmt(colorP)+"원"; if(backdropColorP>0) txt+=(colorP>0?" / ":"")+"("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원"; bd+="<span class='bd_item'>색상도장 <em>"+txt+"</em></span>"; } else if(colorP>0) bd+="<span class='bd_item'>색상도장 <em>"+_fmt(colorP)+"원</em></span>"; } })();
                     if(ledCnt>0&&ledP>0) bd+="<span class='bd_item'>LED <em>"+ledCnt+"개 × 4,500원 = "+_fmt(ledP)+"원</em></span>";
                     if(baltongP>0) bd+="<span class='bd_item'>시공발통 <em>"+_fmt(baltongP)+"원</em></span>";
                     if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(Math.round(_bD.w*1000))+"×"+_fmt(Math.round(_bD.h*1000))+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; }
-                    (function(){ var backdropColorP=getBackdropColorPrice(); if(backdropColorP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>색상도장(프레임) <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원</em></span>"; } })();
                     if(deungbakP>0) bd+="<span class='bd_item'>등박스 <em>"+_fmt(deungbakP)+"원</em></span>";
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
