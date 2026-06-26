@@ -3926,7 +3926,7 @@ function addChannelItem() {
 function renderChItems() {
     var $area = $("#ch_items_area");
     if(!$area.length) return;
-    var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
+    var fmt = function(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
 
     if(_chItems.length === 0) {
         $area.html("<p class='ch-items-empty'>담긴 항목이 없습니다. 옵션 선택 후 담기 버튼을 눌러주세요.</p>");
@@ -3995,7 +3995,7 @@ function chnnel_taka_cal(){ //채널 타카 계산
 
     // 담기 버튼 예상 금액 업데이트
     var previewPrice = _getChCurrentItemPrice();
-    var fmt = function(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
+    var fmt = function(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
     $("#ch_item_preview").text(previewPrice > 0 ? fmt(previewPrice) + "원" : "-");
 
     var smps_price = (parseInt($("#ch_smps_qty").val()) || 0) * _getChSmpsUnit();
@@ -5973,7 +5973,7 @@ $(".save_btn").click(function(){
                 }
 
             	(function(){
-                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                    function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
                     var tw=nv("#sigh_row")/1000, tv=nv("#sigh_vertical")/1000;
                     if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
                     else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
@@ -6034,7 +6034,7 @@ $(".save_btn").click(function(){
                 }
 
             	(function(){
-                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                    function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
                     var tw=nv("#sigh_row")/1000, tv=nv("#sigh_vertical")/1000;
                     if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
                     else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
@@ -6096,7 +6096,7 @@ $(".save_btn").click(function(){
                 }
 
             	(function(){
-                    function _fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                    function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
                     var tv=nv("#sigh_vertical")/1000; if(tv>0&&tv<1.5)tv=1.5;
                     var tw=0, baseUnit=0;
                     if($("#sigh_angle_width_800").is(":checked")){tw=0.8;baseUnit=70000;}
@@ -6131,7 +6131,7 @@ $(".save_btn").click(function(){
 
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child02")){ //채널문자
     	if($("input[name='channel_option']:checked").length){ // 채널문자 품목 선택됨
-            function _fmtCh(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+            function _fmtCh(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
             total_html += "<li><span class='number'></span>";
             total_html += "<strong class='li-cat-name'>" + $("input[name='channel_option']:checked").parent("label").text() + "</strong>";
