@@ -213,4 +213,32 @@ $(function() {
     $('#emp_name').keydown(function(e) {
         if (e.key === 'Enter') saveEmployee();
     });
+
+    // 모달 내 포커스 트랩 (Tab 키가 배경 페이지로 빠져나가지 않도록)
+    $('#emp_form_modal').on('keydown', function(e) {
+        if (!$(this).is(':visible')) return;
+
+        if (e.key === 'Escape') {
+            closeEmpModal();
+            return;
+        }
+
+        if (e.key !== 'Tab') return;
+
+        var focusable = $(this).find('input, textarea, select, button, [tabindex]:not([tabindex="-1"])').filter(':visible:not(:disabled)');
+        var first = focusable.first()[0];
+        var last  = focusable.last()[0];
+
+        if (e.shiftKey) {
+            if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            }
+        } else {
+            if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    });
 });
