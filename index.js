@@ -752,7 +752,6 @@ function hoorex_type(){
 			setting_html +="<td>";
 				setting_html +="<label><input type='radio' name='channel_option' id='channel_option01'>알루미늄 채널</label>";
 				setting_html +="<label><input type='radio' name='channel_option' id='channel_option02'>갈바채널</label>";
-				setting_html +="<label><input type='radio' name='channel_option' id='channel_option03'>갈바오사이채널</label>";
 				setting_html +="<label><input type='radio' name='channel_option' id='channel_option04'>에폭시채널</label>";
 				setting_html +="<label><input type='radio' name='channel_option' id='channel_option05'>일체형채널</label>";
 				setting_html +="<label><input type='radio' name='channel_option' id='channel_option06'>스텐채널</label>";
@@ -938,10 +937,28 @@ function hoorex_type(){
 		append_html += "</tr>";		
 		}else if($("#channel_option02").is(":checked")){ // 갈바채널
 			append_html += "<tr>";
+				append_html += "<th>채널 종류</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_glja' checked='checked'>글자채널(입체글자형)</label>";
+					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_laser'>레이저타공채널(박스/바)</label>";
+					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_gosa'>오사이채널(캡/프레임형)</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr>";
 				append_html += "<th>소재</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material01' checked='checked'>알루미늄</label>";
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material02'>갈바</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='channel_galva_gosa_row add_row'>";
+				append_html += "<th>입체 높이</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height_none'>입체없음</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
@@ -956,7 +973,7 @@ function hoorex_type(){
 				append_html += "<th>크기</th>";
 				append_html += "<td>" + _chSizeBtns('ch_galva_eng_') + "</td>";
 			append_html += "</tr>";
-			append_html += "<tr>";
+			append_html += "<tr class='channel_galva_notgosa_row'>";
 				append_html += "<th>뚜껑 색상</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_trim_color' id='channel_trim_color_white' checked='checked'>백색</label>";
@@ -984,25 +1001,42 @@ function hoorex_type(){
 					append_html += "<input type='text' id='channel_solid_custom_color' placeholder='지정 색상을 입력하세요.'>";
 				append_html += "</td>";
 			append_html += "</tr>";
-			append_html += "<tr class='channel_led_pos_row add_row'>";
-				append_html += "<th>LED 위치</th>";
+			append_html += "<tr>";
+				append_html += "<th>전광</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_jeon' checked='checked'>전광</label>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_hu'>후광</label>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_jeonhu'>전후광</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon' id='channel_led_jeon_no' checked='checked'>없음</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon' id='channel_led_jeon_yes'>있음</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='channel_led_jeon_color_row add_row'>";
+				append_html += "<th>전광 LED 색상</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_warm'>웜(전구색)</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_rgb'>RGB</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_panorama'>파노라마</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_red'>적색</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_blue'>청색</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_green'>녹색</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>LED 색상</th>";
+				append_html += "<th>후광</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_none' checked='checked'>없음</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_white'>백색</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_wram'>웜(전구색)</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_rgb'>RGB</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_panorama'>파노라마</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_red'>적색</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_blue'>청색</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_green'>녹색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu' id='channel_led_hu_no' checked='checked'>없음</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu' id='channel_led_hu_yes'>있음</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='channel_led_hu_color_row add_row'>";
+				append_html += "<th>후광 LED 색상</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_warm'>웜(전구색)</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_rgb'>RGB</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_panorama'>파노라마</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_red'>적색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_blue'>청색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_green'>녹색</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
@@ -1011,8 +1045,8 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가작업</th>";
-				append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>까지발부착</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option02'>트러스부착</label></td>";
-			append_html += "</tr>";	
+				append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>까치발부착</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option02'>트러스부착</label></td>";
+			append_html += "</tr>";
 			append_html += "<tr class='channel_more_order_option01 add_row'>";
 				append_html += "<th>까치발 크기</th>";
 				append_html += "<td>";
@@ -1021,14 +1055,14 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>300mm</label>";
 					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>400mm</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr class='channel_more_order_option02 add_row'>";
 				append_html += "<th>트러스 종류</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_more_order_option02_type' id='channel_more_order_option02_type01' checked='checked'>아연각파이프</label>";
 					append_html += "<label><input type='radio' name='channel_more_order_option02_type' id='channel_more_order_option02_type02'>스텐각파이프</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
 				append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
@@ -1049,130 +1083,15 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
 					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
 					append_html += "</td>";
-			append_html += "</tr>"
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";	;	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
-		}else if($("#channel_option03").is(":checked")){ // 갈바오사이채널
-			append_html += "<tr>";
-				append_html += "<th>소재</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_material' id='channel_material01' checked='checked'>알루미늄</label>";
-					append_html += "<label><input type='radio' name='channel_material' id='channel_material02'>갈바</label>";
-				append_html += "</td>";
 			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height_none'>입체없음</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>문자형태</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>크기</th>";
-				append_html += "<td>" + _chSizeBtns('ch_gosa_eng_') + "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>입체 색상(몸통)</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_black'>흑색</label>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_gold'>금색</label>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_silver'>은색</label>";
-					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_custom'>지정색도장</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='channel_solid_color add_row'>";
-				append_html += "<th>색상</th>";
-				append_html += "<td>";
-					append_html += "<input type='text' id='channel_solid_custom_color' placeholder='지정 색상을 입력하세요.'>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='channel_led_pos_row add_row'>";
-				append_html += "<th>LED 위치</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_jeon' checked='checked'>전광</label>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_hu'>후광</label>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_jeonhu'>전후광</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>LED 색상</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_none' checked='checked'>없음</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_white'>백색</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_wram'>웜(전구색)</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_rgb'>RGB</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_panorama'>파노라마</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_red'>적색</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_blue'>청색</label>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_green'>녹색</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='channel_led_count'>";
-				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>추가작업</th>";
-				append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>있음</label></td>";
-			append_html += "</tr>";	
-			append_html += "<tr class='channel_more_order_option01 add_row'>";
-				append_html += "<th>작업내용</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_letter' checked='checked'>ㄱ 꺽쇠</label>";
-					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200'>까치발 200mm</label>";
-					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_250'>까치발 250mm</label>";
-					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_300'>까치발 300mm</label>";
-					append_html += "<label><input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_400'>까치발 400mm</label>";
-					append_html += "<label><input type='radio' name='ch_ggachi_size' id='channel_more_order_option01_rubber'>고무부착</label>";
-				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
-				append_html += "<th>수량</th>";
-				append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>화면 작업</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_display_work' id='channel_led_display_work_no' checked='checked'>없음</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work' id='channel_led_display_work_yes'>있음</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='channel_led_display_work add_row'>";
-				append_html += "<th>작업 내용</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type01' checked='checked'>조명용 부착</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type02'>컷팅후 부착</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type03'>컷팅후 부착(2도)</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type04'>실사 부착</label>";
-					append_html += "<label><input type='radio' name='channel_led_display_work_type' id='channel_led_display_work_type05'>타공시트 출력</label>";
-					append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
-				append_html += "<th>추가 금액</th>";
-				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
-				append_html += "<th>추가 입력 사항</th>";
-				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
 		}else if($("#channel_option04").is(":checked")){ // 에폭시채널
 			append_html += "<tr>";
 				append_html += "<th>입체 높이</th>";
@@ -1335,26 +1254,43 @@ function hoorex_type(){
 			append_html += "</tr>";	
 		}else if($("#channel_option06").is(":checked")){ // 스텐채널
 			append_html += "<tr>";
+				append_html += "<th>채널 종류</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_glja' checked='checked'>글자채널(입체글자형)</label>";
+					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_laser'>레이저타공채널(박스/바)</label>";
+					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_gosa'>오사이채널(캡/프레임형)</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr>";
 				append_html += "<th>소재</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material01' checked='checked'>알루미늄</label>";
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material02'>갈바</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
+			append_html += "<tr class='channel_sten_gosa_row add_row'>";
+				append_html += "<th>입체 높이</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
+					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height_none'>입체없음</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";		
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
-				append_html += "<td>";
-						append_html += _chSizeBtns('ch_sten_eng_');
-					append_html += "</td>";
-				append_html += "</tr>";
+				append_html += "<td>" + _chSizeBtns('ch_sten_eng_') + "</td>";
+			append_html += "</tr>";
+			append_html += "<tr>";
 				append_html += "<th>입체 색상(몸통)</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_solid_color' id='channel_solid_color_none'>없음</label><label><input type='radio' name='channel_solid_color' id='channel_solid_color_white' checked='checked'>백색</label>";
@@ -1367,24 +1303,52 @@ function hoorex_type(){
 					append_html += "<input type='text' id='channel_solid_custom_color' placeholder='지정 색상을 입력하세요.'>";
 				append_html += "</td>";
 			append_html += "</tr>";
-			append_html += "<tr class='channel_led_pos_row add_row'>";
-				append_html += "<th>LED 위치</th>";
+			append_html += "<tr>";
+				append_html += "<th>전광</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_jeon' checked='checked'>전광</label>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_hu'>후광</label>";
-					append_html += "<label><input type='radio' name='channel_led_pos' id='channel_led_pos_jeonhu'>전후광</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon' id='channel_led_jeon_no' checked='checked'>없음</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon' id='channel_led_jeon_yes'>있음</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='channel_led_jeon_color_row add_row'>";
+				append_html += "<th>전광 LED 색상</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_warm'>웜(전구색)</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_rgb'>RGB</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_panorama'>파노라마</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_red'>적색</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_blue'>청색</label>";
+					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_green'>녹색</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
-				append_html += "<th>LED 색상</th>";
+				append_html += "<th>후광</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_led_color' id='channel_led_color_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu' id='channel_led_hu_no' checked='checked'>없음</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu' id='channel_led_hu_yes'>있음</label>";
 				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='channel_led_hu_color_row add_row'>";
+				append_html += "<th>후광 LED 색상</th>";
+				append_html += "<td>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_white' checked='checked'>백색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_warm'>웜(전구색)</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_rgb'>RGB</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_panorama'>파노라마</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_red'>적색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_blue'>청색</label>";
+					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_green'>녹색</label>";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='channel_led_count'>";
+				append_html += "<th>LED 예상 개수</th>";
+				append_html += "<td><span>0개</span></td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가작업</th>";
 				append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_volt3'>전산볼트 3cm</label><label><input type='radio' name='channel_more_order' id='channel_more_order_volt5'>전산볼트 5cm</label></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
 				append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
@@ -1409,11 +1373,11 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";		
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 		}else if($("#channel_option07").is(":checked")){ // 티타늄골드채널
 			append_html += "<tr>";
 				append_html += "<th>타입</th>";
@@ -1972,8 +1936,35 @@ function hoorex_type(){
 		channel_more_order_custom();
 		channel_display_work_custom();
         channel_trusbar();
+        channel_galva_type_handler();
+        channel_sten_type_handler();
+        $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_led_jeon'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_hu']").click(function(){
+            channel_led_count_set();
+        });
         channel_led_count_set();
 	}
+	function channel_galva_type_handler(){
+        $("input[name='channel_galva_type']").click(function(){
+            if($(this).attr("id") === "channel_galva_gosa"){
+                $(".channel_galva_gosa_row").css("display","table-row");
+                $(".channel_galva_notgosa_row").hide();
+            } else {
+                $(".channel_galva_gosa_row").hide();
+                $(".channel_galva_notgosa_row").css("display","table-row");
+            }
+            chnnel_taka_cal();
+        });
+    }
+    function channel_sten_type_handler(){
+        $("input[name='channel_sten_type']").click(function(){
+            if($(this).attr("id") === "channel_sten_gosa"){
+                $(".channel_sten_gosa_row").css("display","table-row");
+            } else {
+                $(".channel_sten_gosa_row").hide();
+            }
+            chnnel_taka_cal();
+        });
+    }
 	function channel_trusbar(){
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']").click(function(){
 			if($(this).attr("id") == "channel_trusbar05"){
@@ -2021,92 +2012,64 @@ function hoorex_type(){
 		});
 
 	}
+	function _chLedCountBySize(){
+		if(!$("#channel_option05").is(":checked")){
+			if($("#channel_size_20").is(":checked"))       $(".channel_led_count td span").text("10개");
+			else if($("#channel_size_30").is(":checked"))  $(".channel_led_count td span").text("15개");
+			else if($("#channel_size_40").is(":checked"))  $(".channel_led_count td span").text("20개");
+			else if($("#channel_size_50").is(":checked"))  $(".channel_led_count td span").text("30개");
+			else if($("#channel_size_60").is(":checked"))  $(".channel_led_count td span").text("35개");
+			else if($("#channel_size_70").is(":checked"))  $(".channel_led_count td span").text("45개");
+			else if($("#channel_size_80").is(":checked"))  $(".channel_led_count td span").text("60개");
+			else if($("#channel_size_90").is(":checked"))  $(".channel_led_count td span").text("70개");
+			else if($("#channel_size_100").is(":checked")) $(".channel_led_count td span").text("80개");
+			else if($("#channel_size_110").is(":checked")) $(".channel_led_count td span").text("100개");
+			else if($("#channel_size_120").is(":checked")) $(".channel_led_count td span").text("115개");
+			else if($("#channel_size_130").is(":checked")) $(".channel_led_count td span").text("140개");
+			else if($("#channel_size_140").is(":checked")) $(".channel_led_count td span").text("160개");
+			else if($("#channel_size_150").is(":checked")) $(".channel_led_count td span").text("180개");
+			else if($("#channel_size_160").is(":checked")) $(".channel_led_count td span").text("200개");
+			else if($("#channel_size_170").is(":checked")) $(".channel_led_count td span").text("220개");
+			else if($("#channel_size_180").is(":checked")) $(".channel_led_count td span").text("240개");
+			else if($("#channel_size_190").is(":checked")) $(".channel_led_count td span").text("260개");
+			else if($("#channel_size_200").is(":checked")) $(".channel_led_count td span").text("280개");
+			else if($("#channel_size_210").is(":checked")) $(".channel_led_count td span").text("300개");
+			else if($("#channel_size_220").is(":checked")) $(".channel_led_count td span").text("320개");
+			else if($("#channel_size_230").is(":checked")) $(".channel_led_count td span").text("340개");
+			else if($("#channel_size_240").is(":checked")) $(".channel_led_count td span").text("360개");
+			else if($("#channel_size_250").is(":checked")) $(".channel_led_count td span").text("380개");
+			else if($("#channel_size_300").is(":checked")) $(".channel_led_count td span").text("540개");
+			else $(".channel_led_count td span").text("0개");
+		}else{
+			if($("#channel_size_20").is(":checked"))       $(".channel_led_count td span").text("20개");
+			else if($("#channel_size_25").is(":checked"))  $(".channel_led_count td span").text("25개");
+			else if($("#channel_size_30").is(":checked"))  $(".channel_led_count td span").text("30개");
+			else if($("#channel_size_35").is(":checked"))  $(".channel_led_count td span").text("35개");
+			else if($("#channel_size_40").is(":checked"))  $(".channel_led_count td span").text("40개");
+			else if($("#channel_size_45").is(":checked"))  $(".channel_led_count td span").text("45개");
+			else if($("#channel_size_50").is(":checked"))  $(".channel_led_count td span").text("50개");
+			else if($("#channel_size_60").is(":checked"))  $(".channel_led_count td span").text("60개");
+			else if($("#channel_size_70").is(":checked"))  $(".channel_led_count td span").text("70개");
+			else if($("#channel_size_80").is(":checked"))  $(".channel_led_count td span").text("90개");
+			else if($("#channel_size_90").is(":checked"))  $(".channel_led_count td span").text("130개");
+			else if($("#channel_size_100").is(":checked")) $(".channel_led_count td span").text("140개");
+			else $(".channel_led_count td span").text("0개");
+		}
+	}
 	function channel_led_count_set(){
-		if(!$("#channel_led_color_none").is(":checked")){ //LED색상 선택했을때
+		var isNewLed = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked"));
+		if(isNewLed){
+			var jeonOn = $("#channel_led_jeon_yes").is(":checked");
+			var huOn   = $("#channel_led_hu_yes").is(":checked");
+			if(jeonOn) $(".channel_led_jeon_color_row").css("display","table-row");
+			else       $(".channel_led_jeon_color_row").hide();
+			if(huOn)   $(".channel_led_hu_color_row").css("display","table-row");
+			else       $(".channel_led_hu_color_row").hide();
+			if(jeonOn || huOn) _chLedCountBySize();
+			else $(".channel_led_count td span").text("0개");
+		} else if(!$("#channel_led_color_none").is(":checked")){ //LED색상 선택했을때 (기존 옵션)
 			$(".channel_led_pos_row").css("display","table-row");
-			if(!$("#channel_option05").is(":checked")){
-				if($("#channel_size_20").is(":checked")){
-					$(".channel_led_count td span").text("10개");
-				}else if($("#channel_size_30").is(":checked")){
-					$(".channel_led_count td span").text("15개");
-				}else if($("#channel_size_40").is(":checked")){
-					$(".channel_led_count td span").text("20개");
-				}else if($("#channel_size_50").is(":checked")){
-					$(".channel_led_count td span").text("30개");
-				}else if($("#channel_size_60").is(":checked")){
-					$(".channel_led_count td span").text("35개");
-				}else if($("#channel_size_70").is(":checked")){
-					$(".channel_led_count td span").text("45개");
-				}else if($("#channel_size_80").is(":checked")){
-					$(".channel_led_count td span").text("60개");
-				}else if($("#channel_size_90").is(":checked")){
-					$(".channel_led_count td span").text("70개");
-				}else if($("#channel_size_100").is(":checked")){
-					$(".channel_led_count td span").text("80개");
-				}else if($("#channel_size_110").is(":checked")){
-					$(".channel_led_count td span").text("100개");
-				}else if($("#channel_size_120").is(":checked")){
-					$(".channel_led_count td span").text("115개");
-				}else if($("#channel_size_130").is(":checked")){
-					$(".channel_led_count td span").text("140개");
-				}else if($("#channel_size_140").is(":checked")){
-					$(".channel_led_count td span").text("160개");
-				}else if($("#channel_size_150").is(":checked")){
-					$(".channel_led_count td span").text("180개");
-				}else if($("#channel_size_160").is(":checked")){
-					$(".channel_led_count td span").text("200개");
-				}else if($("#channel_size_170").is(":checked")){
-					$(".channel_led_count td span").text("220개");
-				}else if($("#channel_size_180").is(":checked")){
-					$(".channel_led_count td span").text("240개");
-				}else if($("#channel_size_190").is(":checked")){
-					$(".channel_led_count td span").text("260개");
-				}else if($("#channel_size_200").is(":checked")){
-					$(".channel_led_count td span").text("280개");
-				}else if($("#channel_size_210").is(":checked")){
-					$(".channel_led_count td span").text("300개");
-				}else if($("#channel_size_220").is(":checked")){
-					$(".channel_led_count td span").text("320개");
-				}else if($("#channel_size_230").is(":checked")){
-					$(".channel_led_count td span").text("340개");
-				}else if($("#channel_size_240").is(":checked")){
-					$(".channel_led_count td span").text("360개");
-				}else if($("#channel_size_250").is(":checked")){
-					$(".channel_led_count td span").text("380개");
-				}else if($("#channel_size_300").is(":checked")){
-					$(".channel_led_count td span").text("540개");
-				}else{
-					$(".channel_led_count td span").text("0개");
-				}
-			}else{ //2PC일체형일때
-				if($("#channel_size_20").is(":checked")){
-					$(".channel_led_count td span").text("20개");
-				}else if($("#channel_size_25").is(":checked")){
-					$(".channel_led_count td span").text("25개");
-				}else if($("#channel_size_30").is(":checked")){
-					$(".channel_led_count td span").text("30개");
-				}else if($("#channel_size_35").is(":checked")){
-					$(".channel_led_count td span").text("35개");
-				}else if($("#channel_size_40").is(":checked")){
-					$(".channel_led_count td span").text("40개");
-				}else if($("#channel_size_45").is(":checked")){
-					$(".channel_led_count td span").text("45개");
-				}else if($("#channel_size_50").is(":checked")){
-					$(".channel_led_count td span").text("50개");
-				}else if($("#channel_size_60").is(":checked")){
-					$(".channel_led_count td span").text("60개");
-				}else if($("#channel_size_70").is(":checked")){
-					$(".channel_led_count td span").text("70개");
-				}else if($("#channel_size_80").is(":checked")){
-					$(".channel_led_count td span").text("90개");
-				}else if($("#channel_size_90").is(":checked")){
-					$(".channel_led_count td span").text("130개");
-				}else if($("#channel_size_100").is(":checked")){
-					$(".channel_led_count td span").text("140개");
-				}else{
-					$(".channel_led_count td span").text("0개");
-				}
-			}
+			_chLedCountBySize();
 		}else{	//LED색상 선택안했을때
 			$(".channel_led_pos_row").hide();
 			$(".channel_led_count td span").text("0개");
@@ -3595,7 +3558,7 @@ function chnnel_taka(){ //채널 타카식
 
         });
        
-        $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_text_form'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_size'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_solid_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_pos'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work_type']").click(function(){
+        $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_text_form'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_size'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_trim_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_solid_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_jeon'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_jeon_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_hu'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_hu_color'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_galva_type'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_sten_type'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_display_work_type']").click(function(){
             chnnel_taka_cal();
 
         });
@@ -3660,19 +3623,12 @@ function _getChCurrentItemPrice() {
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_galva_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
-    } else if($("#channel_option03").is(":checked")){
-        if($("#channel_size_30").is(":checked")) _sz="30";
-        else if($("#channel_size_35").is(":checked")) _sz="35";
-        else if($("#channel_size_40").is(":checked")) _sz="40";
-        else if($("#channel_size_45").is(":checked")) _sz="45";
-        else if($("#channel_size_50").is(":checked")) _sz="50";
-        else if($("#channel_size_60").is(":checked")) _sz="60";
-        else if($("#channel_size_70").is(":checked")) _sz="70";
-        else if($("#channel_size_80").is(":checked")) _sz="80";
-        else if($("#channel_size_90").is(":checked")) _sz="90";
-        else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_gosa_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
+        if(_sz) {
+            var _galvaSub = $("input[name='channel_galva_type']:checked").attr("id") || "channel_galva_glja";
+            var _galvaKey = _galvaSub === "channel_galva_gosa" ? "ch_gosa_" :
+                            _galvaSub === "channel_galva_laser" ? "ch_galva_laser_" : "ch_galva_";
+            chennel_width = PRICES[_galvaKey+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
+        }
     } else if($("#channel_option06").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3686,7 +3642,12 @@ function _getChCurrentItemPrice() {
         else if($("#channel_size_80").is(":checked")) _sz="80";
         else if($("#channel_size_90").is(":checked")) _sz="90";
         else if($("#channel_size_100").is(":checked")) _sz="100";
-        if(_sz) chennel_width = PRICES["ch_sten_"+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
+        if(_sz) {
+            var _stenSub = $("input[name='channel_sten_type']:checked").attr("id") || "channel_sten_glja";
+            var _stenKey = _stenSub === "channel_sten_gosa" ? "ch_sten_gosa_" :
+                           _stenSub === "channel_sten_laser" ? "ch_sten_laser_" : "ch_sten_";
+            chennel_width = PRICES[_stenKey+(_pricePrefix==="kor"?"eng":_pricePrefix)+"_"+_sz]||0;
+        }
     } else if($("#channel_option07").is(":checked")){
         if($("#channel_size_20").is(":checked")) _sz="20";
         else if($("#channel_size_25").is(":checked")) _sz="25";
@@ -3733,25 +3694,39 @@ function _getChCurrentItemPrice() {
 
     var _ledCnt = parseInt($(".channel_led_count td span").text()) || 0;
     var led_price = 0;
-    if($("#channel_led_color_white").is(":checked"))        led_price = PRICES.ch_led_white * _ledCnt;
-    else if($("#channel_led_color_wram").is(":checked"))    led_price = PRICES.ch_led_warm  * _ledCnt;
-    else if($("#channel_led_color_rgb").is(":checked"))     led_price = PRICES.ch_led_rgb   * _ledCnt;
-    else if($("#channel_led_color_panorama").is(":checked"))led_price = PRICES.ch_led_panorama * _ledCnt;
-    else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.ch_led_color * _ledCnt;
-
     var qty = Number($("#channel_content").val()) || 0;
 
-    // LED 위치 추가금액 (갈바채널/갈바오사이채널/스텐채널에서 LED 색상이 선택된 경우)
-    var led_pos_price = 0;
-    if(($("#channel_option02").is(":checked") || $("#channel_option03").is(":checked") || $("#channel_option06").is(":checked"))
-        && !$("#channel_led_color_none").is(":checked")) {
-        var _posId = $("input[name='channel_led_pos']:checked").attr("id") || "";
-        if(_posId === "channel_led_pos_jeon")   led_pos_price = (PRICES.ch_led_pos_jeon   || 0) * qty;
-        else if(_posId === "channel_led_pos_hu")led_pos_price = (PRICES.ch_led_pos_hu     || 0) * qty;
-        else                                    led_pos_price = (PRICES.ch_led_pos_jeonhu || 0) * qty;
+    var isNewLedOpt = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked"));
+    if(isNewLedOpt) {
+        // 전광 LED
+        if($("#channel_led_jeon_yes").is(":checked")) {
+            var _jU = 0;
+            if($("#channel_led_jeon_white").is(":checked"))       _jU = PRICES.ch_led_white;
+            else if($("#channel_led_jeon_warm").is(":checked"))   _jU = PRICES.ch_led_warm;
+            else if($("#channel_led_jeon_rgb").is(":checked"))    _jU = PRICES.ch_led_rgb;
+            else if($("#channel_led_jeon_panorama").is(":checked"))_jU = PRICES.ch_led_panorama;
+            else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU = PRICES.ch_led_color;
+            led_price += _jU * _ledCnt + (PRICES.ch_led_pos_jeon || 0) * qty;
+        }
+        // 후광 LED
+        if($("#channel_led_hu_yes").is(":checked")) {
+            var _hU = 0;
+            if($("#channel_led_hu_white").is(":checked"))       _hU = PRICES.ch_led_white;
+            else if($("#channel_led_hu_warm").is(":checked"))   _hU = PRICES.ch_led_warm;
+            else if($("#channel_led_hu_rgb").is(":checked"))    _hU = PRICES.ch_led_rgb;
+            else if($("#channel_led_hu_panorama").is(":checked"))_hU = PRICES.ch_led_panorama;
+            else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU = PRICES.ch_led_color;
+            led_price += _hU * _ledCnt + (PRICES.ch_led_pos_hu || 0) * qty;
+        }
+    } else {
+        if($("#channel_led_color_white").is(":checked"))         led_price = PRICES.ch_led_white * _ledCnt;
+        else if($("#channel_led_color_wram").is(":checked"))     led_price = PRICES.ch_led_warm  * _ledCnt;
+        else if($("#channel_led_color_rgb").is(":checked"))      led_price = PRICES.ch_led_rgb   * _ledCnt;
+        else if($("#channel_led_color_panorama").is(":checked")) led_price = PRICES.ch_led_panorama * _ledCnt;
+        else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.ch_led_color * _ledCnt;
     }
 
-    var _basePrice = Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price + led_pos_price);
+    var _basePrice = Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
     _lastChBaseUnit = chennel_width;
     _lastChCustomOrder = custom_order;
     if($("#channel_solid_color_none").is(":checked")) return Math.floor(_basePrice * 1.006);
@@ -3780,33 +3755,61 @@ function addChannelItem() {
     }
 
     var _ledCntNum = parseInt($(".channel_led_count td span").text()) || 0;
-    var _ledColorText = '', _ledUnitP = 0;
-    if(!$("#channel_led_color_none").is(":checked")){
-        _ledColorText = $("input[name='channel_led_color']:checked").parent("label").text();
-        if($("#channel_led_color_white").is(":checked"))        _ledUnitP = PRICES.ch_led_white;
-        else if($("#channel_led_color_wram").is(":checked"))    _ledUnitP = PRICES.ch_led_warm;
-        else if($("#channel_led_color_rgb").is(":checked"))     _ledUnitP = PRICES.ch_led_rgb;
-        else if($("#channel_led_color_panorama").is(":checked"))_ledUnitP = PRICES.ch_led_panorama;
-        else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) _ledUnitP = PRICES.ch_led_color;
+    var _isNewLedOpt = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked"));
+    // 신형(갈바/스텐): 전광/후광 분리
+    var _jeonColorText = '', _jeonLedPrice = 0;
+    var _huColorText = '', _huLedPrice = 0;
+    // 구형: 단일 LED
+    var _ledColorText = '', _ledUnitP = 0, _ledPriceNum = 0;
+    if(_isNewLedOpt) {
+        if($("#channel_led_jeon_yes").is(":checked")){
+            _jeonColorText = $("input[name='channel_led_jeon_color']:checked").parent("label").text().trim();
+            var _jU2 = 0;
+            if($("#channel_led_jeon_white").is(":checked"))        _jU2 = PRICES.ch_led_white;
+            else if($("#channel_led_jeon_warm").is(":checked"))    _jU2 = PRICES.ch_led_warm;
+            else if($("#channel_led_jeon_rgb").is(":checked"))     _jU2 = PRICES.ch_led_rgb;
+            else if($("#channel_led_jeon_panorama").is(":checked"))_jU2 = PRICES.ch_led_panorama;
+            else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU2 = PRICES.ch_led_color;
+            _jeonLedPrice = _jU2 * _ledCntNum + (PRICES.ch_led_pos_jeon || 0) * qty;
+        }
+        if($("#channel_led_hu_yes").is(":checked")){
+            _huColorText = $("input[name='channel_led_hu_color']:checked").parent("label").text().trim();
+            var _hU2 = 0;
+            if($("#channel_led_hu_white").is(":checked"))        _hU2 = PRICES.ch_led_white;
+            else if($("#channel_led_hu_warm").is(":checked"))    _hU2 = PRICES.ch_led_warm;
+            else if($("#channel_led_hu_rgb").is(":checked"))     _hU2 = PRICES.ch_led_rgb;
+            else if($("#channel_led_hu_panorama").is(":checked"))_hU2 = PRICES.ch_led_panorama;
+            else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU2 = PRICES.ch_led_color;
+            _huLedPrice = _hU2 * _ledCntNum + (PRICES.ch_led_pos_hu || 0) * qty;
+        }
+    } else {
+        if(!$("#channel_led_color_none").is(":checked")){
+            _ledColorText = $("input[name='channel_led_color']:checked").parent("label").text();
+            if($("#channel_led_color_white").is(":checked"))        _ledUnitP = PRICES.ch_led_white;
+            else if($("#channel_led_color_wram").is(":checked"))    _ledUnitP = PRICES.ch_led_warm;
+            else if($("#channel_led_color_rgb").is(":checked"))     _ledUnitP = PRICES.ch_led_rgb;
+            else if($("#channel_led_color_panorama").is(":checked"))_ledUnitP = PRICES.ch_led_panorama;
+            else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) _ledUnitP = PRICES.ch_led_color;
+        }
+        _ledPriceNum = _ledUnitP * _ledCntNum;
     }
-    var _ledPriceNum = _ledUnitP * _ledCntNum;
+    // 갈바/스텐 서브타입
+    var _galvaStenSubText = '';
+    if($("#channel_option02").is(":checked")) _galvaStenSubText = $("input[name='channel_galva_type']:checked").parent("label").text().trim();
+    else if($("#channel_option06").is(":checked")) _galvaStenSubText = $("input[name='channel_sten_type']:checked").parent("label").text().trim();
 
-    // LED 위치 (갈바/갈바오사이/스텐채널이고 LED가 선택된 경우)
-    var _ledPosText = '';
-    if(($("#channel_option02").is(":checked") || $("#channel_option03").is(":checked") || $("#channel_option06").is(":checked"))
-        && !$("#channel_led_color_none").is(":checked")) {
-        _ledPosText = $("input[name='channel_led_pos']:checked").parent("label").text().trim();
-    }
-
-    // UI 표시용 라벨 (기존 호환)
-    var label = _channelTypeName + " " + _sizeText;
+    // UI 표시용 라벨
+    var label = _channelTypeName;
+    if(_galvaStenSubText) label += " [" + _galvaStenSubText + "]";
+    label += " " + _sizeText;
     label += " / 수량: " + qty + "개";
     label += " / 문자형태: " + _textFormText;
     if(_trimColorText)  label += " / 트림: " + _trimColorText;
     if(_solidColorText) label += " / 입체: " + _solidColorText;
+    if(_jeonColorText)  label += " / 전광: " + _jeonColorText + " " + _ledCntNum + "개";
+    if(_huColorText)    label += " / 후광: " + _huColorText + " " + _ledCntNum + "개";
     if(_ledColorText && _ledCntNum > 0) label += " / LED: " + _ledColorText + " " + _ledCntNum + "개";
     else if(_ledColorText)              label += " / LED: " + _ledColorText;
-    if(_ledPosText)     label += " / LED 위치: " + _ledPosText;
     if(_dispWorkName)   label += " / 화면작업: " + _dispWorkName;
 
     var _detail = $.trim($("#ch_item_detail").val());
@@ -3817,7 +3820,9 @@ function addChannelItem() {
         solidColorText: _solidColorText, dispWorkName: _dispWorkName,
         qty: qty, baseUnit: _lastChBaseUnit, customOrder: _lastChCustomOrder,
         ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum,
-        ledPos: _ledPosText
+        jeonColor: _jeonColorText, huColor: _huColorText,
+        jeonLedPrice: _jeonLedPrice, huLedPrice: _huLedPrice,
+        galvaStenSubText: _galvaStenSubText
     });
     $("#ch_item_detail").val('');
     renderChItems();
@@ -6126,11 +6131,13 @@ $(".save_btn").click(function(){
                     var _detailSuffix = it.detail ? " ["+it.detail+"]" : "";
                     var _mainName = (it.channelTypeName||"채널문자") + " " + (it.sizeText||"");
                     bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = <em>"+_fmtCh(it.price)+"원</em></span>";
+                    if(it.galvaStenSubText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 종류: "+it.galvaStenSubText+"</span>";
                     if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+(it.baseUnit>0?" @"+it.baseUnit:"")+"</span>";
                     if(it.trimColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 뚜껑: "+it.trimColorText+"</span>";
                     if(it.solidColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 입체(몸통): "+it.solidColorText+"</span>";
+                    if(it.jeonLedPrice>0) bd += "<span class='bd_item'>#채널LED# 전광 LED("+it.jeonColor+") × "+it.ledCnt+"개 = <em>"+_fmtCh(it.jeonLedPrice)+"원</em></span>";
+                    if(it.huLedPrice>0)   bd += "<span class='bd_item'>#채널LED# 후광 LED("+it.huColor+") × "+it.ledCnt+"개 = <em>"+_fmtCh(it.huLedPrice)+"원</em></span>";
                     if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = <em>"+_fmtCh(it.ledPrice)+"원</em></span>";
-                    if(it.ledPos) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). LED 위치: "+it.ledPos+"</span>";
                     if(it.dispWorkName) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 화면작업: "+it.dispWorkName+"</span>";
                 });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
