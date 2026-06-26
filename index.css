@@ -1014,6 +1014,16 @@ input::placeholder {
     outline: none;
     text-align: right;
 }
+.lp-unit-hint {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 500;
+    color: #8892a4;
+    white-space: nowrap;
+    vertical-align: middle;
+}
 
 .price_breakdown {
     display: flex;

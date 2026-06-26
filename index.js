@@ -6223,28 +6223,45 @@ function list_delete_func(){
     });
 }
 
-// ── 견적 금액 인라인 편집 ──────────────────────────────────────
-$(document).on("click", ".list_price", function() {
+// ── 견적 항목 금액 인라인 편집 (단가 역산 표시, PRICES 불변) ──
+$(document).on("click", ".list_price", function(e) {
+    e.stopPropagation();
     var $span = $(this);
-    if ($span.find("input").length) return; // 이미 편집 중
-    var cur = $span.text().replace(/[^0-9]/g, "");
-    $span.html("<input type='number' class='list_price_input' value='" + cur + "' min='0' />");
-    $span.find("input").focus().select();
+    if ($span.hasClass("lp-editing")) return;
+    $span.addClass("lp-editing");
+
+    var cur = _r10(parseInt($span.text().replace(/[^0-9]/g, ""), 10) || 0);
+
+    // 수량 파싱 — "수량 : N개" 또는 "수량: N개"
+    var liText = $span.closest("li").text();
+    var qtyMatch = liText.match(/수량\s*:?\s*(\d+)\s*개/);
+    var qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+
+    $span.html('<input type="number" class="list_price_input" value="' + cur + '" min="0" />');
+    if (qty > 1) {
+        $span.append('<em class="lp-unit-hint">(단가 ' +
+            _r10(Math.round(cur / qty)).toLocaleString("ko-KR") + '원 / ' + qty + '개)</em>');
+    }
+
+    $span.find("input").focus().select().on("input.lp", function() {
+        if (qty <= 1) return;
+        var t = parseInt($(this).val(), 10) || 0;
+        $span.find(".lp-unit-hint").text(
+            "(단가 " + _r10(Math.round(t / qty)).toLocaleString("ko-KR") + "원 / " + qty + "개)");
+    });
 });
-$(document).on("blur change", ".list_price_input", function() {
-    var $input = $(this);
-    var $span = $input.closest(".list_price");
-    var val = _r10(parseInt($input.val(), 10) || 0);
+
+$(document).on("blur", ".list_price_input", function() {
+    var $span = $(this).closest(".list_price");
+    var val = _r10(parseInt($(this).val(), 10) || 0);
+    $span.removeClass("lp-editing");
     $span.text(String(val).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
     list_sum_price();
 });
+
 $(document).on("keydown", ".list_price_input", function(e) {
     if (e.key === "Enter") $(this).blur();
-    if (e.key === "Escape") {
-        var $span = $(this).closest(".list_price");
-        $span.text($span.data("orig") || $(this).val());
-        $(this).blur();
-    }
+    if (e.key === "Escape") $(this).blur();
 });
 
 // " / " 구분자를 시각적 줄바꿈으로 변환 (한 번만 실행)
