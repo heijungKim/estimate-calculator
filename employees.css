@@ -142,6 +142,17 @@
     color: #1a1a2e;
 }
 
+.emp-userid {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f0f4ff;
+    color: #3b6cf7;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: monospace;
+}
+
 .emp-memo-badge {
     display: inline-block;
     margin-left: 6px;
