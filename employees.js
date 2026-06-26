@@ -144,11 +144,13 @@ function openEmpModal(emp) {
     $('#emp_memo').val(emp ? (emp.memo || '') : '');
     $('#emp_form_error').text('');
     $('#emp_name').removeClass('error');
+    $('body').css('overflow', 'hidden');
     $('#emp_form_modal').fadeIn(180, function(){ $(this).css('display','flex'); });
     setTimeout(function() { $('#emp_name').focus(); }, 200);
 }
 
 function closeEmpModal() {
+    $('body').css('overflow', '');
     $('#emp_form_modal').fadeOut(150);
     _empEditId = null;
 }
@@ -214,9 +216,9 @@ $(function() {
         if (e.key === 'Enter') saveEmployee();
     });
 
-    // 모달 내 포커스 트랩 (Tab 키가 배경 페이지로 빠져나가지 않도록)
-    $('#emp_form_modal').on('keydown', function(e) {
-        if (!$(this).is(':visible')) return;
+    // 모달 내 포커스 트랩 — Tab 키를 항상 가로채서 직접 이동
+    $(document).on('keydown.empModal', function(e) {
+        if (!$('#emp_form_modal').is(':visible')) return;
 
         if (e.key === 'Escape') {
             closeEmpModal();
@@ -225,20 +227,14 @@ $(function() {
 
         if (e.key !== 'Tab') return;
 
-        var focusable = $(this).find('input, textarea, select, button, [tabindex]:not([tabindex="-1"])').filter(':visible:not(:disabled)');
-        var first = focusable.first()[0];
-        var last  = focusable.last()[0];
+        e.preventDefault(); // 항상 차단 — 브라우저 기본 스크롤 방지
 
-        if (e.shiftKey) {
-            if (document.activeElement === first) {
-                e.preventDefault();
-                last.focus();
-            }
-        } else {
-            if (document.activeElement === last) {
-                e.preventDefault();
-                first.focus();
-            }
-        }
+        var focusable = $('#emp_form_modal').find('input, textarea, select, button').filter(':visible').not(':disabled');
+        var idx = focusable.index(document.activeElement);
+        var next = e.shiftKey
+            ? (idx <= 0 ? focusable.length - 1 : idx - 1)
+            : (idx >= focusable.length - 1 ? 0 : idx + 1);
+
+        focusable.eq(next).focus();
     });
 });
