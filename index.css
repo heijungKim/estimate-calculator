@@ -564,6 +564,8 @@ input::placeholder {
     font-size: 13px;
     font-weight: 600;
     width: 160px;
+    min-width: fit-content;
+    white-space: nowrap;
     padding: 18px 28px;
     border-bottom: 1px solid #edf0f5;
     vertical-align: top;
