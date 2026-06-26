@@ -137,7 +137,8 @@ function getBackdropPrice() {
 }
 
 function getBackdropColorPrice() {
-    if(!$("#sigh_backdrop_color_yes").is(":checked")) return 0;
+    if(!$("#sigh_backdrop_yes").is(":checked")) return 0;
+    if(!$("#sigh_frame_color_custom").is(":checked")) return 0;
     var d = getSignDimensions();
     if(d.w <= 0 || d.h <= 0) return 0;
     return (d.w + d.h + d.w + d.h) * 6000;
@@ -411,10 +412,6 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
-		append_html += "<tr class='sigh_backdrop_color_row add_row'>";
-			append_html += "<th>색상 작업</th>";
-			append_html += "<td><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_yes'>있음</label></td>";
-		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -516,10 +513,6 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
-		append_html += "<tr class='sigh_backdrop_color_row add_row'>";
-			append_html += "<th>색상 작업</th>";
-			append_html += "<td><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_yes'>있음</label></td>";
-		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -605,10 +598,6 @@ function set_sign_top_option_select(){
 		append_html += "<tr>";
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
-		append_html += "</tr>";
-		append_html += "<tr class='sigh_backdrop_color_row add_row'>";
-			append_html += "<th>색상 작업</th>";
-			append_html += "<td><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_yes'>있음</label></td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
@@ -3373,11 +3362,8 @@ function sign_top_01(){ //사인탑_비조명
     	sign_top_01_cal();
       
     });
-    $("input[name='sigh_backdrop']").click(function(){
-        if($(this).attr("id")==="sigh_backdrop_yes") $(".sigh_backdrop_color_row").css("display","table-row");
-        else { $(".sigh_backdrop_color_row").hide(); $("#sigh_backdrop_color_no").prop("checked",true); }
-    });
-    $("input[name='sigh_option'],input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_backdrop_color'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
+
+    $("input[name='sigh_option'],input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
     	sign_top_01_cal();
  
     });
@@ -3435,11 +3421,8 @@ function sign_top_02(){ //사인탑_조명
     	sign_top_02_cal();
       
     });
-    $("input[name='sigh_backdrop']").click(function(){
-        if($(this).attr("id")==="sigh_backdrop_yes") $(".sigh_backdrop_color_row").css("display","table-row");
-        else { $(".sigh_backdrop_color_row").hide(); $("#sigh_backdrop_color_no").prop("checked",true); }
-    });
-    $("input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sigh_angle_width'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_backdrop_color'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
+
+    $("input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sigh_angle_width'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
     	sign_top_02_cal();
  
     });
@@ -3558,11 +3541,8 @@ function sign_top_03(){ //사인탑_돌출
     	sign_top_03_cal();
       
     });
-    $("input[name='sigh_backdrop']").click(function(){
-        if($(this).attr("id")==="sigh_backdrop_yes") $(".sigh_backdrop_color_row").css("display","table-row");
-        else { $(".sigh_backdrop_color_row").hide(); $("#sigh_backdrop_color_no").prop("checked",true); }
-    });
-    $("input[name='sigh_angle_width'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_baltong'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_backdrop_color'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
+
+    $("input[name='sigh_angle_width'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_baltong'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
     	sign_top_03_cal();
  
     });
@@ -5974,7 +5954,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_backdrop_color_yes").is(":checked")) total_html+=" / 색상작업 있음"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_frame_color_custom").is(":checked")) total_html+=" / 색상작업 있음"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -6038,7 +6018,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_backdrop_color_yes").is(":checked")) total_html+=" / 색상작업 있음"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_frame_color_custom").is(":checked")) total_html+=" / 색상작업 있음"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -6100,7 +6080,7 @@ $(".save_btn").click(function(){
                 }
             	total_html +="/ 시공발통 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_baltong']:checked").parent("label").text();
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_backdrop_color_yes").is(":checked")) total_html+=" / 색상작업 있음"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_frame_color_custom").is(":checked")) total_html+=" / 색상작업 있음"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
