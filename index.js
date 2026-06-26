@@ -3504,7 +3504,7 @@ function chnnel_taka(){ //채널 타카식
     },500);
 }
 // ── 채널문자 글자단가(현재 폼 상태) 계산 ──────────────────────
-var _lastChBaseUnit = 0, _lastChCustomOrder = 0;
+var _lastChBaseUnit = 0, _lastChCustomOrder = 0, _lastChBaseUnitOrig = 0, _lastCh13x = false;
 function _getChCurrentItemPrice() {
     applyPrices();
     var _pricePrefix;
@@ -3653,6 +3653,18 @@ function _getChCurrentItemPrice() {
         else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.ch_led_color * _ledCnt;
     }
 
+    // 1.3배 적용 — 갈바/스텐(레이저 타공 제외)·티타늄골드에만
+    var _galvaSubId = $("input[name='channel_galva_type']:checked").attr("id") || "";
+    var _stenSubId  = $("input[name='channel_sten_type']:checked").attr("id")  || "";
+    var _apply13x = (
+        ($("#channel_option02").is(":checked") && _galvaSubId !== "channel_galva_laser") ||
+        ($("#channel_option06").is(":checked") && _stenSubId  !== "channel_sten_laser")  ||
+        $("#channel_option07").is(":checked")
+    );
+    _lastChBaseUnitOrig = chennel_width;
+    _lastCh13x = _apply13x;
+    if (_apply13x) chennel_width = _r10(Math.round(chennel_width * 1.3));
+
     var _basePrice = Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
     _lastChBaseUnit = chennel_width;
     _lastChCustomOrder = custom_order;
@@ -3749,7 +3761,8 @@ function addChannelItem() {
         ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum,
         jeonColor: _jeonColorText, huColor: _huColorText,
         jeonLedPrice: _jeonLedPrice, huLedPrice: _huLedPrice,
-        galvaStenSubText: _galvaStenSubText
+        galvaStenSubText: _galvaStenSubText,
+        is13x: _lastCh13x, baseUnitOrig: _lastChBaseUnitOrig
     });
     $("#ch_item_detail").val('');
     renderChItems();
@@ -6056,6 +6069,7 @@ $(".save_btn").click(function(){
                     var _mainName = (it.channelTypeName||"채널문자") + " " + (it.sizeText||"");
                     bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = <em>"+_fmtCh(it.price)+"원</em></span>";
                     if(it.galvaStenSubText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 종류: "+it.galvaStenSubText+"</span>";
+                    if(it.is13x && it.baseUnitOrig > 0) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 단가 ×1.3 적용: "+_fmtCh(it.baseUnitOrig)+"→"+_fmtCh(it.baseUnit)+"원/자</span>";
                     if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+(it.baseUnit>0?" @"+it.baseUnit:"")+"</span>";
                     if(it.trimColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 뚜껑: "+it.trimColorText+"</span>";
                     if(it.solidColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 입체(몸통): "+it.solidColorText+"</span>";
