@@ -1052,6 +1052,10 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_green'>녹색</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
+			append_html += "<tr class='ch_led_jeon_count_row add_row'>";
+				append_html += "<th>전광 LED 개수</th>";
+				append_html += "<td><input type='number' id='ch_led_jeon_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>후광</th>";
 				append_html += "<td>";
@@ -1070,6 +1074,10 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_blue'>청색</label>";
 					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_green'>녹색</label>";
 				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='ch_led_hu_count_row add_row'>";
+				append_html += "<th>후광 LED 개수</th>";
+				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
 			append_html += "</tr>";
 			append_html += "<tr class='ch_led_hu_ggachi_row add_row'>";
 				append_html += "<th>까치발 개수 (후광)</th>";
@@ -1340,6 +1348,10 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_jeon_color' id='channel_led_jeon_green'>녹색</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
+			append_html += "<tr class='ch_led_jeon_count_row add_row'>";
+				append_html += "<th>전광 LED 개수</th>";
+				append_html += "<td><input type='number' id='ch_led_jeon_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>후광</th>";
 				append_html += "<td>";
@@ -1358,6 +1370,10 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_blue'>청색</label>";
 					append_html += "<label><input type='radio' name='channel_led_hu_color' id='channel_led_hu_green'>녹색</label>";
 				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr class='ch_led_hu_count_row add_row'>";
+				append_html += "<th>후광 LED 개수</th>";
+				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
 			append_html += "</tr>";
 			append_html += "<tr class='ch_led_hu_ggachi_row add_row'>";
 				append_html += "<th>까치발 개수 (후광)</th>";
@@ -2103,17 +2119,24 @@ function hoorex_type(){
 		if(isNewLed){
 			var jeonOn = $("#channel_led_jeon_yes").is(":checked");
 			var huOn   = $("#channel_led_hu_yes").is(":checked");
-			if(jeonOn) $(".channel_led_jeon_color_row").css("display","table-row");
-			else       $(".channel_led_jeon_color_row").hide();
+			if(jeonOn){
+				$(".channel_led_jeon_color_row").css("display","table-row");
+				$(".ch_led_jeon_count_row").css("display","table-row");
+			} else {
+				$(".channel_led_jeon_color_row").hide();
+				$(".ch_led_jeon_count_row").hide();
+			}
 			if(huOn){
 				$(".channel_led_hu_color_row").css("display","table-row");
+				$(".ch_led_hu_count_row").css("display","table-row");
 				$(".ch_led_hu_ggachi_row").css("display","table-row");
 			} else {
 				$(".channel_led_hu_color_row").hide();
+				$(".ch_led_hu_count_row").hide();
 				$(".ch_led_hu_ggachi_row").hide();
 			}
-			if(jeonOn || huOn) _chLedCountBySize();
-			else $(".channel_led_count td span").text("0개");
+			if(jeonOn || huOn) $(".channel_led_count").hide();
+			else               $(".channel_led_count").css("display","table-row");
 		} else if(!$("#channel_led_color_none").is(":checked")){ //LED색상 선택했을때 (기존 옵션)
 			$(".channel_led_pos_row").css("display","table-row");
 			_chLedCountBySize();
