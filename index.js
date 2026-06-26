@@ -997,13 +997,6 @@ function hoorex_type(){
 		append_html += "</tr>";		
 		}else if($("#channel_option02").is(":checked")){ // 갈바채널
 			append_html += "<tr>";
-				append_html += "<th>소재</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_material' id='channel_material01' checked='checked'>알루미늄</label>";
-					append_html += "<label><input type='radio' name='channel_material' id='channel_material02'>갈바</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
@@ -1307,13 +1300,6 @@ function hoorex_type(){
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
 			append_html += "</tr>";	
 		}else if($("#channel_option06").is(":checked")){ // 스텐채널
-			append_html += "<tr>";
-				append_html += "<th>소재</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_material' id='channel_material01' checked='checked'>알루미늄</label>";
-					append_html += "<label><input type='radio' name='channel_material' id='channel_material02'>갈바</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
