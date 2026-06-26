@@ -1,3 +1,16 @@
+/* ── 직원 등록 모달 크기 오버라이드 ── */
+#emp_form_modal .modal_box {
+    width: 640px;
+    max-width: calc(100vw - 32px);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+#emp_form_modal .modal_body {
+    overflow-y: auto;
+    flex: 1;
+}
+
 /* ── 직원 관리 페이지 ── */
 .emp-wrap {
     max-width: 1100px;

@@ -79,13 +79,16 @@ function renderEmployees() {
         var monthly = salary > 0 ? Math.round(salary / 12) : 0;
         var tenure = _empTenure(emp.joinDate);
         var memoHtml = emp.memo ? '<span class="emp-memo-badge" title="' + _empEsc(emp.memo) + '">메모</span>' : '';
+        var rankPos = [emp.rank, emp.position].filter(Boolean).map(_empEsc).join(' / ') || '-';
         rows += '<tr>' +
             '<td class="emp-name">' + _empEsc(emp.name) + memoHtml + '</td>' +
             '<td>' + (emp.userId ? '<span class="emp-userid">' + _empEsc(emp.userId) + '</span>' : '<span style="color:#c0c8d4">-</span>') + '</td>' +
+            '<td>' + rankPos + '</td>' +
             '<td>' + _empEsc(emp.phone || '-') + '</td>' +
             '<td>' + _empDateFmt(emp.joinDate) + (tenure ? ' <span style="color:#8892a4;font-size:11px;">(' + _empEsc(tenure) + ')</span>' : '') + '</td>' +
             '<td class="emp-salary-cell tr">' + (salary > 0 ? _empFmt(salary) + '원' : '-') + '</td>' +
             '<td class="emp-monthly-cell tr">' + (monthly > 0 ? _empFmt(monthly) + '원/월' : '-') + '</td>' +
+            '<td class="tc">' + (emp.workHours ? emp.workHours + 'h' : '-') + '</td>' +
             '<td>' +
                 '<div class="emp-actions">' +
                     '<button class="btn-edit emp-edit-btn" data-id="' + _empEsc(emp.id) + '">수정</button>' +
@@ -100,10 +103,12 @@ function renderEmployees() {
             '<thead><tr>' +
                 '<th>이름</th>' +
                 '<th>아이디</th>' +
+                '<th>직급 / 포지션</th>' +
                 '<th>연락처</th>' +
                 '<th>입사일</th>' +
                 '<th class="tr">연봉</th>' +
                 '<th class="tr">월급</th>' +
+                '<th class="tc">근무시간</th>' +
                 '<th class="tc">관리</th>' +
             '</tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
@@ -138,9 +143,12 @@ function openEmpModal(emp) {
     $('#emp_form_title').text(emp ? '직원 수정' : '직원 등록');
     $('#emp_name').val(emp ? (emp.name || '') : '');
     $('#emp_user_id').val(emp ? (emp.userId || '') : '');
+    $('#emp_rank').val(emp ? (emp.rank || '') : '');
+    $('#emp_position').val(emp ? (emp.position || '') : '');
     $('#emp_phone').val(emp ? (emp.phone || '') : '');
     $('#emp_join_date').val(emp ? (emp.joinDate || '') : '');
     $('#emp_salary').val(emp ? (emp.salary || '') : '');
+    $('#emp_work_hours').val(emp ? (emp.workHours || '') : '');
     $('#emp_memo').val(emp ? (emp.memo || '') : '');
     $('#emp_form_error').text('');
     $('#emp_name').removeClass('error');
@@ -170,9 +178,12 @@ function saveEmployee() {
     var data = {
         name: name,
         userId: $.trim($('#emp_user_id').val()),
+        rank: $.trim($('#emp_rank').val()),
+        position: $.trim($('#emp_position').val()),
         phone: $.trim($('#emp_phone').val()),
         joinDate: $('#emp_join_date').val(),
         salary: parseInt($('#emp_salary').val(), 10) || 0,
+        workHours: parseFloat($('#emp_work_hours').val()) || 0,
         memo: $.trim($('#emp_memo').val()),
         updatedAt: Date.now()
     };
