@@ -141,7 +141,7 @@ function openEmpModal(emp) {
     $('#emp_memo').val(emp ? (emp.memo || '') : '');
     $('#emp_form_error').text('');
     $('#emp_name').removeClass('error');
-    $('#emp_form_modal').fadeIn(180);
+    $('#emp_form_modal').fadeIn(180, function(){ $(this).css('display','flex'); });
     setTimeout(function() { $('#emp_name').focus(); }, 200);
 }
 
