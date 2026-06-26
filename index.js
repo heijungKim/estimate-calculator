@@ -133,6 +133,13 @@ function getBackdropPrice() {
     if(!$("#sigh_backdrop_yes").is(":checked")) return 0;
     var d = getSignDimensions();
     if(d.w <= 0 || d.h <= 0) return 0;
+    return d.w * d.h * 3000;
+}
+
+function getBackdropColorPrice() {
+    if(!$("#sigh_backdrop_color_yes").is(":checked")) return 0;
+    var d = getSignDimensions();
+    if(d.w <= 0 || d.h <= 0) return 0;
     return (d.w + d.h + d.w + d.h) * 6000;
 }
 
@@ -404,6 +411,10 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_color_row add_row'>";
+			append_html += "<th>색상 작업</th>";
+			append_html += "<td><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_yes'>있음</label></td>";
+		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -505,6 +516,10 @@ function set_sign_top_option_select(){
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
 		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_color_row add_row'>";
+			append_html += "<th>색상 작업</th>";
+			append_html += "<td><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_yes'>있음</label></td>";
+		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
 			append_html += "<td><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_no' checked='checked'>없음</label><label><input type='radio' name='sigh_deungbak' id='sigh_deungbak_yes'>있음</label></td>";
@@ -590,6 +605,10 @@ function set_sign_top_option_select(){
 		append_html += "<tr>";
 			append_html += "<th>뒷판작업</th>";
 			append_html += "<td><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop' id='sigh_backdrop_yes'>있음</label></td>";
+		append_html += "</tr>";
+		append_html += "<tr class='sigh_backdrop_color_row add_row'>";
+			append_html += "<th>색상 작업</th>";
+			append_html += "<td><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_no' checked='checked'>없음</label><label><input type='radio' name='sigh_backdrop_color' id='sigh_backdrop_color_yes'>있음</label></td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>등박스</th>";
@@ -3354,7 +3373,11 @@ function sign_top_01(){ //사인탑_비조명
     	sign_top_01_cal();
       
     });
-    $("input[name='sigh_option'],input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
+    $("input[name='sigh_backdrop']").click(function(){
+        if($(this).attr("id")==="sigh_backdrop_yes") $(".sigh_backdrop_color_row").css("display","table-row");
+        else { $(".sigh_backdrop_color_row").hide(); $("#sigh_backdrop_color_no").prop("checked",true); }
+    });
+    $("input[name='sigh_option'],input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_backdrop_color'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
     	sign_top_01_cal();
  
     });
@@ -3393,8 +3416,9 @@ function sign_top_01_cal(){ //사인탑_비조명 계산
     }
 
     var backdrop_price = getBackdropPrice();
+    var backdrop_color_price = getBackdropColorPrice();
     var deungbak_price = getDeungbakPrice();
-    $("#order_price").text(String(Math.floor(total_price+color_price+angle_price+backdrop_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    $("#order_price").text(String(Math.floor(total_price+color_price+angle_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 
 function sign_top_02(){ //사인탑_조명
@@ -3411,7 +3435,11 @@ function sign_top_02(){ //사인탑_조명
     	sign_top_02_cal();
       
     });
-    $("input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sigh_angle_width'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
+    $("input[name='sigh_backdrop']").click(function(){
+        if($(this).attr("id")==="sigh_backdrop_yes") $(".sigh_backdrop_color_row").css("display","table-row");
+        else { $(".sigh_backdrop_color_row").hide(); $("#sigh_backdrop_color_no").prop("checked",true); }
+    });
+    $("input[name='sigh_option_direction'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_angle'],input[name='sigh_angle_width'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_backdrop_color'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
     	sign_top_02_cal();
  
     });
@@ -3509,8 +3537,9 @@ function sign_top_02_cal(){ //사인탑_조명 계산
     }
 
     var backdrop_price = getBackdropPrice();
+    var backdrop_color_price = getBackdropColorPrice();
     var deungbak_price = getDeungbakPrice();
-	$("#order_price").text(String(Math.floor(total_price+color_price+angle_price+led_price+backdrop_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+	$("#order_price").text(String(Math.floor(total_price+color_price+angle_price+led_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
 
@@ -3529,7 +3558,11 @@ function sign_top_03(){ //사인탑_돌출
     	sign_top_03_cal();
       
     });
-    $("input[name='sigh_angle_width'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_baltong'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
+    $("input[name='sigh_backdrop']").click(function(){
+        if($(this).attr("id")==="sigh_backdrop_yes") $(".sigh_backdrop_color_row").css("display","table-row");
+        else { $(".sigh_backdrop_color_row").hide(); $("#sigh_backdrop_color_no").prop("checked",true); }
+    });
+    $("input[name='sigh_angle_width'],input[name='sigh_display'],input[name='sigh_light'],input[name='sigh_frame_color'],input[name='sigh_baltong'],input[name='sign_more_order'],input[name='sigh_backdrop'],input[name='sigh_backdrop_color'],input[name='sigh_deungbak'],input[name='sigh_deungbak_type'],input[name='sigh_kyungbak_size'],input[name='sigh_deungbak_pos']").click(function(){
     	sign_top_03_cal();
  
     });
@@ -3618,8 +3651,9 @@ function sign_top_03_cal(){ //사인탑_돌출 계산
     }
 
     var backdrop_price = getBackdropPrice();
+    var backdrop_color_price = getBackdropColorPrice();
     var deungbak_price = getDeungbakPrice();
-	$("#order_price").text(String(Math.floor(total_price+woorex_price+led_price+color_price+bal_tong_price+backdrop_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+	$("#order_price").text(String(Math.floor(total_price+woorex_price+led_price+color_price+bal_tong_price+backdrop_price+backdrop_color_price+deungbak_price+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
 
@@ -5940,7 +5974,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : ("+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+"+"+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+")mm × 6,000원/m"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_backdrop_color_yes").is(":checked")) total_html+=" / 색상작업 있음"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -5976,7 +6010,7 @@ $(".save_btn").click(function(){
                         else bd+="<span class='bd_item'>스텐몰딩 <em>둘레 "+_fmt(Math.round((tw*2+tv*2)*1000))+"mm × "+_fmt(PRICES.sign_sten_molding)+"원/m = "+_fmt(colorP)+"원</em></span>";
                     }
                     if(angleCnt>0&&angleP>0) bd+="<span class='bd_item'>까치발 <em>"+angleCnt+"개 × "+_fmt(angleUnit)+"원 = "+_fmt(angleP)+"원</em></span>";
-                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropP)+"원</em></span>"; }
+                    if(backdropP>0){ var _bD=getSignDimensions(); bd+="<span class='bd_item'>뒷판작업 <em>"+_fmt(Math.round(_bD.w*1000))+"×"+_fmt(Math.round(_bD.h*1000))+"mm × 3,000원/m² = "+_fmt(backdropP)+"원</em></span>"; var backdropColorP=getBackdropColorPrice(); if(backdropColorP>0) bd+="<span class='bd_item'>뒷판 색상작업 <em>("+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+"+"+_fmt(Math.round(_bD.w*1000))+"+"+_fmt(Math.round(_bD.h*1000))+")mm × 6,000원/m = "+_fmt(backdropColorP)+"원</em></span>"; }
                     if(deungbakP>0){ var _dD=getSignDimensions(),_pos=$("input[name='sigh_deungbak_pos']:checked").attr("id")||"sigh_deungbak_top",_posNm=$("input[name='sigh_deungbak_pos']:checked").parent("label").text(),_len=(_pos==="sigh_deungbak_top"||_pos==="sigh_deungbak_bottom")?_dD.w:(_pos==="sigh_deungbak_left"||_pos==="sigh_deungbak_right")?_dD.h:(_pos==="sigh_deungbak_center")?_dD.w:2*(_dD.w+_dD.h); if($("#sigh_deungbak_galva").is(":checked")) bd+="<span class='bd_item'>등박스(갈바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm"+(_len<=5?" → 5m 이하 기본":" → 300,000 + "+Math.ceil(_len-5)+"m×50,000")+" = "+_fmt(deungbakP)+"원</em></span>"; else{ var _kU=$("#sigh_kyungbak_50").is(":checked")?60000:80000,_kS=Math.ceil(_len/3); bd+="<span class='bd_item'>등박스(경관바/"+_posNm+") <em>"+_fmt(Math.round(_len*1000))+"mm → "+_kS+"구간 × "+_fmt(_kU)+"원 = "+_fmt(deungbakP)+"원</em></span>"; } }
                     bd += extraCostBdItems();
                     bd+="</span>"; total_html+=bd;
@@ -6004,7 +6038,7 @@ $(".save_btn").click(function(){
                    total_html +=" / 까치발 수량 : "+$("#sigh_angle_count").val();
                 }
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : ("+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+"+"+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+")mm × 6,000원/m"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_backdrop_color_yes").is(":checked")) total_html+=" / 색상작업 있음"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
@@ -6066,7 +6100,7 @@ $(".save_btn").click(function(){
                 }
             	total_html +="/ 시공발통 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_baltong']:checked").parent("label").text();
             	if($("#sigh_backdrop_yes").is(":checked")){
-            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : ("+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+"+"+_f(Math.round(_bd.w*1000))+"+"+_f(Math.round(_bd.h*1000))+")mm × 6,000원/m"; })();
+            		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; if($("#sigh_backdrop_color_yes").is(":checked")) total_html+=" / 색상작업 있음"; })();
             	}
             	if($("#sigh_deungbak_yes").is(":checked")){
             		if($("#sigh_deungbak_galva").is(":checked")){
