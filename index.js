@@ -6264,6 +6264,77 @@ $(document).on("keydown", ".list_price_input", function(e) {
     if (e.key === "Escape") $(this).blur();
 });
 
+// ── bd_item em 클릭 → 회색 배지 금액 편집 (단가 비례, PRICES 불변) ──
+$(document).on("click", ".bd_item em", function(e) {
+    e.stopPropagation();
+    var $em = $(this);
+    if ($em.hasClass("bd-editing")) return;
+
+    var origText = $em.text();
+    var totalMatch = origText.match(/([\d,]+)원\s*$/);
+    if (!totalMatch) return;
+    var oldTotal = parseInt(totalMatch[1].replace(/,/g, ""), 10);
+    if (!oldTotal) return;
+
+    $em.data("bd-orig", origText).addClass("bd-editing");
+
+    // 끝 "N원" 앞 텍스트 유지, 숫자 부분만 input으로 교체
+    var prefix = origText.replace(/([\d,]+)원\s*$/, "");
+    $em.html(prefix + '<input type="number" class="bd-price-input" value="' + oldTotal + '" min="0" />원');
+    $em.find("input").focus().select();
+});
+
+$(document).on("blur", ".bd-price-input", function() {
+    var $input = $(this);
+    var $em = $input.closest("em");
+    var newTotal = _r10(parseInt($input.val(), 10) || 0);
+    var origText = $em.data("bd-orig") || "";
+
+    var totalMatch = origText.match(/([\d,]+)원\s*$/);
+    var oldTotal = totalMatch ? parseInt(totalMatch[1].replace(/,/g, ""), 10) : newTotal;
+    var ratio = oldTotal > 0 ? newTotal / oldTotal : 1;
+
+    // em 내 단가 비례 재계산
+    var newText = origText;
+    // × N원/m²
+    newText = newText.replace(/(× )([\d,]+)(원\/m²)/g, function(_, pre, num, suf) {
+        return pre + _r10(Math.round(parseInt(num.replace(/,/g,""),10) * ratio)).toLocaleString("ko-KR") + suf;
+    });
+    // × N원/m (²제외)
+    newText = newText.replace(/(× )([\d,]+)(원\/m)(?!²)/g, function(_, pre, num, suf) {
+        return pre + _r10(Math.round(parseInt(num.replace(/,/g,""),10) * ratio)).toLocaleString("ko-KR") + suf;
+    });
+    // × N원 = (개당 단가)
+    newText = newText.replace(/(× )([\d,]+)(원)(?=\s*=)/g, function(_, pre, num, won) {
+        return pre + _r10(Math.round(parseInt(num.replace(/,/g,""),10) * ratio)).toLocaleString("ko-KR") + won;
+    });
+    // 총액(끝) 교체
+    newText = newText.replace(/([\d,]+)(원\s*)$/, newTotal.toLocaleString("ko-KR") + "$2");
+
+    $em.removeClass("bd-editing").text(newText);
+
+    // 부모 li의 list_price → bd_item 합계로 갱신
+    var $li = $em.closest("li");
+    var bdSum = 0;
+    $li.find(".bd_item em").each(function() {
+        var m = $(this).text().match(/([\d,]+)원\s*$/);
+        if (m) bdSum += parseInt(m[1].replace(/,/g, ""), 10);
+    });
+    if (bdSum > 0) {
+        $li.find(".list_price").text(String(bdSum).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    }
+    list_sum_price();
+});
+
+$(document).on("keydown", ".bd-price-input", function(e) {
+    if (e.key === "Enter") $(this).blur();
+    if (e.key === "Escape") {
+        var $em = $(this).closest("em");
+        $em.removeClass("bd-editing").text($em.data("bd-orig") || "");
+        list_sum_price();
+    }
+});
+
 // " / " 구분자를 시각적 줄바꿈으로 변환 (한 번만 실행)
 function reformatLiDisplay($li) {
     if ($li.hasClass("fmted")) return;
