@@ -1023,10 +1023,6 @@ function hoorex_type(){
 				append_html += "<th>후광 LED 개수</th>";
 				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
 			append_html += "</tr>";
-			append_html += "<tr class='channel_led_count'>";
-				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
-			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
 				append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
@@ -1254,10 +1250,6 @@ function hoorex_type(){
 				append_html += "<th>후광 LED 개수</th>";
 				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
 			append_html += "</tr>";
-			append_html += "<tr class='channel_led_count'>";
-				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
-			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
 				append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
@@ -1353,10 +1345,6 @@ function hoorex_type(){
 			append_html += "<tr class='ch_led_hu_count_row add_row'>";
 				append_html += "<th>후광 LED 개수</th>";
 				append_html += "<td><input type='number' id='ch_led_hu_count' min='0' placeholder='개수를 입력하세요'> 개</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='channel_led_count'>";
-				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
