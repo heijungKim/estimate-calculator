@@ -920,8 +920,12 @@ function hoorex_type(){
 			append_html += "<td><span>0개</span></td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
+			append_html += "<th>글자 수</th>";
+			append_html += "<td><input type='number' id='channel_char_count' placeholder='글자 수를 입력하세요.'></td>";
+		append_html += "</tr>";
+		append_html += "<tr>";
 			append_html += "<th>수량</th>";
-			append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.'></td>";
+			append_html += "<td><input type='number' id='channel_content' placeholder='수량을 입력해주세요.' value='1'></td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>화면 작업</th>";
@@ -3422,7 +3426,7 @@ function chnnel_taka(){ //채널 타카식
             chnnel_taka_cal();
 
         });
-        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count,#ch_smps_qty").bind("change keyup paste", function(){
+        $("#channel_content,#channel_char_count,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count,#ch_smps_qty").bind("change keyup paste", function(){
             chnnel_taka_cal();
         });
         $("input[name='ch_smps_spec']").click(function(){
@@ -3550,7 +3554,8 @@ function _getChCurrentItemPrice() {
 
     var _ledCnt = parseInt($(".channel_led_count td span").text()) || 0;
     var led_price = 0;
-    var qty = Number($("#channel_content").val()) || 0;
+    var char_count = Number($("#channel_char_count").val()) || 0;
+    var order_qty  = Number($("#channel_content").val()) || 0;
 
     var isNewLedOpt = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked") || $("#channel_option07").is(":checked"));
     if(isNewLedOpt) {
@@ -3569,7 +3574,7 @@ function _getChCurrentItemPrice() {
             else if($("#channel_led_jeon_rgb").is(":checked"))    _jU = PRICES.ch_led_rgb;
             else if($("#channel_led_jeon_panorama").is(":checked"))_jU = PRICES.ch_led_panorama;
             else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU = PRICES.ch_led_color;
-            led_price += _jU * _jeonCnt + (PRICES.ch_led_pos_jeon || 0) * qty;
+            led_price += _jU * _jeonCnt + (PRICES.ch_led_pos_jeon || 0) * char_count;
         }
         // 후광 LED
         if($("#channel_led_hu_yes").is(":checked")) {
@@ -3579,7 +3584,7 @@ function _getChCurrentItemPrice() {
             else if($("#channel_led_hu_rgb").is(":checked"))    _hU = PRICES.ch_led_rgb;
             else if($("#channel_led_hu_panorama").is(":checked"))_hU = PRICES.ch_led_panorama;
             else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU = PRICES.ch_led_color;
-            led_price += _hU * _huCnt + (PRICES.ch_led_pos_hu || 0) * qty;
+            led_price += _hU * _huCnt + (PRICES.ch_led_pos_hu || 0) * char_count;
         }
     } else {
         if($("#channel_led_color_white").is(":checked"))         led_price = PRICES.ch_led_white * _ledCnt;
@@ -3601,7 +3606,10 @@ function _getChCurrentItemPrice() {
     _lastCh13x = _apply13x;
     if (_apply13x) chennel_width = _r10(Math.round(chennel_width * 1.3));
 
-    var _basePrice = Math.floor((chennel_width + chennel_width * custom_order) * qty + led_price);
+    // 1세트 가격 = (글자단가 × 글자수) + LED가격
+    // 총가격 = 1세트 가격 × 수량(세트수)
+    var _unitPrice = (chennel_width + chennel_width * custom_order) * char_count + led_price;
+    var _basePrice = Math.floor(_unitPrice * order_qty);
     _lastChBaseUnit = chennel_width;
     _lastChCustomOrder = custom_order;
     if($("#channel_solid_color_none").is(":checked")) return Math.floor(_basePrice * 1.006);
@@ -3610,8 +3618,10 @@ function _getChCurrentItemPrice() {
 
 // ── 담기 버튼: 현재 폼 항목을 _chItems에 추가 ──────────────────
 function addChannelItem() {
+    var char_count = Number($("#channel_char_count").val()) || 0;
     var qty = Number($("#channel_content").val()) || 0;
-    if(qty <= 0) { alert("수량(글자 수)을 입력해주세요."); return; }
+    if(char_count <= 0) { alert("글자 수를 입력해주세요."); return; }
+    if(qty <= 0) { alert("수량을 입력해주세요."); return; }
 
     var price = _getChCurrentItemPrice(); // 호출 후 _lastChBaseUnit, _lastChCustomOrder 세팅됨
     if(price <= 0) { alert("크기 또는 문자형태를 선택해주세요."); return; }
@@ -3649,7 +3659,7 @@ function addChannelItem() {
             else if($("#channel_led_jeon_rgb").is(":checked"))     _jU2 = PRICES.ch_led_rgb;
             else if($("#channel_led_jeon_panorama").is(":checked"))_jU2 = PRICES.ch_led_panorama;
             else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU2 = PRICES.ch_led_color;
-            _jeonLedPrice = _jU2 * _jeonLedCntNum + (PRICES.ch_led_pos_jeon || 0) * qty;
+            _jeonLedPrice = _jU2 * _jeonLedCntNum + (PRICES.ch_led_pos_jeon || 0) * char_count;
         }
         if($("#channel_led_hu_yes").is(":checked")){
             _huColorText = $("input[name='channel_led_hu_color']:checked").parent("label").text().trim();
@@ -3661,7 +3671,7 @@ function addChannelItem() {
             else if($("#channel_led_hu_rgb").is(":checked"))     _hU2 = PRICES.ch_led_rgb;
             else if($("#channel_led_hu_panorama").is(":checked"))_hU2 = PRICES.ch_led_panorama;
             else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU2 = PRICES.ch_led_color;
-            _huLedPrice = _hU2 * _huLedCntNum + (PRICES.ch_led_pos_hu || 0) * qty;
+            _huLedPrice = _hU2 * _huLedCntNum + (PRICES.ch_led_pos_hu || 0) * char_count;
         }
     } else {
         if(!$("#channel_led_color_none").is(":checked")){
@@ -3683,6 +3693,7 @@ function addChannelItem() {
     var label = _channelTypeName;
     if(_galvaStenSubText) label += " [" + _galvaStenSubText + "]";
     label += " " + _sizeText;
+    label += " / 글자 수: " + char_count + "자";
     label += " / 수량: " + qty + "개";
     label += " / 문자형태: " + _textFormText;
     if(_trimColorText)  label += " / 트림: " + _trimColorText;
@@ -3699,7 +3710,7 @@ function addChannelItem() {
         channelTypeName: _channelTypeName, sizeText: _sizeText,
         textFormText: _textFormText, trimColorText: _trimColorText,
         solidColorText: _solidColorText, dispWorkName: _dispWorkName,
-        qty: qty, baseUnit: _lastChBaseUnit, customOrder: _lastChCustomOrder,
+        charCount: char_count, qty: qty, baseUnit: _lastChBaseUnit, customOrder: _lastChCustomOrder,
         ledColor: _ledColorText, ledCnt: _ledCntNum, ledUnit: _ledUnitP, ledPrice: _ledPriceNum,
         jeonColor: _jeonColorText, huColor: _huColorText,
         jeonLedPrice: _jeonLedPrice, huLedPrice: _huLedPrice,
@@ -6281,10 +6292,16 @@ $(document).on("blur", ".bd-price-input", function() {
     $li.removeClass("bd-fmted");
     reformatBreakdown($li);
 
-    // list_price → bd_item 합계로 갱신
+    // list_price → bd_item 합계로 갱신 (이중합산 항목 제외)
     var bdSum = 0;
-    $li.find(".price_breakdown .bd_item em").each(function() {
-        var m = $(this).text().match(/([\d,]+)원\s*$/);
+    $li.find(".price_breakdown .bd_item").each(function() {
+        var txt = $(this).text().trim();
+        if (/담긴 항목 합계/.test(txt)) return;   // 채널 항목 합계는 이미 채널메인에 포함
+        if (/^#채널LED#/.test(txt)) return;        // LED 세부항목은 채널메인 가격에 포함됨
+        if (/^#채널서브#/.test(txt)) return;       // 정보표시 항목 (em 없음)
+        var $em = $(this).find("em");
+        if (!$em.length) return;
+        var m = $em.text().match(/([\d,]+)원\s*$/);
         if (m) bdSum += parseInt(m[1].replace(/,/g, ""), 10);
     });
     if (bdSum > 0) {
