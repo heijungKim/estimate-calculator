@@ -6000,15 +6000,20 @@ $(".save_btn").click(function(){
                     var _qN = it.qty || 1;
                     var _detailSuffix = it.detail ? " ["+it.detail+"]" : "";
                     var _mainName = (it.channelTypeName||"채널문자") + " " + (it.sizeText||"");
-                    bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = <em>"+_fmtCh(it.price)+"원</em></span>";
+                    // 채널메인: LED 비용 제외한 채널 단가만 표시
+                    var _ledTot = ((it.jeonLedPrice||0)+(it.huLedPrice||0)+(it.ledPrice||0))*_qN;
+                    var _chOnly = it.price - _ledTot;
+                    bd += "<span class='bd_item'>#채널메인# ("+(i+1)+"). "+_mainName+_detailSuffix+" × "+_qN+"개 = <em>"+_fmtCh(_chOnly)+"원</em></span>";
                     if(it.galvaStenSubText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 종류: "+it.galvaStenSubText+"</span>";
                     if(it.is13x && it.baseUnitOrig > 0) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 단가 ×1.3 적용: "+_fmtCh(it.baseUnitOrig)+"→"+_fmtCh(it.baseUnit)+"원/자</span>";
                     if(it.textFormText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). "+it.textFormText+(it.baseUnit>0?" @"+it.baseUnit:"")+"</span>";
                     if(it.trimColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 뚜껑: "+it.trimColorText+"</span>";
                     if(it.solidColorText) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 입체(몸통): "+it.solidColorText+"</span>";
-                    if(it.jeonLedPrice>0) bd += "<span class='bd_item'>#채널LED# 전광 LED("+it.jeonColor+") × "+(it.jeonLedCnt||it.ledCnt)+"개 = <em>"+_fmtCh(it.jeonLedPrice)+"원</em></span>";
-                    if(it.huLedPrice>0)   bd += "<span class='bd_item'>#채널LED# 후광 LED("+it.huColor+") × "+(it.huLedCnt||it.ledCnt)+"개 = <em>"+_fmtCh(it.huLedPrice)+"원</em></span>";
-                    if(it.ledPrice>0) bd += "<span class='bd_item'>#채널LED# LED("+it.ledColor+") × "+it.ledCnt+"개 = <em>"+_fmtCh(it.ledPrice)+"원</em></span>";
+                    // LED: v2 형식 — 총비용(per-sign × qty), 채널메인과 독립 항목으로 분리
+                    var _jeonT=(it.jeonLedPrice||0)*_qN, _huT=(it.huLedPrice||0)*_qN, _ledT=(it.ledPrice||0)*_qN;
+                    if(_jeonT>0) bd += "<span class='bd_item'>#채널LEDv2# 전광 LED("+it.jeonColor+") × "+((it.jeonLedCnt||0)*_qN)+"개 = <em>"+_fmtCh(_jeonT)+"원</em></span>";
+                    if(_huT>0)   bd += "<span class='bd_item'>#채널LEDv2# 후광 LED("+it.huColor+") × "+((it.huLedCnt||0)*_qN)+"개 = <em>"+_fmtCh(_huT)+"원</em></span>";
+                    if(_ledT>0)  bd += "<span class='bd_item'>#채널LEDv2# LED("+it.ledColor+") × "+((it.ledCnt||0)*_qN)+"개 = <em>"+_fmtCh(_ledT)+"원</em></span>";
                     if(it.dispWorkName) bd += "<span class='bd_item'>#채널서브# ("+(i+1)+"). 화면작업: "+it.dispWorkName+"</span>";
                 });
                 if(_itemsTotal>0) bd += "<span class='bd_item'>담긴 항목 합계 <em>"+_fmtCh(_itemsTotal)+"원</em></span>";
@@ -6325,14 +6330,28 @@ function reformatBreakdown($li) {
     $pb.find('.bd_item').each(function() { bdTexts.push($(this).text().trim()); });
     if (!bdTexts.length) return;
 
-    // 합계 계산 (담긴항목합계·채널LED·채널서브 제외)
+    // 합계 계산 (담긴항목합계·구형채널LED·채널서브 제외, 신형LEDv2 포함)
     var chipTotal = 0;
     bdTexts.forEach(function(txt) {
         if (/담긴 항목 합계/.test(txt)) return;
-        if (/^#채널LED#/.test(txt)) return;
+        if (/^#채널LED#/.test(txt)) return;   // 구형: 채널메인 가격에 이미 포함
         if (/^#채널서브#/.test(txt)) return;
         var m = txt.match(/([\d,]+)원\s*$/);
         if (m) chipTotal += parseInt(m[1].replace(/,/g, ''), 10);
+    });
+
+    // 신형(v2) LED 항목별 총액 맵 — bd-ch-hdr 총액 표시용
+    var ledV2TotalByIdx = {};
+    var _curChIdx = null;
+    bdTexts.forEach(function(txt) {
+        var _mM = txt.match(/^#채널메인#\s+\((\d+)\)/);
+        if (_mM) { _curChIdx = _mM[1]; return; }
+        if (/^#채널LEDv2#/.test(txt)) {
+            var _m = txt.match(/([\d,]+)원\s*$/);
+            if (_m && _curChIdx !== null) {
+                ledV2TotalByIdx[_curChIdx] = (ledV2TotalByIdx[_curChIdx] || 0) + parseInt(_m[1].replace(/,/g,''), 10);
+            }
+        }
     });
 
     var chCount = bdTexts.filter(function(t){ return /^#채널메인#/.test(t); }).length;
@@ -6378,7 +6397,9 @@ function reformatBreakdown($li) {
         if (mainM) {
             if (chCount > 1) {
                 var n = parseInt(mainM[1]);
-                html += '<div class="bd-ch-hdr">세부 항목 ' + (nos[n-1]||n) + '<span class="bd-ch-hdr-price">' + esc(mainM[4]) + '원</span></div>';
+                var _chOnlyP = Number(mainM[4].replace(/,/g,''));
+                var _totalItemP = _chOnlyP + (ledV2TotalByIdx[String(n)] || 0);
+                html += '<div class="bd-ch-hdr">세부 항목 ' + (nos[n-1]||n) + '<span class="bd-ch-hdr-price">' + fmtN(_totalItemP) + '원</span></div>';
             }
             var qty = parseInt(mainM[3]), total = Number(mainM[4].replace(/,/g,''));
             var unit = qty > 0 ? Math.round(total/qty) : total;
@@ -6400,13 +6421,24 @@ function reformatBreakdown($li) {
             }
             return;
         }
-        // LED
-        var ledM = txt.match(/^#채널LED#\s+LED\((.+?)\)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+        // 신형 LED v2 (채널메인과 독립 항목, 총비용 = per-sign × qty)
+        var ledV2M = txt.match(/^#채널LEDv2#\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+        if (ledV2M) {
+            var qty = parseInt(ledV2M[2]), total = Number(ledV2M[3].replace(/,/g,''));
+            var unit = qty > 0 ? Math.round(total/qty) : total;
+            html += '<span class="bd-chip bd-chip-led"' + di + '>'
+                  + esc(ledV2M[1]) + ' × ' + ledV2M[2] + '개 = <strong class="bd-price">' + esc(ledV2M[3]) + '원</strong>'
+                  + tipHtml(fmtN(unit) + '원/개')
+                  + '</span>';
+            return;
+        }
+        // 구형 LED (채널메인 가격에 포함, 하위 표시)
+        var ledM = txt.match(/^#채널LED#\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
         if (ledM) {
             var qty = parseInt(ledM[2]), total = Number(ledM[3].replace(/,/g,''));
             var unit = qty > 0 ? Math.round(total/qty) : total;
             html += '<span class="bd-chip bd-chip-main"' + di + '>'
-                  + '└ LED(' + esc(ledM[1]) + ') × ' + ledM[2] + '개 = <strong class="bd-price">' + esc(ledM[3]) + '원</strong>'
+                  + '└ ' + esc(ledM[1]) + ' × ' + ledM[2] + '개 = <strong class="bd-price">' + esc(ledM[3]) + '원</strong>'
                   + tipHtml(fmtN(unit) + '원/개')
                   + '</span>';
             return;
