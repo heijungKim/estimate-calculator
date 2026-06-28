@@ -83,6 +83,45 @@ var DEFAULT_PRICES = {
     cm_fluorescent: 0,
     cm_led_ctrl_1ch: 0, cm_led_ctrl_2ch: 0, cm_led_ctrl_3ch: 0,
     cm_led_white: 450, cm_led_warm: 500, cm_led_rgb: 800, cm_led_panorama: 3500, cm_led_color: 500,
+    // 스카시 아크릴 (글자당) [3T영문, 3T한글, 5T영문, 5T한글, 8T영문, 8T한글, 10T영문, 10T한글]
+    skasi_acr_3t_eng_30: 300, skasi_acr_3t_kor_30: 400, skasi_acr_5t_eng_30: 500, skasi_acr_5t_kor_30: 600, skasi_acr_8t_eng_30: 700, skasi_acr_8t_kor_30: 900, skasi_acr_10t_eng_30: 1100, skasi_acr_10t_kor_30: 1400,
+    skasi_acr_3t_eng_40: 400, skasi_acr_3t_kor_40: 500, skasi_acr_5t_eng_40: 600, skasi_acr_5t_kor_40: 700, skasi_acr_8t_eng_40: 900, skasi_acr_8t_kor_40: 1200, skasi_acr_10t_eng_40: 1500, skasi_acr_10t_kor_40: 1900,
+    skasi_acr_3t_eng_50: 500, skasi_acr_3t_kor_50: 600, skasi_acr_5t_eng_50: 700, skasi_acr_5t_kor_50: 900, skasi_acr_8t_eng_50: 1100, skasi_acr_8t_kor_50: 1500, skasi_acr_10t_eng_50: 1900, skasi_acr_10t_kor_50: 2600,
+    skasi_acr_3t_eng_60: 600, skasi_acr_3t_kor_60: 700, skasi_acr_5t_eng_60: 900, skasi_acr_5t_kor_60: 1000, skasi_acr_8t_eng_60: 1400, skasi_acr_8t_kor_60: 1900, skasi_acr_10t_eng_60: 2100, skasi_acr_10t_kor_60: 3000,
+    skasi_acr_3t_eng_70: 700, skasi_acr_3t_kor_70: 900, skasi_acr_5t_eng_70: 1000, skasi_acr_5t_kor_70: 1100, skasi_acr_8t_eng_70: 1800, skasi_acr_8t_kor_70: 2300, skasi_acr_10t_eng_70: 2600, skasi_acr_10t_kor_70: 3400,
+    skasi_acr_3t_eng_80: 900, skasi_acr_3t_kor_80: 1000, skasi_acr_5t_eng_80: 1100, skasi_acr_5t_kor_80: 1200, skasi_acr_8t_eng_80: 2000, skasi_acr_8t_kor_80: 2600, skasi_acr_10t_eng_80: 3100, skasi_acr_10t_kor_80: 3800,
+    skasi_acr_3t_eng_90: 1000, skasi_acr_3t_kor_90: 1100, skasi_acr_5t_eng_90: 1200, skasi_acr_5t_kor_90: 1500, skasi_acr_8t_eng_90: 2300, skasi_acr_8t_kor_90: 3000, skasi_acr_10t_eng_90: 3400, skasi_acr_10t_kor_90: 4500,
+    skasi_acr_3t_eng_100: 1100, skasi_acr_3t_kor_100: 1400, skasi_acr_5t_eng_100: 1500, skasi_acr_5t_kor_100: 1900, skasi_acr_8t_eng_100: 2600, skasi_acr_8t_kor_100: 3300, skasi_acr_10t_eng_100: 3800, skasi_acr_10t_kor_100: 5200,
+    skasi_acr_3t_eng_110: 1200, skasi_acr_3t_kor_110: 1500, skasi_acr_5t_eng_110: 1800, skasi_acr_5t_kor_110: 2100, skasi_acr_8t_eng_110: 3000, skasi_acr_8t_kor_110: 3700, skasi_acr_10t_eng_110: 4400, skasi_acr_10t_kor_110: 5700,
+    skasi_acr_3t_eng_120: 1500, skasi_acr_3t_kor_120: 1700, skasi_acr_5t_eng_120: 1900, skasi_acr_5t_kor_120: 2500, skasi_acr_8t_eng_120: 3300, skasi_acr_8t_kor_120: 4100, skasi_acr_10t_eng_120: 4900, skasi_acr_10t_kor_120: 6400,
+    skasi_acr_3t_eng_130: 1700, skasi_acr_3t_kor_130: 1800, skasi_acr_5t_eng_130: 2100, skasi_acr_5t_kor_130: 2700, skasi_acr_8t_eng_130: 3600, skasi_acr_8t_kor_130: 4600, skasi_acr_10t_eng_130: 5400, skasi_acr_10t_kor_130: 7100,
+    skasi_acr_3t_eng_140: 1800, skasi_acr_3t_kor_140: 2000, skasi_acr_5t_eng_140: 2300, skasi_acr_5t_kor_140: 3000, skasi_acr_8t_eng_140: 3900, skasi_acr_8t_kor_140: 5000, skasi_acr_10t_eng_140: 5900, skasi_acr_10t_kor_140: 7700,
+    skasi_acr_3t_eng_150: 1900, skasi_acr_3t_kor_150: 2100, skasi_acr_5t_eng_150: 2600, skasi_acr_5t_kor_150: 3200, skasi_acr_8t_eng_150: 4400, skasi_acr_8t_kor_150: 5400, skasi_acr_10t_eng_150: 6400, skasi_acr_10t_kor_150: 8400,
+    skasi_acr_3t_eng_160: 2000, skasi_acr_3t_kor_160: 2500, skasi_acr_5t_eng_160: 2700, skasi_acr_5t_kor_160: 3400, skasi_acr_8t_eng_160: 4700, skasi_acr_8t_kor_160: 5900, skasi_acr_10t_eng_160: 7000, skasi_acr_10t_kor_160: 9000,
+    skasi_acr_3t_eng_170: 2100, skasi_acr_3t_kor_170: 2600, skasi_acr_5t_eng_170: 3100, skasi_acr_5t_kor_170: 3800, skasi_acr_8t_eng_170: 5200, skasi_acr_8t_kor_170: 6400, skasi_acr_10t_eng_170: 7500, skasi_acr_10t_kor_170: 9700,
+    skasi_acr_3t_eng_180: 2300, skasi_acr_3t_kor_180: 2700, skasi_acr_5t_eng_180: 3300, skasi_acr_5t_kor_180: 4100, skasi_acr_8t_eng_180: 5500, skasi_acr_8t_kor_180: 6900, skasi_acr_10t_eng_180: 8100, skasi_acr_10t_kor_180: 10300,
+    skasi_acr_3t_eng_190: 2500, skasi_acr_3t_kor_190: 3000, skasi_acr_5t_eng_190: 3700, skasi_acr_5t_kor_190: 4400, skasi_acr_8t_eng_190: 6000, skasi_acr_8t_kor_190: 7300, skasi_acr_10t_eng_190: 8600, skasi_acr_10t_kor_190: 11700,
+    skasi_acr_3t_eng_200: 2700, skasi_acr_3t_kor_200: 3200, skasi_acr_5t_eng_200: 3800, skasi_acr_5t_kor_200: 4700, skasi_acr_8t_eng_200: 6400, skasi_acr_8t_kor_200: 8000, skasi_acr_10t_eng_200: 9200, skasi_acr_10t_kor_200: 12300,
+    skasi_acr_3t_eng_210: 2900, skasi_acr_3t_kor_210: 3400, skasi_acr_5t_eng_210: 4100, skasi_acr_5t_kor_210: 5000, skasi_acr_8t_eng_210: 7000, skasi_acr_8t_kor_210: 8600, skasi_acr_10t_eng_210: 9900, skasi_acr_10t_kor_210: 12900,
+    skasi_acr_3t_eng_220: 3100, skasi_acr_3t_kor_220: 3600, skasi_acr_5t_eng_220: 4400, skasi_acr_5t_kor_220: 5400, skasi_acr_8t_eng_220: 7300, skasi_acr_8t_kor_220: 9000, skasi_acr_10t_eng_220: 10600, skasi_acr_10t_kor_220: 13500,
+    skasi_acr_3t_eng_230: 3200, skasi_acr_3t_kor_230: 3800, skasi_acr_5t_eng_230: 4600, skasi_acr_5t_kor_230: 5700, skasi_acr_8t_eng_230: 7900, skasi_acr_8t_kor_230: 9600, skasi_acr_10t_eng_230: 11200, skasi_acr_10t_kor_230: 14200,
+    skasi_acr_3t_eng_240: 3300, skasi_acr_3t_kor_240: 4100, skasi_acr_5t_eng_240: 5000, skasi_acr_5t_kor_240: 6000, skasi_acr_8t_eng_240: 8400, skasi_acr_8t_kor_240: 10100, skasi_acr_10t_eng_240: 11800, skasi_acr_10t_kor_240: 14900,
+    skasi_acr_3t_eng_250: 3400, skasi_acr_3t_kor_250: 4400, skasi_acr_5t_eng_250: 5300, skasi_acr_5t_kor_250: 6400, skasi_acr_8t_eng_250: 9000, skasi_acr_8t_kor_250: 10800, skasi_acr_10t_eng_250: 12900, skasi_acr_10t_kor_250: 15500,
+    skasi_acr_3t_eng_260: 3500, skasi_acr_3t_kor_260: 4600, skasi_acr_5t_eng_260: 5500, skasi_acr_5t_kor_260: 6900, skasi_acr_8t_eng_260: 9500, skasi_acr_8t_kor_260: 11200, skasi_acr_10t_eng_260: 13500, skasi_acr_10t_kor_260: 16300,
+    skasi_acr_3t_eng_270: 3700, skasi_acr_3t_kor_270: 4900, skasi_acr_5t_eng_270: 5800, skasi_acr_5t_kor_270: 7200, skasi_acr_8t_eng_270: 9900, skasi_acr_8t_kor_270: 11800, skasi_acr_10t_eng_270: 14200, skasi_acr_10t_kor_270: 17400,
+    skasi_acr_3t_eng_280: 3800, skasi_acr_3t_kor_280: 5200, skasi_acr_5t_eng_280: 6000, skasi_acr_5t_kor_280: 7500, skasi_acr_8t_eng_280: 10300, skasi_acr_8t_kor_280: 12400, skasi_acr_10t_eng_280: 14900, skasi_acr_10t_kor_280: 18100,
+    skasi_acr_3t_eng_290: 4100, skasi_acr_3t_kor_290: 5400, skasi_acr_5t_eng_290: 6300, skasi_acr_5t_kor_290: 7700, skasi_acr_8t_eng_290: 10800, skasi_acr_8t_kor_290: 12900, skasi_acr_10t_eng_290: 15500, skasi_acr_10t_kor_290: 18800,
+    skasi_acr_3t_eng_300: 4500, skasi_acr_3t_kor_300: 5700, skasi_acr_5t_eng_300: 6500, skasi_acr_5t_kor_300: 8000, skasi_acr_8t_eng_300: 11100, skasi_acr_8t_kor_300: 13500, skasi_acr_10t_eng_300: 16100, skasi_acr_10t_kor_300: 19400,
+    skasi_acr_3t_eng_310: 4900, skasi_acr_3t_kor_310: 5900, skasi_acr_5t_eng_310: 6900, skasi_acr_5t_kor_310: 8500, skasi_acr_8t_eng_310: 11500, skasi_acr_8t_kor_310: 14200, skasi_acr_10t_eng_310: 16600, skasi_acr_10t_kor_310: 20000,
+    skasi_acr_3t_eng_320: 5000, skasi_acr_3t_kor_320: 6300, skasi_acr_5t_eng_320: 7100, skasi_acr_5t_kor_320: 9000, skasi_acr_8t_eng_320: 11800, skasi_acr_8t_kor_320: 14900, skasi_acr_10t_eng_320: 17100, skasi_acr_10t_kor_320: 20700,
+    skasi_acr_3t_eng_330: 5100, skasi_acr_3t_kor_330: 6600, skasi_acr_5t_eng_330: 7300, skasi_acr_5t_kor_330: 9600, skasi_acr_8t_eng_330: 12300, skasi_acr_8t_kor_330: 15500, skasi_acr_10t_eng_330: 17600, skasi_acr_10t_kor_330: 22000,
+    skasi_acr_3t_eng_340: 5200, skasi_acr_3t_kor_340: 7100, skasi_acr_5t_eng_340: 7600, skasi_acr_5t_kor_340: 10100, skasi_acr_8t_eng_340: 12700, skasi_acr_8t_kor_340: 16200, skasi_acr_10t_eng_340: 18100, skasi_acr_10t_kor_340: 23300,
+    skasi_acr_3t_eng_350: 5300, skasi_acr_3t_kor_350: 7500, skasi_acr_5t_eng_350: 7900, skasi_acr_5t_kor_350: 10600, skasi_acr_8t_eng_350: 13000, skasi_acr_8t_kor_350: 16800, skasi_acr_10t_eng_350: 18500, skasi_acr_10t_kor_350: 24600,
+    skasi_acr_3t_eng_360: 5400, skasi_acr_3t_kor_360: 7900, skasi_acr_5t_eng_360: 8100, skasi_acr_5t_kor_360: 11100, skasi_acr_8t_eng_360: 13500, skasi_acr_8t_kor_360: 17400, skasi_acr_10t_eng_360: 19400, skasi_acr_10t_kor_360: 25900,
+    skasi_acr_3t_eng_370: 5600, skasi_acr_3t_kor_370: 8200, skasi_acr_5t_eng_370: 8400, skasi_acr_5t_kor_370: 11700, skasi_acr_8t_eng_370: 13800, skasi_acr_8t_kor_370: 18100, skasi_acr_10t_eng_370: 20000, skasi_acr_10t_kor_370: 27100,
+    skasi_acr_3t_eng_380: 5700, skasi_acr_3t_kor_380: 8600, skasi_acr_5t_eng_380: 8800, skasi_acr_5t_kor_380: 12200, skasi_acr_8t_eng_380: 14200, skasi_acr_8t_kor_380: 18800, skasi_acr_10t_eng_380: 20700, skasi_acr_10t_kor_380: 28500,
+    skasi_acr_3t_eng_390: 5800, skasi_acr_3t_kor_390: 9000, skasi_acr_5t_eng_390: 9100, skasi_acr_5t_kor_390: 12700, skasi_acr_8t_eng_390: 14600, skasi_acr_8t_kor_390: 19400, skasi_acr_10t_eng_390: 22000, skasi_acr_10t_kor_390: 29700,
+    skasi_acr_3t_eng_400: 5900, skasi_acr_3t_kor_400: 9500, skasi_acr_5t_eng_400: 9600, skasi_acr_5t_kor_400: 13000, skasi_acr_8t_eng_400: 15000, skasi_acr_8t_kor_400: 20000, skasi_acr_10t_eng_400: 22600, skasi_acr_10t_kor_400: 31000,
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
@@ -4407,65 +4446,20 @@ function skasi_acrylic(){ //스카시 아크릴 계산
    },500);
 }
 
-// 아크릴문자 단가표 [size]: [3T영문, 3T한글, 5T영문, 5T한글, 8T영문, 8T한글, 10T영문, 10T한글]
-var _SKASI_ACR = {
-    30:  [300,400,   500,600,   700,900,    1100,1400],
-    40:  [400,500,   600,700,   900,1200,   1500,1900],
-    50:  [500,600,   700,900,   1100,1500,  1900,2600],
-    60:  [600,700,   900,1000,  1400,1900,  2100,3000],
-    70:  [700,900,   1000,1100, 1800,2300,  2600,3400],
-    80:  [900,1000,  1100,1200, 2000,2600,  3100,3800],
-    90:  [1000,1100, 1200,1500, 2300,3000,  3400,4500],
-    100: [1100,1400, 1500,1900, 2600,3300,  3800,5200],
-    110: [1200,1500, 1800,2100, 3000,3700,  4400,5700],
-    120: [1500,1700, 1900,2500, 3300,4100,  4900,6400],
-    130: [1700,1800, 2100,2700, 3600,4600,  5400,7100],
-    140: [1800,2000, 2300,3000, 3900,5000,  5900,7700],
-    150: [1900,2100, 2600,3200, 4400,5400,  6400,8400],
-    160: [2000,2500, 2700,3400, 4700,5900,  7000,9000],
-    170: [2100,2600, 3100,3800, 5200,6400,  7500,9700],
-    180: [2300,2700, 3300,4100, 5500,6900,  8100,10300],
-    190: [2500,3000, 3700,4400, 6000,7300,  8600,11700],
-    200: [2700,3200, 3800,4700, 6400,8000,  9200,12300],
-    210: [2900,3400, 4100,5000, 7000,8600,  9900,12900],
-    220: [3100,3600, 4400,5400, 7300,9000,  10600,13500],
-    230: [3200,3800, 4600,5700, 7900,9600,  11200,14200],
-    240: [3300,4100, 5000,6000, 8400,10100, 11800,14900],
-    250: [3400,4400, 5300,6400, 9000,10800, 12900,15500],
-    260: [3500,4600, 5500,6900, 9500,11200, 13500,16300],
-    270: [3700,4900, 5800,7200, 9900,11800, 14200,17400],
-    280: [3800,5200, 6000,7500, 10300,12400,14900,18100],
-    290: [4100,5400, 6300,7700, 10800,12900,15500,18800],
-    300: [4500,5700, 6500,8000, 11100,13500,16100,19400],
-    310: [4900,5900, 6900,8500, 11500,14200,16600,20000],
-    320: [5000,6300, 7100,9000, 11800,14900,17100,20700],
-    330: [5100,6600, 7300,9600, 12300,15500,17600,22000],
-    340: [5200,7100, 7600,10100,12700,16200,18100,23300],
-    350: [5300,7500, 7900,10600,13000,16800,18500,24600],
-    360: [5400,7900, 8100,11100,13500,17400,19400,25900],
-    370: [5600,8200, 8400,11700,13800,18100,20000,27100],
-    380: [5700,8600, 8800,12200,14200,18800,20700,28500],
-    390: [5800,9000, 9100,12700,14600,19400,22000,29700],
-    400: [5900,9500, 9600,13000,15000,20000,22600,31000]
-};
-
 function skasi_acrylic_cal(){ //스카시 아크릴 계산
     var total_count = Number($("#skasi_acrylic_count").val()) || 0;
     var skasi_width  = parseInt($("#skasi_width").val()) || 0;
     var price = 0;
     var total_price = 0;
 
-    var row = _SKASI_ACR[skasi_width];
-    if (row) {
-        var isKor   = $("#skasi_text_form01").is(":checked");
-        var thumbId = $("input[name='skasi_thumb']:checked").attr("id");
-        var col;
-        if      (thumbId === "skasi_thumb01") col = isKor ? 1 : 0; // 3T (2T~3T)
-        else if (thumbId === "skasi_thumb02") col = isKor ? 3 : 2; // 5T
-        else if (thumbId === "skasi_thumb03") col = isKor ? 5 : 4; // 8T
-        else if (thumbId === "skasi_thumb04") col = isKor ? 7 : 6; // 10T
-        if (col !== undefined) price = row[col] || 0;
-    }
+    var isKor   = $("#skasi_text_form01").is(":checked");
+    var thumbId = $("input[name='skasi_thumb']:checked").attr("id");
+    var colName;
+    if      (thumbId === "skasi_thumb01") colName = isKor ? "3t_kor" : "3t_eng";
+    else if (thumbId === "skasi_thumb02") colName = isKor ? "5t_kor" : "5t_eng";
+    else if (thumbId === "skasi_thumb03") colName = isKor ? "8t_kor" : "8t_eng";
+    else if (thumbId === "skasi_thumb04") colName = isKor ? "10t_kor" : "10t_eng";
+    if (colName && skasi_width > 0) price = PRICES["skasi_acr_" + colName + "_" + skasi_width] || 0;
 
     if($("#skasi_acrylic01").is(":checked")){ //아크릴
         if($("#skasi_screen_color01").is(":checked")){ //기본
