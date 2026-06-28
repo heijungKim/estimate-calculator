@@ -3587,7 +3587,7 @@ function _getChCurrentItemPrice() {
     );
     _lastChBaseUnitOrig = chennel_width;
     _lastCh13x = _apply13x;
-    if (_apply13x) chennel_width = _r10(Math.round(chennel_width * 1.3));
+    if (_apply13x) chennel_width = Math.ceil(chennel_width * 1.3 / 5000) * 5000;
 
     // (1세트 단가 + LED) × 수량 → 수량이 전체 금액에 곱해짐
     var _unitPrice = (chennel_width + chennel_width * custom_order) + led_price;
