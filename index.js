@@ -684,16 +684,30 @@ function sigh_light_led(){
 	});
 
 }
+function _autoSelectSighAngle(){
+	if(!$("#sigh_option_row").is(":checked")) return;
+	if(!$("#sigh_angle_yes").is(":checked")) return;
+	var val = parseInt($("#sigh_vertical").val().replace(/,/g,"")) || 0;
+	if(val <= 0) return;
+	var sizes = [200,250,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000];
+	var sel = sizes[sizes.length - 1];
+	for(var i = 0; i < sizes.length; i++){
+		if(sizes[i] >= val){ sel = sizes[i]; break; }
+	}
+	$("#sigh_angle_width_" + sel).prop("checked", true);
+}
 function sigh_angle(){
 	$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_angle']").click(function(){
 		if($(this).attr("id") == "sigh_angle_yes"){
 			$(".woosung_wrap .contents_wrap #option_table .sigh_angle_option").css({"display":"table-row"});
+			_autoSelectSighAngle();
 		}else{
 			$(".woosung_wrap .contents_wrap #option_table .sigh_angle_option").hide();
 		}
-
 	});
-
+	$(document).on("input change", "#sigh_vertical", function(){
+		_autoSelectSighAngle();
+	});
 }
 function sigh_deungbak_handler(){
 	$("input[name='sigh_deungbak']").click(function(){
@@ -785,21 +799,6 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_galva_type' id='channel_galva_gosa'>오사이채널(캡/프레임형)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height_none'>입체없음</label>";
-					append_html += "<label id='ch_height_custom_label' style='display:none'><input type='radio' name='channel_solid_height' id='channel_solid_height_custom'>주문제작</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='ch_height_custom_row add_row'>";
-				append_html += "<th>주문제작 높이</th>";
-				append_html += "<td><input type='number' id='channel_solid_height_custom_val' placeholder='높이를 입력하세요'> cm</td>";
-			append_html += "</tr>";
 		}
 		if($("#channel_option06").is(":checked")){
 			append_html += "<tr>";
@@ -809,21 +808,6 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_laser'>레이저타공채널(박스/바)</label>";
 					append_html += "<label><input type='radio' name='channel_sten_type' id='channel_sten_gosa'>오사이채널(캡/프레임형)</label>";
 				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height_none'>입체없음</label>";
-					append_html += "<label id='ch_height_custom_label' style='display:none'><input type='radio' name='channel_solid_height' id='channel_solid_height_custom'>주문제작</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr class='ch_height_custom_row add_row'>";
-				append_html += "<th>주문제작 높이</th>";
-				append_html += "<td><input type='number' id='channel_solid_height_custom_val' placeholder='높이를 입력하세요'> cm</td>";
 			append_html += "</tr>";
 		}
 		if($("input[name='channel_option']:checked").length){ //채널문자 품목 선택됨
@@ -848,11 +832,11 @@ function hoorex_type(){
             	append_html += "<th>트러스 주문제작 추가금</th>";
             	append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='channel_trusbar_custom_price' placeholder='추가금을 입력해주세요.'> 원</td>";
             append_html += "</tr>";
-            append_html += "<tr>";
+            append_html += "<tr class='ch_ggachi_main_row add_row'>";
 				append_html += "<th>까치발</th>";
                 append_html += "<td><label><input type='radio' name='channel_more_order' id='channel_more_order_no' checked='checked'>없음</label><label><input type='radio' name='channel_more_order' id='channel_more_order_option01'>있음</label></td>";
             append_html += "</tr>";
-            append_html += "<tr class='channel_more_order_option01 add_row'>";
+            append_html += "<tr class='channel_more_order_option01 add_row ch_ggachi_main_row'>";
                 append_html += "<th>까치발 갯수</th>";
                 append_html += "<td>";
                     append_html += "<input type='radio' name='ch_ggachi_size' id='ch_ggachi_size_200' checked='checked' style='display:none'>";
@@ -1074,14 +1058,6 @@ function hoorex_type(){
 			append_html += "</tr>";
 		}else if($("#channel_option04").is(":checked")){ // 에폭시채널
 			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3_5' checked='checked'>3.5cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
-			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
@@ -1147,14 +1123,6 @@ function hoorex_type(){
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
 			append_html += "</tr>";
 		}else if($("#channel_option05").is(":checked")){ // 2PC일체형
-			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3_5' checked='checked'>3.5cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-				append_html += "</td>";
-			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
@@ -1622,15 +1590,6 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material03' checked='checked'>밀러</label>";
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material04'>헤어라인</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
-				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
@@ -1639,7 +1598,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
@@ -1702,15 +1661,6 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material05' checked='checked'>골드</label>";
 					append_html += "<label><input type='radio' name='channel_material' id='channel_material06'>블랙</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
-				append_html += "<th>입체 높이</th>";
-				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height3' checked='checked'>3cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height6'>6cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height8'>8cm</label>";
-					append_html += "<label><input type='radio' name='channel_solid_height' id='channel_solid_height10'>10cm</label>";
-				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
@@ -1719,7 +1669,7 @@ function hoorex_type(){
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
@@ -1820,13 +1770,6 @@ function hoorex_type(){
         channel_trusbar();
         channel_galva_type_handler();
         channel_sten_type_handler();
-        $("input[name='channel_solid_height']").click(function(){
-            if($(this).attr("id") === "channel_solid_height_custom"){
-                $(".ch_height_custom_row").css("display","table-row");
-            } else {
-                $(".ch_height_custom_row").hide();
-            }
-        });
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_led_jeon'],.woosung_wrap .contents_wrap #option_table td label input[name='channel_led_hu']").click(function(){
             channel_led_count_set();
         });
@@ -1840,44 +1783,30 @@ function hoorex_type(){
             } else {
                 $(".channel_galva_notgosa_row").css("display","table-row");
             }
-            if(id === "channel_galva_laser"){
-                $("#ch_height_custom_label").css("display","inline-flex");
-            } else {
-                $("#ch_height_custom_label").hide();
-                if($("#channel_solid_height_custom").is(":checked")){
-                    $("#channel_solid_height3").prop("checked",true);
-                    $(".ch_height_custom_row").hide();
-                }
-            }
             chnnel_taka_cal();
         });
     }
     function channel_sten_type_handler(){
         $("input[name='channel_sten_type']").click(function(){
-            var id = $(this).attr("id");
-            if(id === "channel_sten_laser"){
-                $("#ch_height_custom_label").css("display","inline-flex");
-            } else {
-                $("#ch_height_custom_label").hide();
-                if($("#channel_solid_height_custom").is(":checked")){
-                    $("#channel_solid_height3").prop("checked",true);
-                    $(".ch_height_custom_row").hide();
-                }
-            }
             chnnel_taka_cal();
         });
     }
 	function channel_trusbar(){
+        $(".woosung_wrap .contents_wrap #option_table .ch_ggachi_main_row").hide();
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_trusbar']").click(function(){
 			if($(this).attr("id") == "channel_trusbar05"){
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").hide();
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").css({"display":"table-row"});
+				$(".woosung_wrap .contents_wrap #option_table .ch_ggachi_main_row").css({"display":"table-row"});
 			}else if($(this).attr("id") != "channel_trusbar_none"){
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").css({"display":"table-row"});
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
+				$(".woosung_wrap .contents_wrap #option_table .ch_ggachi_main_row").css({"display":"table-row"});
 			}else{
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar").hide();
 				$(".woosung_wrap .contents_wrap #option_table .channel_trusbar_custom").hide();
+				$(".woosung_wrap .contents_wrap #option_table .ch_ggachi_main_row").hide();
+				$("#channel_more_order_no").prop("checked", true);
 			}
 		});
     }
