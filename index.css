@@ -1143,6 +1143,25 @@ input::placeholder {
     margin-left: 8px;
 }
 
+.bd-sum-row {
+    width: 100%;
+    margin-top: 6px;
+    padding: 5px 10px;
+    background: #fff3f5;
+    border: 1px solid #f5b8c4;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+}
+.bd-sum-row strong {
+    color: #e94560;
+    font-size: 14px;
+}
+
 /* 단가 ? 아이콘 + 툴팁 */
 .bd-unit-q {
     display: inline-flex;

@@ -6265,27 +6265,11 @@ $(document).on("blur", ".bd-price-input", function() {
 
     $bdEm.text(newEmText);
 
-    // 비주얼 재구성
+    // 비주얼 재구성 (reformatBreakdown이 합계 및 list_price도 갱신)
     $chip.removeClass("bd-price-editing");
     $li.find(".bd-visual").remove();
     $li.removeClass("bd-fmted");
     reformatBreakdown($li);
-
-    // list_price → bd_item 합계로 갱신 (이중합산 항목 제외)
-    var bdSum = 0;
-    $li.find(".price_breakdown .bd_item").each(function() {
-        var txt = $(this).text().trim();
-        if (/담긴 항목 합계/.test(txt)) return;   // 채널 항목 합계는 이미 채널메인에 포함
-        if (/^#채널LED#/.test(txt)) return;        // LED 세부항목은 채널메인 가격에 포함됨
-        if (/^#채널서브#/.test(txt)) return;       // 정보표시 항목 (em 없음)
-        var $em = $(this).find("em");
-        if (!$em.length) return;
-        var m = $em.text().match(/([\d,]+)원\s*$/);
-        if (m) bdSum += parseInt(m[1].replace(/,/g, ""), 10);
-    });
-    if (bdSum > 0) {
-        $li.find(".list_price").text(String(bdSum).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-    }
     list_sum_price();
 });
 
@@ -6340,6 +6324,16 @@ function reformatBreakdown($li) {
     var bdTexts = [];
     $pb.find('.bd_item').each(function() { bdTexts.push($(this).text().trim()); });
     if (!bdTexts.length) return;
+
+    // 합계 계산 (담긴항목합계·채널LED·채널서브 제외)
+    var chipTotal = 0;
+    bdTexts.forEach(function(txt) {
+        if (/담긴 항목 합계/.test(txt)) return;
+        if (/^#채널LED#/.test(txt)) return;
+        if (/^#채널서브#/.test(txt)) return;
+        var m = txt.match(/([\d,]+)원\s*$/);
+        if (m) chipTotal += parseInt(m[1].replace(/,/g, ''), 10);
+    });
 
     var chCount = bdTexts.filter(function(t){ return /^#채널메인#/.test(t); }).length;
     var nos = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
@@ -6433,6 +6427,10 @@ function reformatBreakdown($li) {
     });
 
     if (!html) return;
+    if (chipTotal > 0) {
+        html += '<div class="bd-sum-row">합계 <strong class="bd-sum-val">' + fmtN(chipTotal) + '원</strong></div>';
+        $li.find(".list_price").text(fmtN(chipTotal));
+    }
     $pb.hide();
     $('<div class="bd-visual">' + html + '</div>').insertAfter($pb);
 }
