@@ -4439,7 +4439,7 @@ function skasi_acrylic(){ //스카시 아크릴 계산
             skasi_acrylic_cal();
 
         });
-        $(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic'],.woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic'],.woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb'],.woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']").click(function(){
+        $(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic'],.woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form'],.woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb'],.woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']").click(function(){
             skasi_acrylic_cal();
 
         });
@@ -6043,6 +6043,8 @@ function recalcCurrent(){
         else if($("#actual_option02").is(":checked")) uv_silsa_cal();
         else if($("#actual_option03").is(":checked")) solven_silsa_cal();
         else if($("#actual_option04").is(":checked")) soosung_silsa_cal();
+    } else if($tab.hasClass("child05")){
+        if($("#skasi_option02").is(":checked")) skasi_acrylic_cal();
     }
 }
 // ─────────────────────────────────────────────────────────
