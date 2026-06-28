@@ -4407,648 +4407,66 @@ function skasi_acrylic(){ //스카시 아크릴 계산
    },500);
 }
 
+// 아크릴문자 단가표 [size]: [3T영문, 3T한글, 5T영문, 5T한글, 8T영문, 8T한글, 10T영문, 10T한글]
+var _SKASI_ACR = {
+    30:  [300,400,   500,600,   700,900,    1100,1400],
+    40:  [400,500,   600,700,   900,1200,   1500,1900],
+    50:  [500,600,   700,900,   1100,1500,  1900,2600],
+    60:  [600,700,   900,1000,  1400,1900,  2100,3000],
+    70:  [700,900,   1000,1100, 1800,2300,  2600,3400],
+    80:  [900,1000,  1100,1200, 2000,2600,  3100,3800],
+    90:  [1000,1100, 1200,1500, 2300,3000,  3400,4500],
+    100: [1100,1400, 1500,1900, 2600,3300,  3800,5200],
+    110: [1200,1500, 1800,2100, 3000,3700,  4400,5700],
+    120: [1500,1700, 1900,2500, 3300,4100,  4900,6400],
+    130: [1700,1800, 2100,2700, 3600,4600,  5400,7100],
+    140: [1800,2000, 2300,3000, 3900,5000,  5900,7700],
+    150: [1900,2100, 2600,3200, 4400,5400,  6400,8400],
+    160: [2000,2500, 2700,3400, 4700,5900,  7000,9000],
+    170: [2100,2600, 3100,3800, 5200,6400,  7500,9700],
+    180: [2300,2700, 3300,4100, 5500,6900,  8100,10300],
+    190: [2500,3000, 3700,4400, 6000,7300,  8600,11700],
+    200: [2700,3200, 3800,4700, 6400,8000,  9200,12300],
+    210: [2900,3400, 4100,5000, 7000,8600,  9900,12900],
+    220: [3100,3600, 4400,5400, 7300,9000,  10600,13500],
+    230: [3200,3800, 4600,5700, 7900,9600,  11200,14200],
+    240: [3300,4100, 5000,6000, 8400,10100, 11800,14900],
+    250: [3400,4400, 5300,6400, 9000,10800, 12900,15500],
+    260: [3500,4600, 5500,6900, 9500,11200, 13500,16300],
+    270: [3700,4900, 5800,7200, 9900,11800, 14200,17400],
+    280: [3800,5200, 6000,7500, 10300,12400,14900,18100],
+    290: [4100,5400, 6300,7700, 10800,12900,15500,18800],
+    300: [4500,5700, 6500,8000, 11100,13500,16100,19400],
+    310: [4900,5900, 6900,8500, 11500,14200,16600,20000],
+    320: [5000,6300, 7100,9000, 11800,14900,17100,20700],
+    330: [5100,6600, 7300,9600, 12300,15500,17600,22000],
+    340: [5200,7100, 7600,10100,12700,16200,18100,23300],
+    350: [5300,7500, 7900,10600,13000,16800,18500,24600],
+    360: [5400,7900, 8100,11100,13500,17400,19400,25900],
+    370: [5600,8200, 8400,11700,13800,18100,20000,27100],
+    380: [5700,8600, 8800,12200,14200,18800,20700,28500],
+    390: [5800,9000, 9100,12700,14600,19400,22000,29700],
+    400: [5900,9500, 9600,13000,15000,20000,22600,31000]
+};
+
 function skasi_acrylic_cal(){ //스카시 아크릴 계산
-    
-   	var total_count = $("#skasi_acrylic_count").val(); //총 글자수
-    var skasi_width = $("#skasi_width").val(); // 스카시 각수
-	var price = 0; //단가
-    var total_price = 0; //총 금액
-    
-    if($("#skasi_text_form01").is(":checked")){ //한글
-        if($("#skasi_thumb01").is(":checked")){ //2~3T
-            if(skasi_width ==  30){ //각수
-               	price = 400;
-            }else if(skasi_width == 40){ 
-           		price = 500;
-            }else if(skasi_width == 50){ 
-            	price = 600;
-            }else if(skasi_width == 60){ 
-            	price = 700;
-            }else if(skasi_width == 70){ 
-            	price = 900;
-            }else if(skasi_width == 80){ 
-            	price = 1000;
-            }else if(skasi_width == 90){ 
-            	price = 1100;
-            }else if(skasi_width == 100){ 
-            	price = 1400;
-            }else if(skasi_width == 110){ 
-            	price = 1500;
-            }else if(skasi_width == 120){ 
-            	price = 1700;
-            }else if(skasi_width == 130){ 
-            	price = 1800;
-            }else if(skasi_width == 140){ 
-            	price = 2000;
-            }else if(skasi_width == 150){ 
-            	price = 2100;
-            }else if(skasi_width == 160){ 
-            	price = 2500;
-            }else if(skasi_width == 170){ 
-            	price = 2600;
-            }else if(skasi_width == 180){ 
-            	price = 2700;
-            }else if(skasi_width == 190){ 
-            	price = 3000;
-            }else if(skasi_width == 200){ 
-            	price = 3200;
-            }else if(skasi_width == 210){ 
-            	price = 3400;
-            }else if(skasi_width == 220){ 
-            	price = 3600;
-            }else if(skasi_width == 230){ 
-            	price = 3800;
-            }else if(skasi_width == 240){ 
-            	price = 4100;
-            }else if(skasi_width == 250){ 
-            	price = 4400;
-            }else if(skasi_width == 260){ 
-            	price = 4600;
-            }else if(skasi_width == 270){ 
-            	price = 4900;
-            }else if(skasi_width == 280){ 
-            	price = 5200;
-            }else if(skasi_width == 290){ 
-            	price = 5400;
-            }else if(skasi_width == 300){ 
-            	price = 5700;
-            }else if(skasi_width == 310){ 
-            	price = 5900;
-            }else if(skasi_width == 320){ 
-            	price = 6300;
-            }else if(skasi_width == 330){ 
-            	price = 6600;
-            }else if(skasi_width == 340){ 
-            	price = 7100;
-            }else if(skasi_width == 350){ 
-            	price = 7500;
-            }else if(skasi_width == 360){ 
-            	price = 7900;
-            }else if(skasi_width == 370){ 
-            	price = 8200;
-            }else if(skasi_width == 380){ 
-            	price = 8600;
-            }else if(skasi_width == 390){ 
-            	price = 9000;
-            }else if(skasi_width == 400){ 
-            	price = 9500;
-            }
-        }else if($("#skasi_thumb02").is(":checked")){ //5T
-        	  if(skasi_width ==  30){ //각수
-               	price = 600;
-            }else if(skasi_width == 40){ 
-           		price = 700;
-            }else if(skasi_width == 50){ 
-            	price = 900;
-            }else if(skasi_width == 60){ 
-            	price = 1000;
-            }else if(skasi_width == 70){ 
-            	price = 1200;
-            }else if(skasi_width == 80){ 
-            	price = 1500;
-            }else if(skasi_width == 90){ 
-            	price = 1800;
-            }else if(skasi_width == 100){ 
-            	price = 1900;
-            }else if(skasi_width == 110){ 
-            	price = 2100;
-            }else if(skasi_width == 120){ 
-            	price = 2500;
-            }else if(skasi_width == 130){ 
-            	price = 2700;
-            }else if(skasi_width == 140){ 
-            	price = 3000;
-            }else if(skasi_width == 150){ 
-            	price = 3200;
-            }else if(skasi_width == 160){ 
-            	price = 3400;
-            }else if(skasi_width == 170){ 
-            	price = 3800;
-            }else if(skasi_width == 180){ 
-            	price = 4100;
-            }else if(skasi_width == 190){ 
-            	price = 4400;
-            }else if(skasi_width == 200){ 
-            	price = 4700;
-            }else if(skasi_width == 210){ 
-            	price = 5000;
-            }else if(skasi_width == 220){ 
-            	price = 5400;
-            }else if(skasi_width == 230){ 
-            	price = 5700;
-            }else if(skasi_width == 240){ 
-            	price = 6000;
-            }else if(skasi_width == 250){ 
-            	price = 6400;
-            }else if(skasi_width == 260){ 
-            	price = 6900;
-            }else if(skasi_width == 270){ 
-            	price = 7200;
-            }else if(skasi_width == 280){ 
-            	price = 7500;
-            }else if(skasi_width == 290){ 
-            	price = 7700;
-            }else if(skasi_width == 300){ 
-            	price = 8000;
-            }else if(skasi_width == 310){ 
-            	price = 8500;
-            }else if(skasi_width == 320){ 
-            	price = 9000;
-            }else if(skasi_width == 330){ 
-            	price = 9600;
-            }else if(skasi_width == 340){ 
-            	price = 10100;
-            }else if(skasi_width == 350){ 
-            	price = 10600;
-            }else if(skasi_width == 360){ 
-            	price = 11100;
-            }else if(skasi_width == 370){ 
-            	price = 11700;
-            }else if(skasi_width == 380){ 
-            	price = 12200;
-            }else if(skasi_width == 390){ 
-            	price = 12700;
-            }else if(skasi_width == 400){ 
-            	price = 13000;
-            }
-           
-        }else if($("#skasi_thumb03").is(":checked")){ //8T
-        	if(skasi_width ==  30){ //각수
-               	price = 900;
-            }else if(skasi_width == 40){ 
-           		price = 1200;
-            }else if(skasi_width == 50){ 
-            	price = 1500;
-            }else if(skasi_width == 60){ 
-            	price = 1900;
-            }else if(skasi_width == 70){ 
-            	price = 2300;
-            }else if(skasi_width == 80){ 
-            	price = 2600;
-            }else if(skasi_width == 90){ 
-            	price = 3000;
-            }else if(skasi_width == 100){ 
-            	price = 3300;
-            }else if(skasi_width == 110){ 
-            	price = 3700;
-            }else if(skasi_width == 120){ 
-            	price = 4100;
-            }else if(skasi_width == 130){ 
-            	price = 4600;
-            }else if(skasi_width == 140){ 
-            	price = 5000;
-            }else if(skasi_width == 150){ 
-            	price = 5400;
-            }else if(skasi_width == 160){ 
-            	price = 5900;
-            }else if(skasi_width == 170){ 
-            	price = 6400;
-            }else if(skasi_width == 180){ 
-            	price = 6900;
-            }else if(skasi_width == 190){ 
-            	price = 7300;
-            }else if(skasi_width == 200){ 
-            	price = 8000;
-            }else if(skasi_width == 210){ 
-            	price = 8600;
-            }else if(skasi_width == 220){ 
-            	price = 9000;
-            }else if(skasi_width == 230){ 
-            	price = 9600;
-            }else if(skasi_width == 240){ 
-            	price = 10100;
-            }else if(skasi_width == 250){ 
-            	price = 10800;
-            }else if(skasi_width == 260){ 
-            	price = 11200;
-            }else if(skasi_width == 270){ 
-            	price = 11800;
-            }else if(skasi_width == 280){ 
-            	price = 12400;
-            }else if(skasi_width == 290){ 
-            	price = 12900;
-            }else if(skasi_width == 300){ 
-            	price = 13500;
-            }else if(skasi_width == 310){ 
-            	price = 14200;
-            }else if(skasi_width == 320){ 
-            	price = 14900;
-            }else if(skasi_width == 330){ 
-            	price = 15500;
-            }else if(skasi_width == 340){ 
-            	price = 16200;
-            }else if(skasi_width == 350){ 
-            	price = 16800;
-            }else if(skasi_width == 360){ 
-            	price = 17400;
-            }else if(skasi_width == 370){ 
-            	price = 18100;
-            }else if(skasi_width == 380){ 
-            	price = 18800;
-            }else if(skasi_width == 390){ 
-            	price = 19400;
-            }else if(skasi_width == 400){ 
-            	price = 20000;
-            }
-        }else{ //10T
-        	if(skasi_width ==  30){ //각수
-               	price = 1400;
-            }else if(skasi_width == 40){ 
-           		price = 1900;
-            }else if(skasi_width == 50){ 
-            	price = 2600;
-            }else if(skasi_width == 60){ 
-            	price = 3000;
-            }else if(skasi_width == 70){ 
-            	price = 3400;
-            }else if(skasi_width == 80){ 
-            	price = 3800;
-            }else if(skasi_width == 90){ 
-            	price = 4500;
-            }else if(skasi_width == 100){ 
-            	price = 5200;
-            }else if(skasi_width == 110){ 
-            	price = 5700;
-            }else if(skasi_width == 120){ 
-            	price = 6400;
-            }else if(skasi_width == 130){ 
-            	price = 7100;
-            }else if(skasi_width == 140){ 
-            	price = 7700;
-            }else if(skasi_width == 150){ 
-            	price = 8400;
-            }else if(skasi_width == 160){ 
-            	price = 9000;
-            }else if(skasi_width == 170){ 
-            	price = 9700;
-            }else if(skasi_width == 180){ 
-            	price = 10300;
-            }else if(skasi_width == 190){ 
-            	price = 11700;
-            }else if(skasi_width == 200){ 
-            	price = 12300;
-            }else if(skasi_width == 210){ 
-            	price = 12900;
-            }else if(skasi_width == 220){ 
-            	price = 13500;
-            }else if(skasi_width == 230){ 
-            	price = 14200;
-            }else if(skasi_width == 240){ 
-            	price = 14900;
-            }else if(skasi_width == 250){ 
-            	price = 15500;
-            }else if(skasi_width == 260){ 
-            	price = 16300;
-            }else if(skasi_width == 270){ 
-            	price = 17400;
-            }else if(skasi_width == 280){ 
-            	price = 18100;
-            }else if(skasi_width == 290){ 
-            	price = 18800;
-            }else if(skasi_width == 300){ 
-            	price = 19400;
-            }else if(skasi_width == 310){ 
-            	price = 20000;
-            }else if(skasi_width == 320){ 
-            	price = 20700;
-            }else if(skasi_width == 330){ 
-            	price = 22000;
-            }else if(skasi_width == 340){ 
-            	price = 23300;
-            }else if(skasi_width == 350){ 
-            	price = 24600;
-            }else if(skasi_width == 360){ 
-            	price = 25900;
-            }else if(skasi_width == 370){ 
-            	price = 27100;
-            }else if(skasi_width == 380){ 
-            	price = 28500;
-            }else if(skasi_width == 390){ 
-            	price = 29700;
-            }else if(skasi_width == 400){ 
-            	price = 31000;
-            }
-        }
-        
-   }else{ //영문
-      
-   	if($("#skasi_thumb01").is(":checked")){ //2~3T
-        
-            if(skasi_width ==  30){ //각수
-               	price = 300;
-            }else if(skasi_width == 40){ 
-           		price = 400;
-            }else if(skasi_width == 50){ 
-            	price = 500;
-            }else if(skasi_width == 60){ 
-            	price = 600;
-            }else if(skasi_width == 70){ 
-            	price = 700;
-            }else if(skasi_width == 80){ 
-            	price = 900;
-            }else if(skasi_width == 90){ 
-            	price = 1000;
-            }else if(skasi_width == 100){ 
-            	price = 1100;
-            }else if(skasi_width == 110){ 
-            	price = 1200;
-            }else if(skasi_width == 120){ 
-            	price = 1500;
-            }else if(skasi_width == 130){ 
-            	price = 1700;
-            }else if(skasi_width == 140){ 
-            	price = 1800;
-            }else if(skasi_width == 150){ 
-            	price = 1900;
-            }else if(skasi_width == 160){ 
-            	price = 2000;
-            }else if(skasi_width == 170){ 
-            	price = 2100;
-            }else if(skasi_width == 180){ 
-            	price = 2300;
-            }else if(skasi_width == 190){ 
-            	price = 2500;
-            }else if(skasi_width == 200){ 
-            	price = 2700;
-            }else if(skasi_width == 210){ 
-            	price = 2900;
-            }else if(skasi_width == 220){ 
-            	price = 3100;
-            }else if(skasi_width == 230){ 
-            	price = 3200;
-            }else if(skasi_width == 240){ 
-            	price = 3400;
-            }else if(skasi_width == 250){ 
-            	price = 3700;
-            }else if(skasi_width == 260){ 
-            	price = 3900;
-            }else if(skasi_width == 270){ 
-            	price = 4100;
-            }else if(skasi_width == 280){ 
-            	price = 4400;
-            }else if(skasi_width == 290){ 
-            	price = 4500;
-            }else if(skasi_width == 300){ 
-            	price = 4700;
-            }else if(skasi_width == 310){ 
-            	price = 4900;
-            }else if(skasi_width == 320){ 
-            	price = 5000;
-            }else if(skasi_width == 330){ 
-            	price = 5100;
-            }else if(skasi_width == 340){ 
-            	price = 5200;
-            }else if(skasi_width == 350){ 
-            	price = 5300;
-            }else if(skasi_width == 360){ 
-            	price = 5400;
-            }else if(skasi_width == 370){ 
-            	price = 5600;
-            }else if(skasi_width == 380){ 
-            	price = 5700;
-            }else if(skasi_width == 390){ 
-            	price = 5800;
-            }else if(skasi_width == 400){ 
-            	price = 5900;
-            }
-        }else if($("#skasi_thumb02").is(":checked")){ //5T
-        	  if(skasi_width ==  30){ //각수
-               	price = 500;
-            }else if(skasi_width == 40){ 
-           		price = 600;
-            }else if(skasi_width == 50){ 
-            	price = 700;
-            }else if(skasi_width == 60){ 
-            	price = 900;
-            }else if(skasi_width == 70){ 
-            	price = 1000;
-            }else if(skasi_width == 80){ 
-            	price = 1100;
-            }else if(skasi_width == 90){ 
-            	price = 1200;
-            }else if(skasi_width == 100){ 
-            	price = 1500;
-            }else if(skasi_width == 110){ 
-            	price = 1800;
-            }else if(skasi_width == 120){ 
-            	price = 1900;
-            }else if(skasi_width == 130){ 
-            	price = 2100;
-            }else if(skasi_width == 140){ 
-            	price = 2300;
-            }else if(skasi_width == 150){ 
-            	price = 2600;
-            }else if(skasi_width == 160){ 
-            	price = 2700;
-            }else if(skasi_width == 170){ 
-            	price = 3100;
-            }else if(skasi_width == 180){ 
-            	price = 3300;
-            }else if(skasi_width == 190){ 
-            	price = 3700;
-            }else if(skasi_width == 200){ 
-            	price = 3800;
-            }else if(skasi_width == 210){ 
-            	price = 4100;
-            }else if(skasi_width == 220){ 
-            	price = 4400;
-            }else if(skasi_width == 230){ 
-            	price = 4600;
-            }else if(skasi_width == 240){ 
-            	price = 5000;
-            }else if(skasi_width == 250){ 
-            	price = 5300;
-            }else if(skasi_width == 260){ 
-            	price = 5500;
-            }else if(skasi_width == 270){ 
-            	price = 5800;
-            }else if(skasi_width == 280){ 
-            	price = 6000;
-            }else if(skasi_width == 290){ 
-            	price = 6300;
-            }else if(skasi_width == 300){ 
-            	price = 6500;
-            }else if(skasi_width == 310){ 
-            	price = 6900;
-            }else if(skasi_width == 320){ 
-            	price = 7100;
-            }else if(skasi_width == 330){ 
-            	price = 7300;
-            }else if(skasi_width == 340){ 
-            	price = 7600;
-            }else if(skasi_width == 350){ 
-            	price = 7900;
-            }else if(skasi_width == 360){ 
-            	price = 8100;
-            }else if(skasi_width == 370){ 
-            	price = 8400;
-            }else if(skasi_width == 380){ 
-            	price = 8800;
-            }else if(skasi_width == 390){ 
-            	price = 9100;
-            }else if(skasi_width == 400){ 
-            	price = 9600;
-            }
-           
-        }else if($("#skasi_thumb03").is(":checked")){ //8T
-        	if(skasi_width ==  30){ //각수
-               	price = 700;
-            }else if(skasi_width == 40){ 
-           		price = 900;
-            }else if(skasi_width == 50){ 
-            	price = 1100;
-            }else if(skasi_width == 60){ 
-            	price = 1400;
-            }else if(skasi_width == 70){ 
-            	price = 1800;
-            }else if(skasi_width == 80){ 
-            	price = 2000;
-            }else if(skasi_width == 90){ 
-            	price = 2300;
-            }else if(skasi_width == 100){ 
-            	price = 2600;
-            }else if(skasi_width == 110){ 
-            	price = 3000;
-            }else if(skasi_width == 120){ 
-            	price = 3300;
-            }else if(skasi_width == 130){ 
-            	price = 3600;
-            }else if(skasi_width == 140){ 
-            	price = 3900;
-            }else if(skasi_width == 150){ 
-            	price = 4400;
-            }else if(skasi_width == 160){ 
-            	price = 4700;
-            }else if(skasi_width == 170){ 
-            	price = 5200;
-            }else if(skasi_width == 180){ 
-            	price = 5500;
-            }else if(skasi_width == 190){ 
-            	price = 6000;
-            }else if(skasi_width == 200){ 
-            	price = 6400;
-            }else if(skasi_width == 210){ 
-            	price = 7000;
-            }else if(skasi_width == 220){ 
-            	price = 7300;
-            }else if(skasi_width == 230){ 
-            	price = 7900;
-            }else if(skasi_width == 240){ 
-            	price = 8400;
-            }else if(skasi_width == 250){ 
-            	price = 9000;
-            }else if(skasi_width == 260){ 
-            	price = 9500;
-            }else if(skasi_width == 270){ 
-            	price = 9900;
-            }else if(skasi_width == 280){ 
-            	price = 10300;
-            }else if(skasi_width == 290){ 
-            	price = 10800;
-            }else if(skasi_width == 300){ 
-            	price = 11100;
-            }else if(skasi_width == 310){ 
-            	price = 11500;
-            }else if(skasi_width == 320){ 
-            	price = 11800;
-            }else if(skasi_width == 330){ 
-            	price = 12300;
-            }else if(skasi_width == 340){ 
-            	price = 12700;
-            }else if(skasi_width == 350){ 
-            	price = 13000;
-            }else if(skasi_width == 360){ 
-            	price = 13500;
-            }else if(skasi_width == 370){ 
-            	price = 13800;
-            }else if(skasi_width == 380){ 
-            	price = 14200;
-            }else if(skasi_width == 390){ 
-            	price = 14600;
-            }else if(skasi_width == 400){ 
-            	price = 15000;
-            }
-        }else{ //10T
-        	if(skasi_width ==  30){ //각수
-               	price = 1100;
-            }else if(skasi_width == 40){ 
-           		price = 1500;
-            }else if(skasi_width == 50){ 
-            	price = 1900;
-            }else if(skasi_width == 60){ 
-            	price = 2100;
-            }else if(skasi_width == 70){ 
-            	price = 2600;
-            }else if(skasi_width == 80){ 
-            	price = 3100;
-            }else if(skasi_width == 90){ 
-            	price = 3400;
-            }else if(skasi_width == 100){ 
-            	price = 3800;
-            }else if(skasi_width == 110){ 
-            	price = 4400;
-            }else if(skasi_width == 120){ 
-            	price = 4900;
-            }else if(skasi_width == 130){ 
-            	price = 5400;
-            }else if(skasi_width == 140){ 
-            	price = 5900;
-            }else if(skasi_width == 150){ 
-            	price = 6400;
-            }else if(skasi_width == 160){ 
-            	price = 7000;
-            }else if(skasi_width == 170){ 
-            	price = 7500;
-            }else if(skasi_width == 180){ 
-            	price = 8100;
-            }else if(skasi_width == 190){ 
-            	price = 8600;
-            }else if(skasi_width == 200){ 
-            	price = 9200;
-            }else if(skasi_width == 210){ 
-            	price = 9900;
-            }else if(skasi_width == 220){ 
-            	price = 10600;
-            }else if(skasi_width == 230){ 
-            	price = 11200;
-            }else if(skasi_width == 240){ 
-            	price = 11800;
-            }else if(skasi_width == 250){ 
-            	price = 12900;
-            }else if(skasi_width == 260){ 
-            	price = 13500;
-            }else if(skasi_width == 270){ 
-            	price = 14200;
-            }else if(skasi_width == 280){ 
-            	price = 14900;
-            }else if(skasi_width == 290){ 
-            	price = 15500;
-            }else if(skasi_width == 300){ 
-            	price = 16100;
-            }else if(skasi_width == 310){ 
-            	price = 16600;
-            }else if(skasi_width == 320){ 
-            	price = 17100;
-            }else if(skasi_width == 330){ 
-            	price = 17600;
-            }else if(skasi_width == 340){ 
-            	price = 18100;
-            }else if(skasi_width == 350){ 
-            	price = 19400;
-            }else if(skasi_width == 360){ 
-            	price = 20000;
-            }else if(skasi_width == 370){ 
-            	price = 20700;
-            }else if(skasi_width == 380){ 
-            	price = 21400;
-            }else if(skasi_width == 390){ 
-            	price = 22000;
-            }else if(skasi_width == 400){ 
-            	price = 22600;
-            }
-        }    
-   }
-    
+    var total_count = Number($("#skasi_acrylic_count").val()) || 0;
+    var skasi_width  = parseInt($("#skasi_width").val()) || 0;
+    var price = 0;
+    var total_price = 0;
+
+    var row = _SKASI_ACR[skasi_width];
+    if (row) {
+        var isKor   = $("#skasi_text_form01").is(":checked");
+        var thumbId = $("input[name='skasi_thumb']:checked").attr("id");
+        var col;
+        if      (thumbId === "skasi_thumb01") col = isKor ? 1 : 0; // 3T (2T~3T)
+        else if (thumbId === "skasi_thumb02") col = isKor ? 3 : 2; // 5T
+        else if (thumbId === "skasi_thumb03") col = isKor ? 5 : 4; // 8T
+        else if (thumbId === "skasi_thumb04") col = isKor ? 7 : 6; // 10T
+        if (col !== undefined) price = row[col] || 0;
+    }
+
     if($("#skasi_acrylic01").is(":checked")){ //아크릴
         if($("#skasi_screen_color01").is(":checked")){ //기본
             total_price = total_count * price;
@@ -5070,6 +4488,7 @@ function skasi_acrylic_cal(){ //스카시 아크릴 계산
     
  
     
+    if (total_price > 0 && total_price < 15000) total_price = 15000;
 	$("#order_price").text(String(_r10((total_price)+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
