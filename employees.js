@@ -46,6 +46,17 @@ function _empTenure(joinDate) {
     return rem + '개월';
 }
 
+function _empAnnualLeave(joinDate) {
+    if (!joinDate) return '-';
+    var join = new Date(joinDate);
+    var now  = new Date();
+    var totalMonths = (now.getFullYear() - join.getFullYear()) * 12 + (now.getMonth() - join.getMonth());
+    if (totalMonths <= 0) return '0일';
+    if (totalMonths < 12) return Math.min(totalMonths, 11) + '일'; // 1년 미만: 월 1일 (최대 11)
+    var years = Math.floor(totalMonths / 12);
+    return Math.min(15 + Math.floor((years - 1) / 2), 25) + '일'; // 1년~: 15일 + 2년마다 1일, 최대 25
+}
+
 function loadEmployees() {
     var db = _empInitDB();
     $('#emp_list_area').html('<p class="emp-empty">불러오는 중…</p>');
@@ -78,6 +89,7 @@ function renderEmployees() {
         var salary = parseInt(emp.salary, 10) || 0;
         var monthly = salary > 0 ? Math.round(salary / 12) : 0;
         var tenure = _empTenure(emp.joinDate);
+        var annualLeave = _empAnnualLeave(emp.joinDate);
         var memoHtml = emp.memo ? '<span class="emp-memo-badge" title="' + _empEsc(emp.memo) + '">메모</span>' : '';
         var rankPos = [emp.rank, emp.position].filter(Boolean).map(_empEsc).join(' / ') || '-';
         rows += '<tr>' +
@@ -86,6 +98,7 @@ function renderEmployees() {
             '<td>' + rankPos + '</td>' +
             '<td>' + _empEsc(emp.phone || '-') + '</td>' +
             '<td>' + _empDateFmt(emp.joinDate) + (tenure ? ' <span style="color:#8892a4;font-size:11px;">(' + _empEsc(tenure) + ')</span>' : '') + '</td>' +
+            '<td class="tc emp-leave-cell">' + annualLeave + '</td>' +
             '<td class="emp-salary-cell tr">' + (salary > 0 ? _empFmt(salary) + '원' : '-') + '</td>' +
             '<td class="emp-monthly-cell tr">' + (monthly > 0 ? _empFmt(monthly) + '원/월' : '-') + '</td>' +
             '<td class="tc">' + (emp.workHours ? emp.workHours + 'h' : '-') + '</td>' +
@@ -106,6 +119,7 @@ function renderEmployees() {
                 '<th>직급 / 포지션</th>' +
                 '<th>연락처</th>' +
                 '<th>입사일</th>' +
+                '<th class="tc">지급 연차</th>' +
                 '<th class="tr">연봉</th>' +
                 '<th class="tr">월급</th>' +
                 '<th class="tc">근무시간</th>' +
