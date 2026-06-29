@@ -1,14 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache" />
-    <title>출력 내역 - 우성디지탈 관리 시스템</title>
+    <title>연차 관리 - 우성디지탈 관리 시스템</title>
     <link rel="icon" href="logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="index.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="leave.css" />
 </head>
 <body>
 
@@ -39,7 +40,7 @@
             <span class="nav-icon">&#128230;</span>
             <span>자재 관리</span>
         </a>
-        <a href="print_history.html" class="nav-item active">
+        <a href="print_history.html" class="nav-item">
             <span class="nav-icon">&#128424;</span>
             <span>출력 내역</span>
         </a>
@@ -47,7 +48,7 @@
             <span class="nav-icon">&#128100;</span>
             <span>직원 관리</span>
         </a>
-        <a href="leave.html" class="nav-item">
+        <a href="leave.html" class="nav-item active">
             <span class="nav-icon">&#128197;</span>
             <span>연차 관리</span>
         </a>
@@ -71,61 +72,38 @@
             <img src="logo.svg" class="logo-img" alt="우성디지탈" />
             <span class="logo-text">우성디지탈 관리 시스템</span>
         </div>
-        <p class="header-sub">출력한 견적서 내역을 확인하고 다시 열어볼 수 있습니다</p>
+        <p class="header-sub">직원별 연차 사용 및 지급 현황을 관리하세요</p>
     </div>
 </header>
 
-<div class="ph-wrap">
+<div class="leave-wrap">
+    <div class="leave-layout">
 
-    <div class="ph-page-header">
-        <h2 class="ph-page-title">
-            <span class="title-bar"></span>
-            출력 내역
-        </h2>
-        <button type="button" id="btn_ph_refresh" class="ph-refresh-btn">&#8635; 새로고침</button>
-    </div>
-
-    <!-- 검색 패널 -->
-    <div class="ph-search-panel">
-        <div class="ph-search-row">
-            <div class="ph-search-group">
-                <label class="ph-search-label">기간</label>
-                <div class="ph-date-range">
-                    <input type="date" id="ph_date_from" class="ph-search-input ph-date-input" />
-                    <span class="ph-date-sep">~</span>
-                    <input type="date" id="ph_date_to" class="ph-search-input ph-date-input" />
-                </div>
-            </div>
-            <div class="ph-search-group">
-                <label class="ph-search-label">고객명</label>
-                <input type="text" id="ph_search_customer" class="ph-search-input" placeholder="수신처 입력" />
-            </div>
-            <div class="ph-search-group">
-                <label class="ph-search-label">담당자</label>
-                <input type="text" id="ph_search_manager" class="ph-search-input" placeholder="담당자 입력" />
+        <!-- 직원 탭 -->
+        <div class="leave-sidebar">
+            <div class="leave-sidebar-title">직원 목록</div>
+            <div id="leave_emp_tabs">
+                <div class="leave-empty">불러오는 중…</div>
             </div>
         </div>
-        <div class="ph-search-actions">
-            <button type="button" id="btn_ph_search" class="ph-search-btn">&#128269; 검색</button>
-            <button type="button" id="btn_ph_reset" class="ph-reset-btn">초기화</button>
+
+        <!-- 연차 내용 -->
+        <div class="leave-main">
+            <div id="leave_content">
+                <div class="leave-empty leave-empty-center">왼쪽에서 직원을 선택하세요.</div>
+            </div>
         </div>
+
     </div>
-
-    <div class="ph-result-info" id="ph_result_info" style="display:none;"></div>
-
-    <div class="ph-card" id="ph_list">
-        <p class="ph-empty">불러오는 중…</p>
-    </div>
-
 </div>
+
 </div><!-- /page-body -->
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="auth.js"></script>
-<script src="print_history.js"></script>
+<script src="leave.js"></script>
 </body>
 </html>
