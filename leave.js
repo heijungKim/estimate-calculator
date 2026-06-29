@@ -147,7 +147,7 @@ function renderLeaveMonths(empId, year, rawMonths) {
         md.uses.forEach(function(u, idx) {
             chips += '<span class="leave-chip">' +
                 '<span class="leave-chip-date">' + _leaveEsc(u.date || '미기록') + '</span>' +
-                (u.reason ? '<span class="leave-chip-reason">' + _leaveEsc(u.reason) + '</span>' : '') +
+                (u.reason ? '<span class="leave-chip-hint" data-reason="' + _leaveEsc(u.reason) + '">!</span>' : '') +
                 '<button class="leave-del-use-btn" data-month="' + m + '" data-idx="' + idx + '" title="삭제">✕</button>' +
             '</span>';
         });
@@ -209,10 +209,12 @@ function renderLeaveMonths(empId, year, rawMonths) {
             '<div class="leave-stat-divider"></div>' +
             '<div class="leave-stat-item"><span class="leave-stat-label">미지급</span><span class="leave-stat-val leave-stat-unpaid">' + unpaidCount + '개월</span></div>' +
         '</div>' +
+        '<div class="leave-table-wrap">' +
         '<table class="leave-month-table">' +
             '<thead><tr><th>월</th><th>연차 사용 내역</th><th>지급일</th><th>액션</th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
-        '</table>';
+        '</table>' +
+        '</div>';
 
     $('#leave_content').html(html);
 
@@ -221,37 +223,47 @@ function renderLeaveMonths(empId, year, rawMonths) {
     $('#leave_prev_year').click(function() { _leaveYear--; loadLeaveData(empId, _leaveYear); });
     $('#leave_next_year').click(function() { _leaveYear++; loadLeaveData(empId, _leaveYear); });
 
-    // 사용추가 → 액션 셀을 인라인 폼으로 교체
+    // 사용추가 → 현재 행 아래에 서브 행으로 폼 표시 (레이아웃 변화 없음)
     $('.leave-use-btn').click(function() {
         var m = $(this).data('month');
-        var $cell = $('tr[data-month="' + m + '"]').find('.leave-action-cell');
-        if ($cell.find('.leave-date-input').length) return;
+        var $row = $('tr[data-month="' + m + '"]');
 
-        $cell.html(
-            '<div class="leave-inline-form">' +
-                '<input type="date" class="leave-date-input" value="' + _todayStr() + '">' +
-                '<input type="text" class="leave-reason-input" placeholder="사유 (선택)">' +
-                '<button class="leave-use-confirm-btn" data-month="' + m + '">확인</button>' +
-                '<button class="leave-use-cancel-btn" data-month="' + m + '">취소</button>' +
-            '</div>'
+        // 같은 달 폼 토글
+        var $existing = $('.leave-add-row[data-for="' + m + '"]');
+        if ($existing.length) { $existing.remove(); return; }
+
+        // 다른 달 폼 제거
+        $('.leave-add-row').remove();
+
+        var $form = $(
+            '<tr class="leave-add-row" data-for="' + m + '">' +
+                '<td colspan="4">' +
+                    '<div class="leave-inline-form">' +
+                        '<span class="leave-form-label">' + m + '월 연차 사용 추가</span>' +
+                        '<input type="date" class="leave-date-input" value="' + _todayStr() + '">' +
+                        '<input type="text" class="leave-reason-input" placeholder="사유 (선택)">' +
+                        '<button class="leave-use-confirm-btn" data-month="' + m + '">확인</button>' +
+                        '<button class="leave-use-cancel-btn">취소</button>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>'
         );
-        $cell.find('.leave-date-input').focus();
+        $row.after($form);
+        $form.find('.leave-date-input').focus();
 
-        $cell.find('.leave-use-confirm-btn').click(function() {
-            var dateVal   = $cell.find('.leave-date-input').val();
-            var reasonVal = $cell.find('.leave-reason-input').val().trim();
-            if (!dateVal) { $cell.find('.leave-date-input').focus(); return; }
+        $form.find('.leave-use-confirm-btn').click(function() {
+            var dateVal   = $form.find('.leave-date-input').val();
+            var reasonVal = $form.find('.leave-reason-input').val().trim();
+            if (!dateVal) { $form.find('.leave-date-input').focus(); return; }
             var upd = JSON.parse(JSON.stringify(months));
             upd[String(m)].uses.push({ date: dateVal, reason: reasonVal });
             upd[String(m)].paidAt = null;
             saveLeaveData(empId, year, upd);
         });
-        $cell.find('.leave-use-cancel-btn').click(function() {
-            loadLeaveData(empId, year);
-        });
-        $cell.find('input').keydown(function(e) {
-            if (e.key === 'Enter') $cell.find('.leave-use-confirm-btn').click();
-            if (e.key === 'Escape') $cell.find('.leave-use-cancel-btn').click();
+        $form.find('.leave-use-cancel-btn').click(function() { $form.remove(); });
+        $form.find('input').keydown(function(e) {
+            if (e.key === 'Enter') $form.find('.leave-use-confirm-btn').click();
+            if (e.key === 'Escape') $form.remove();
         });
     });
 

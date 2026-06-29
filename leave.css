@@ -205,6 +205,13 @@
     background: #fff;
     border: 1.5px solid #e2e8f0;
     border-radius: 14px;
+    overflow: visible;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+/* border-radius 유지용 래퍼 */
+.leave-table-wrap {
+    border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 }
@@ -351,13 +358,28 @@
 
 .leave-undo-btn:hover { background: #fee2e2; color: #c0392b; border-color: #fca5a5; }
 
+/* ── 서브 행 (사용추가 폼) ── */
+.leave-add-row td {
+    background: #f8fffe;
+    border-bottom: 2px solid #86efac !important;
+    padding: 10px 16px !important;
+}
+
+.leave-month-table tbody tr:hover.leave-add-row td { background: #f8fffe; }
+
 /* ── 인라인 날짜 입력 폼 ── */
 .leave-inline-form {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     flex-wrap: wrap;
-    justify-content: center;
+}
+
+.leave-form-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #166534;
+    white-space: nowrap;
 }
 
 .leave-date-input {
@@ -461,13 +483,58 @@
     font-weight: 700;
 }
 
-.leave-chip-reason {
-    color: #4b7a5c;
-    font-weight: 400;
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.leave-chip-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    background: #f59e0b;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: default;
+    position: relative;
+    flex-shrink: 0;
 }
+
+.leave-chip-hint::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a2e;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 200;
+}
+
+.leave-chip-hint::after {
+    content: attr(data-reason);
+    position: absolute;
+    bottom: calc(100% + 13px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.leave-chip-hint:hover::before,
+.leave-chip-hint:hover::after { opacity: 1; }
 
 .leave-del-use-btn {
     background: none;
