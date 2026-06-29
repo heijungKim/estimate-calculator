@@ -44,6 +44,9 @@ var DEFAULT_PRICES = {
     // 갈바채널 ×1.3 - 한글 (글자당)
     // 갈바채널 ×1.3 - 흘림체 (글자당)
     ch_galva_got_30: 0, ch_galva_got_35: 0, ch_galva_got_40: 0, ch_galva_got_45: 0, ch_galva_got_50: 0, ch_galva_got_60: 0, ch_galva_got_70: 0, ch_galva_got_80: 0, ch_galva_got_90: 0, ch_galva_got_100: 0,
+    // 채널문자 크기별 LED 기본 개수 (갈바/스텐/티타늄 - 전광/후광)
+    ch_led_jeon_cnt_20: 10, ch_led_jeon_cnt_25: 12, ch_led_jeon_cnt_30: 15, ch_led_jeon_cnt_35: 17, ch_led_jeon_cnt_40: 20, ch_led_jeon_cnt_45: 25, ch_led_jeon_cnt_50: 30, ch_led_jeon_cnt_60: 35, ch_led_jeon_cnt_70: 45, ch_led_jeon_cnt_80: 60, ch_led_jeon_cnt_90: 70, ch_led_jeon_cnt_100: 80,
+    ch_led_hu_cnt_20: 10, ch_led_hu_cnt_25: 12, ch_led_hu_cnt_30: 15, ch_led_hu_cnt_35: 17, ch_led_hu_cnt_40: 20, ch_led_hu_cnt_45: 25, ch_led_hu_cnt_50: 30, ch_led_hu_cnt_60: 35, ch_led_hu_cnt_70: 45, ch_led_hu_cnt_80: 60, ch_led_hu_cnt_90: 70, ch_led_hu_cnt_100: 80,
     // 갈바오사이채널 ×1.3 - 영문 (글자당)
     ch_gosa_eng_30: 0, ch_gosa_eng_35: 0, ch_gosa_eng_40: 0, ch_gosa_eng_45: 0, ch_gosa_eng_50: 0, ch_gosa_eng_60: 0, ch_gosa_eng_70: 0, ch_gosa_eng_80: 0, ch_gosa_eng_90: 0, ch_gosa_eng_100: 0,
     // 갈바오사이채널 ×1.3 - 한글 (글자당)
@@ -1919,15 +1922,17 @@ function hoorex_type(){
 		$(".channel_led_count td span").text(cnt > 0 ? cnt + "개" : "0개");
 	}
 	function channel_led_count_set(){
-		var isNewLed = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked"));
+		var isNewLed = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked") || $("#channel_option07").is(":checked"));
 		if(isNewLed){
 			var jeonOn = $("#channel_led_jeon_yes").is(":checked");
 			var huOn   = $("#channel_led_hu_yes").is(":checked");
-			var est = _chGetLedCount();
+			var sz = parseInt(($("input[name='channel_size']:checked").attr("id") || "").replace("channel_size_","")) || 0;
+			var jeonEst = sz > 0 ? (PRICES["ch_led_jeon_cnt_" + sz] || 0) : 0;
+			var huEst   = sz > 0 ? (PRICES["ch_led_hu_cnt_"   + sz] || 0) : 0;
 			if(jeonOn){
 				$(".channel_led_jeon_color_row").css("display","table-row");
 				$(".ch_led_jeon_count_row").css("display","table-row");
-				if(est > 0) $("#ch_led_jeon_count").val(est);
+				if(jeonEst > 0) $("#ch_led_jeon_count").val(jeonEst);
 			} else {
 				$(".channel_led_jeon_color_row").hide();
 				$(".ch_led_jeon_count_row").hide();
@@ -1936,7 +1941,7 @@ function hoorex_type(){
 				$(".channel_led_hu_color_row").css("display","table-row");
 				$(".ch_led_hu_count_row").css("display","table-row");
 				$(".ch_led_hu_ggachi_row").css("display","table-row");
-				if(est > 0) $("#ch_led_hu_count").val(est);
+				if(huEst > 0) $("#ch_led_hu_count").val(huEst);
 			} else {
 				$(".channel_led_hu_color_row").hide();
 				$(".ch_led_hu_count_row").hide();
