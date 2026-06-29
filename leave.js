@@ -37,9 +37,16 @@ function _todayStr() {
 // 구 데이터 포맷 → 신 포맷 변환 (하위 호환)
 function _normalizeMd(md) {
     if (!md) return { uses: [], paidAt: null };
-    if (Array.isArray(md.uses)) return md; // 이미 새 포맷
+    var uses = [];
+    if (Array.isArray(md.uses)) {
+        // uses 항목이 문자열이면 { date, reason } 객체로 변환
+        uses = md.uses.map(function(u) {
+            return (typeof u === 'string') ? { date: u, reason: '' } : u;
+        });
+        return { uses: uses, paidAt: md.paidAt || null };
+    }
     // 구 포맷: { used: bool, paidAt: string|null }
-    return { uses: md.used ? [''] : [], paidAt: md.paidAt || null };
+    return { uses: md.used ? [{ date: '', reason: '' }] : [], paidAt: md.paidAt || null };
 }
 
 // ── 직원 목록 로드 ─────────────────────────────────────────────
@@ -147,9 +154,10 @@ function renderLeaveMonths(empId, year, rawMonths) {
             statusCell = '<span class="leave-badge leave-badge-future">-</span>';
         } else if (hasUse) {
             var useList = '';
-            md.uses.forEach(function(d, idx) {
+            md.uses.forEach(function(u, idx) {
                 useList += '<div class="leave-use-item">' +
-                    '<span class="leave-use-date">' + _leaveEsc(d || '날짜 미기록') + '</span>' +
+                    '<span class="leave-use-date">' + _leaveEsc(u.date || '날짜 미기록') + '</span>' +
+                    (u.reason ? '<span class="leave-use-reason">' + _leaveEsc(u.reason) + '</span>' : '') +
                     '<button class="leave-del-use-btn" data-month="' + m + '" data-idx="' + idx + '" title="삭제">✕</button>' +
                 '</div>';
             });
@@ -240,6 +248,7 @@ function renderLeaveMonths(empId, year, rawMonths) {
         $actionCell.html(
             '<div class="leave-inline-form">' +
                 '<input type="date" class="leave-date-input" value="' + _todayStr() + '">' +
+                '<input type="text" class="leave-reason-input" placeholder="사유 (선택)">' +
                 '<button class="leave-use-confirm-btn" data-month="' + m + '">확인</button>' +
                 '<button class="leave-use-cancel-btn" data-month="' + m + '">취소</button>' +
             '</div>'
@@ -249,10 +258,11 @@ function renderLeaveMonths(empId, year, rawMonths) {
 
         // 확인
         $actionCell.find('.leave-use-confirm-btn').click(function() {
-            var dateVal = $actionCell.find('.leave-date-input').val();
+            var dateVal   = $actionCell.find('.leave-date-input').val();
+            var reasonVal = $actionCell.find('.leave-reason-input').val().trim();
             if (!dateVal) { $actionCell.find('.leave-date-input').focus(); return; }
             var upd = JSON.parse(JSON.stringify(months));
-            upd[String(m)].uses.push(dateVal);
+            upd[String(m)].uses.push({ date: dateVal, reason: reasonVal });
             upd[String(m)].paidAt = null;
             saveLeaveData(empId, year, upd);
         });
