@@ -260,11 +260,31 @@
 .leave-badge-unpaid { background: #fee2e2; color: #991b1b; }
 .leave-badge-future { background: #f0f2f5; color: #aab0bb; }
 
+.leave-pay-date-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
 .leave-paid-date {
     font-size: 12px;
     font-weight: 600;
     color: #2563eb;
 }
+
+.leave-edit-pay-btn {
+    background: none;
+    border: none;
+    color: #aab0bb;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0 3px;
+    line-height: 1;
+    transition: color 0.13s;
+}
+
+.leave-edit-pay-btn:hover { color: #2563eb; }
 
 .leave-nopay {
     font-size: 12px;
