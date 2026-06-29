@@ -146,6 +146,71 @@ function savePricesToFirebase(data) {
     _pricesDoc.set(data).catch(function(){});
 }
 
+function _snapshotsCol() {
+    _initPricesDoc();
+    try { return firebase.firestore().collection('price_snapshots'); } catch(e) { return null; }
+}
+
+function savePriceSnapshot(name, prices) {
+    var col = _snapshotsCol();
+    if (!col) return;
+    col.add({ name: name, savedAt: new Date(), prices: prices }).catch(function(){});
+}
+
+function loadPriceSnapshots(callback) {
+    var col = _snapshotsCol();
+    if (!col) { callback([]); return; }
+    col.orderBy('savedAt', 'desc').get()
+        .then(function(snap) {
+            var list = [];
+            snap.forEach(function(doc) { list.push({ id: doc.id, data: doc.data() }); });
+            callback(list);
+        })
+        .catch(function() { callback([]); });
+}
+
+function deleteSnapshot(id, callback) {
+    var col = _snapshotsCol();
+    if (!col) return;
+    col.doc(id).delete().then(callback).catch(callback);
+}
+
+function applySnapshotData(prices) {
+    Object.keys(DEFAULT_PRICES).forEach(function(key) {
+        var val = prices[key] !== undefined ? prices[key] : DEFAULT_PRICES[key];
+        PRICES[key] = val;
+        var $el = $("#p_" + key);
+        if ($el.length) $el.val(fmtNum(val));
+    });
+    savePricesToFirebase(PRICES);
+}
+
+function _fmtDate(d) {
+    if (!d) return '';
+    var dt = (d.toDate) ? d.toDate() : new Date(d);
+    return dt.getFullYear() + '.' + String(dt.getMonth()+1).padStart(2,'0') + '.' + String(dt.getDate()).padStart(2,'0') + ' ' + String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+}
+
+function renderSnapshotList(list) {
+    var $list = $("#price_snapshots_list");
+    if (!list.length) {
+        $list.html('<div class="price_snapshots_empty">저장된 단가 내역이 없습니다.</div>');
+        return;
+    }
+    var html = '';
+    list.forEach(function(item) {
+        html += '<div class="price_snapshot_item" data-id="' + item.id + '">';
+        html += '<div class="price_snapshot_info"><span class="price_snapshot_name">' + $('<span>').text(item.data.name).html() + '</span><span class="price_snapshot_date">' + _fmtDate(item.data.savedAt) + '</span></div>';
+        html += '<div class="price_snapshot_btns"><button class="snap_load_btn" type="button">불러오기</button><button class="snap_del_btn" type="button">삭제</button></div>';
+        html += '</div>';
+    });
+    $list.html(html);
+    // 저장된 prices 데이터를 버튼에 연결
+    $list.find('.price_snapshot_item').each(function(i) {
+        $(this).find('.snap_load_btn').data('prices', list[i].data.prices);
+    });
+}
+
 function applyPrices() {
     Object.keys(DEFAULT_PRICES).forEach(function(key) {
         var $el = $("#p_" + key);
@@ -217,13 +282,68 @@ $(function() {
         if (gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
     });
 
-    // 적용하기
+    // 적용하기 → 저장 이름 팝업
     $("#btn_apply_prices").click(function() {
+        $("#price_save_name").val('');
+        $("#price_save_modal").fadeIn(150);
+        setTimeout(function(){ $("#price_save_name").focus(); }, 160);
+    });
+
+    $("#price_save_cancel").click(function() {
+        $("#price_save_modal").fadeOut(150);
+    });
+    $("#price_save_modal").click(function(e) {
+        if ($(e.target).is('.price_modal_overlay')) $("#price_save_modal").fadeOut(150);
+    });
+
+    $("#price_save_confirm").click(function() {
+        var name = $.trim($("#price_save_name").val());
+        if (!name) { $("#price_save_name").focus(); return; }
         applyPrices();
         savePricesToFirebase(PRICES);
-        $(this).text("✓ 적용됨").addClass("applied");
-        var _btn = this;
-        setTimeout(function() { $(_btn).text("적용하기").removeClass("applied"); }, 1500);
+        savePriceSnapshot(name, JSON.parse(JSON.stringify(PRICES)));
+        $("#price_save_modal").fadeOut(150);
+        var $btn = $("#btn_apply_prices");
+        $btn.text("✓ 적용됨").addClass("applied");
+        setTimeout(function() { $btn.text("적용하기").removeClass("applied"); }, 1500);
+    });
+    $("#price_save_name").keydown(function(e) {
+        if (e.key === 'Enter') $("#price_save_confirm").click();
+        if (e.key === 'Escape') $("#price_save_cancel").click();
+    });
+
+    // 불러오기
+    $("#btn_load_prices").click(function() {
+        $("#price_snapshots_list").html('<div class="price_snapshots_empty">불러오는 중...</div>');
+        $("#price_load_modal").fadeIn(150);
+        loadPriceSnapshots(function(list) { renderSnapshotList(list); });
+    });
+
+    $("#price_load_close").click(function() {
+        $("#price_load_modal").fadeOut(150);
+    });
+    $("#price_load_modal").click(function(e) {
+        if ($(e.target).is('.price_modal_overlay')) $("#price_load_modal").fadeOut(150);
+    });
+
+    $(document).on('click', '.snap_load_btn', function() {
+        var prices = $(this).data('prices');
+        if (!prices) return;
+        applySnapshotData(prices);
+        $("#price_load_modal").fadeOut(150);
+        var $btn = $("#btn_apply_prices");
+        $btn.text("✓ 불러옴").addClass("applied");
+        setTimeout(function() { $btn.text("적용하기").removeClass("applied"); }, 1500);
+    });
+
+    $(document).on('click', '.snap_del_btn', function() {
+        var $item = $(this).closest('.price_snapshot_item');
+        var id = $item.data('id');
+        if (!confirm('이 단가를 삭제하시겠습니까?')) return;
+        $item.css('opacity', 0.4);
+        deleteSnapshot(id, function() {
+            loadPriceSnapshots(function(list) { renderSnapshotList(list); });
+        });
     });
 
     // 섹션별 초기화

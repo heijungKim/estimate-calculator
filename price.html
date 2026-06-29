@@ -585,12 +585,41 @@
             </div>
 
             <div class="price_actions">
+                <button id="btn_load_prices" class="price_load_btn">불러오기</button>
                 <button id="btn_apply_prices" class="price_apply_btn">적용하기</button>
             </div>
         </div>
     </div>
 </div>
 
+</div>
+
+<!-- 단가 저장 팝업 -->
+<div id="price_save_modal" class="price_modal_overlay" style="display:none">
+    <div class="price_modal">
+        <div class="price_modal_title">단가 저장</div>
+        <div class="price_modal_body">
+            <label class="price_modal_label">저장 이름</label>
+            <input type="text" id="price_save_name" class="price_modal_input" placeholder="예: 여름 단가, 2025 상반기...">
+        </div>
+        <div class="price_modal_footer">
+            <button id="price_save_cancel" class="price_modal_cancel_btn" type="button">취소</button>
+            <button id="price_save_confirm" class="price_modal_confirm_btn" type="button">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 단가 불러오기 팝업 -->
+<div id="price_load_modal" class="price_modal_overlay" style="display:none">
+    <div class="price_modal price_modal_wide">
+        <div class="price_modal_title">단가 불러오기</div>
+        <div id="price_snapshots_list" class="price_snapshots_list">
+            <div class="price_snapshots_empty">저장된 단가 내역이 없습니다.</div>
+        </div>
+        <div class="price_modal_footer">
+            <button id="price_load_close" class="price_modal_cancel_btn" type="button">닫기</button>
+        </div>
+    </div>
 </div>
 
 <!-- Firebase SDK -->
