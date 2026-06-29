@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>직원 데이터 입력</title>
+<style>
+body { font-family: 'Noto Sans KR', sans-serif; max-width: 500px; margin: 60px auto; padding: 0 20px; background: #f5f7fa; }
+h2 { color: #1a1a2e; }
+#log { background: #fff; border-radius: 12px; padding: 20px; margin-top: 20px; border: 1.5px solid #e2e8f0; line-height: 2; }
+.ok   { color: #27ae60; font-weight: 600; }
+.fail { color: #e94560; font-weight: 600; }
+.done { color: #1a1a2e; font-weight: 800; font-size: 15px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+</style>
+</head>
+<body>
+<h2>직원 데이터 일괄 입력</h2>
+<p>잠시 기다려 주세요…</p>
+<div id="log"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+var employees = [
+    { name: '윤광호', position: '간판제조팀', joinDate: '2014-08-18' },
+    { name: '이승문', position: '간판제조팀', joinDate: '2016-06-01' },
+    { name: '한형',   position: '간판제조팀', joinDate: '2018-03-07' },
+    { name: '전길선', position: '간판제조팀', joinDate: '2023-04-18' },
+    { name: '최영태', position: '간판제조팀', joinDate: '2023-05-02' },
+    { name: '김승재', position: '간판제조팀', joinDate: '2024-06-03' },
+    { name: '김민호', position: '실사출력팀', joinDate: '2019-09-16' },
+    { name: '김미화', position: '실사출력팀', joinDate: '2016-12-01' },
+    { name: '최호섭', position: '실사출력팀', joinDate: '2023-06-01' },
+    { name: '이진우', position: '실사출력팀', joinDate: '2024-12-01' },
+    { name: '정수미', position: '디자인팀',   joinDate: '2016-09-08' },
+    { name: '안드래', position: '디자인팀',   joinDate: '2018-07-01' },
+];
+
+(async function() {
+    var log = document.getElementById('log');
+    function line(cls, msg) {
+        var p = document.createElement('div');
+        p.className = cls;
+        p.textContent = msg;
+        log.appendChild(p);
+    }
+
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    var col = firebase.firestore().collection('employees');
+    var ok = 0, fail = 0;
+
+    for (var i = 0; i < employees.length; i++) {
+        var emp = employees[i];
+        try {
+            await col.add({
+                name:      emp.name,
+                position:  emp.position,
+                joinDate:  emp.joinDate,
+                rank:      '',
+                userId:    '',
+                phone:     '',
+                salary:    0,
+                workHours: 0,
+                memo:      '',
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            });
+            line('ok', '✓  ' + emp.name + '  (' + emp.position + '  /  ' + emp.joinDate + ')');
+            ok++;
+        } catch(e) {
+            line('fail', '✗  ' + emp.name + '  실패: ' + e.message);
+            fail++;
+        }
+    }
+
+    line('done', '완료 — 성공 ' + ok + '명 / 실패 ' + fail + '명');
+    document.querySelector('p').textContent = fail === 0 ? '✅ 모두 저장되었습니다. 이 탭을 닫아도 됩니다.' : '⚠️ 일부 실패했습니다. 위 내역을 확인하세요.';
+})();
+</script>
+</body>
+</html>
