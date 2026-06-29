@@ -465,6 +465,118 @@ input::placeholder {
     border-color: #fca5a5;
 }
 
+/* ── 단가 미리보기 배너 ── */
+#price_diff_banner {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: #fffbeb;
+    border: 1.5px solid #f59e0b;
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(245,158,11,0.18);
+}
+
+.diff_banner_info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.diff_banner_label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: #f59e0b;
+    border-radius: 6px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+.diff_banner_name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #78350f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.diff_banner_count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    border-radius: 20px;
+    padding: 2px 10px;
+    white-space: nowrap;
+}
+
+.diff_banner_actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.diff_banner_hint {
+    font-size: 12px;
+    color: #92400e;
+    font-weight: 500;
+}
+
+.diff_cancel_btn {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    background: #fff;
+    color: #92400e;
+    border: 1.5px solid #f59e0b;
+    transition: all 0.15s;
+}
+
+.diff_cancel_btn:hover {
+    background: #fef3c7;
+}
+
+/* 변경된 입력 필드 */
+.price_diff_input {
+    background: #fffbeb !important;
+    border: 1.5px solid #f59e0b !important;
+    color: #78350f !important;
+    font-weight: 600 !important;
+}
+
+/* 기존→신규 뱃지 */
+.price_diff_badge {
+    display: inline-block;
+    font-size: 10px;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 3px;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-weight: 700;
+    line-height: 1.6;
+}
+
 .price_load_btn {
     height: 38px;
     padding: 0 20px;

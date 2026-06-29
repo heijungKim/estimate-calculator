@@ -101,6 +101,9 @@ var DEFAULT_PRICES = {
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
+var _previewActive = false;
+var _previewPrices = null;
+var _previewName   = '';
 
 // ── 헬퍼 ────────────────────────────────────────────────────
 function fmtNum(n) {
@@ -175,15 +178,57 @@ function deleteSnapshot(id, callback) {
     col.doc(id).delete().then(callback).catch(callback);
 }
 
-function applySnapshotData(prices) {
+function previewSnapshot(name, prices) {
+    clearDiffPreview(false);
+    _previewActive = true;
+    _previewPrices = prices;
+    _previewName   = name;
+    var changedCount = 0;
     Object.keys(DEFAULT_PRICES).forEach(function(key) {
-        var val = prices[key] !== undefined ? prices[key] : DEFAULT_PRICES[key];
-        PRICES[key] = val;
         var $el = $("#p_" + key);
-        if ($el.length) $el.val(fmtNum(val));
+        if (!$el.length) return;
+        var newVal = prices[key] !== undefined ? prices[key] : DEFAULT_PRICES[key];
+        var oldVal = PRICES[key] !== undefined ? PRICES[key] : DEFAULT_PRICES[key];
+        if (newVal !== oldVal) {
+            changedCount++;
+            $el.addClass('price_diff_input');
+            $el.after('<span class="price_diff_badge">' + fmtNum(oldVal) + ' → ' + fmtNum(newVal) + '</span>');
+        }
+        $el.val(fmtNum(newVal));
     });
-    savePricesToFirebase(PRICES);
+    var $banner = $('#price_diff_banner');
+    $banner.html(
+        '<div class="diff_banner_info">' +
+            '<span class="diff_banner_label">미리보기 중</span>' +
+            '<span class="diff_banner_name">' + $('<span>').text(name).html() + '</span>' +
+            '<span class="diff_banner_count">' + changedCount + '개 항목 변경</span>' +
+        '</div>' +
+        '<div class="diff_banner_actions">' +
+            '<span class="diff_banner_hint">적용하기를 눌러 최종 저장</span>' +
+            '<button id="diff_cancel_btn" type="button" class="diff_cancel_btn">취소</button>' +
+        '</div>'
+    ).show();
+    $('#diff_cancel_btn').off('click').on('click', cancelPreview);
+    $('html, body').animate({ scrollTop: Math.max(0, ($('#price_diff_banner').offset() || {top:0}).top - 80) }, 250);
 }
+
+function clearDiffPreview(revertInputs) {
+    if (revertInputs && _previewActive) {
+        Object.keys(DEFAULT_PRICES).forEach(function(key) {
+            var $el = $("#p_" + key);
+            if (!$el.length) return;
+            $el.val(fmtNum(PRICES[key] !== undefined ? PRICES[key] : DEFAULT_PRICES[key]));
+        });
+    }
+    $('.price_diff_badge').remove();
+    $('.price_diff_input').removeClass('price_diff_input');
+    $('#price_diff_banner').hide();
+    _previewActive = false;
+    _previewPrices = null;
+    _previewName   = '';
+}
+
+function cancelPreview() { clearDiffPreview(true); }
 
 function _fmtDate(d) {
     if (!d) return '';
@@ -282,11 +327,22 @@ $(function() {
         if (gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
     });
 
-    // 적용하기 → 저장 이름 팝업
+    // 적용하기
     $("#btn_apply_prices").click(function() {
-        $("#price_save_name").val('');
-        $("#price_save_modal").fadeIn(150);
-        setTimeout(function(){ $("#price_save_name").focus(); }, 160);
+        if (_previewActive) {
+            // 미리보기 중: 바로 적용 (입력값 기준)
+            applyPrices();
+            savePricesToFirebase(PRICES);
+            clearDiffPreview(false);
+            var $b = $(this);
+            $b.text("✓ 적용됨").addClass("applied");
+            setTimeout(function() { $b.text("적용하기").removeClass("applied"); }, 1500);
+        } else {
+            // 일반 저장: 이름 팝업
+            $("#price_save_name").val('');
+            $("#price_save_modal").fadeIn(150);
+            setTimeout(function(){ $("#price_save_name").focus(); }, 160);
+        }
     });
 
     $("#price_save_cancel").click(function() {
@@ -328,12 +384,10 @@ $(function() {
 
     $(document).on('click', '.snap_load_btn', function() {
         var prices = $(this).data('prices');
+        var name   = $(this).closest('.price_snapshot_item').find('.price_snapshot_name').text();
         if (!prices) return;
-        applySnapshotData(prices);
         $("#price_load_modal").fadeOut(150);
-        var $btn = $("#btn_apply_prices");
-        $btn.text("✓ 불러옴").addClass("applied");
-        setTimeout(function() { $btn.text("적용하기").removeClass("applied"); }, 1500);
+        setTimeout(function() { previewSnapshot(name, prices); }, 180);
     });
 
     $(document).on('click', '.snap_del_btn', function() {
@@ -348,6 +402,7 @@ $(function() {
 
     // 섹션별 초기화
     $(document).on('click', '.price_section_reset_btn', function() {
+        if (_previewActive) clearDiffPreview(true); // 미리보기 취소 후 초기화
         var $section = $(this).closest('.price_section');
         $section.find('input').each(function() {
             var key = $(this).attr('id').replace(/^p_/, '');
