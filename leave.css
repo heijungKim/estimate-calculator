@@ -325,6 +325,119 @@
 
 .leave-undo-btn:hover { background: #fee2e2; color: #c0392b; border-color: #fca5a5; }
 
+/* ── 인라인 날짜 입력 폼 ── */
+.leave-inline-form {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.leave-date-input {
+    height: 28px;
+    padding: 0 8px;
+    border: 1.5px solid #86efac;
+    border-radius: 7px;
+    font-size: 12px;
+    font-family: inherit;
+    color: #166534;
+    background: #f0fdf4;
+    outline: none;
+    width: 130px;
+}
+
+.leave-date-input:focus {
+    border-color: #4ade80;
+    box-shadow: 0 0 0 2px rgba(74,222,128,0.15);
+}
+
+.leave-use-confirm-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    background: #166534;
+    color: #fff;
+    border: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.leave-use-confirm-btn:hover { background: #15803d; }
+
+.leave-use-cancel-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    background: #f7f8fa;
+    color: #8892a4;
+    border: 1.5px solid #dde1e9;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.leave-use-cancel-btn:hover { background: #fee2e2; color: #c0392b; }
+
+/* ── 사용 내역 목록 ── */
+.leave-uses-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.leave-use-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 2px 8px 2px 10px;
+    font-size: 12px;
+}
+
+.leave-use-date {
+    color: #166534;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.leave-del-use-btn {
+    background: none;
+    border: none;
+    color: #aab0bb;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color 0.13s;
+}
+
+.leave-del-use-btn:hover { color: #e94560; }
+
+/* 지급 버튼 비활성화 */
+.leave-pay-btn[disabled] {
+    background: #e2e8f0;
+    color: #aab0bb;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.leave-pay-btn[disabled]:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 /* ── 기타 ── */
 .leave-empty {
     padding: 20px 16px;
