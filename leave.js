@@ -142,37 +142,31 @@ function renderLeaveMonths(empId, year, rawMonths) {
         var md = months[String(m)];
         var hasUse = md.uses.length > 0;
 
-        // ── 연차 사용 내역 셀 ──
-        var useList = '';
+        // ── 연차 사용 내역 셀 (가로 칩 형태) ──
+        var chips = '';
         md.uses.forEach(function(u, idx) {
-            useList += '<div class="leave-use-item">' +
-                '<span class="leave-use-date">' + _leaveEsc(u.date || '날짜 미기록') + '</span>' +
-                (u.reason ? '<span class="leave-use-reason">' + _leaveEsc(u.reason) + '</span>' : '') +
+            chips += '<span class="leave-chip">' +
+                '<span class="leave-chip-date">' + _leaveEsc(u.date || '미기록') + '</span>' +
+                (u.reason ? '<span class="leave-chip-reason">' + _leaveEsc(u.reason) + '</span>' : '') +
                 '<button class="leave-del-use-btn" data-month="' + m + '" data-idx="' + idx + '" title="삭제">✕</button>' +
-            '</div>';
+            '</span>';
         });
         var badge = hasUse
             ? '<span class="leave-badge leave-badge-used">사용 ' + md.uses.length + '회</span>'
             : '<span class="leave-badge leave-badge-unpaid">미사용</span>';
-        var statusCell = '<div class="leave-uses-wrap">' + badge + useList +
-            '<button class="leave-use-btn" data-month="' + m + '">+ 사용추가</button>' +
+        var statusCell = '<div class="leave-status-inner">' + badge +
+            (hasUse ? '<div class="leave-chips">' + chips + '</div>' : '') +
         '</div>';
 
         // ── 지급일 셀 ──
         var dateCell;
         if (hasUse) {
-            dateCell = '<span style="color:#aab0bb;font-size:12px;">-</span>';
+            dateCell = '<span class="leave-dash">-</span>';
         } else if (md.paidAt) {
-            dateCell = '<div class="leave-pay-date-wrap">' +
-                '<span class="leave-paid-date">' + _leaveEsc(md.paidAt) + '</span>' +
-                '<button class="leave-edit-pay-btn" data-month="' + m + '" title="날짜 수정">✎</button>' +
-                '<button class="leave-undo-btn" data-month="' + m + '">취소</button>' +
-            '</div>';
+            dateCell = '<span class="leave-paid-date">' + _leaveEsc(md.paidAt) + '</span>' +
+                '<button class="leave-edit-pay-btn" data-month="' + m + '" title="날짜 수정">✎</button>';
         } else {
-            dateCell = '<div class="leave-pay-date-wrap">' +
-                '<span class="leave-nopay">미지급</span>' +
-                '<button class="leave-pay-btn" data-month="' + m + '"' + (hasUse ? ' disabled' : '') + '>지급</button>' +
-            '</div>';
+            dateCell = '<span class="leave-nopay">미지급</span>';
         }
 
         // ── 액션 셀 ──
@@ -186,7 +180,7 @@ function renderLeaveMonths(empId, year, rawMonths) {
         rows += '<tr data-month="' + m + '">' +
             '<td class="tc leave-month-cell">' + MONTHS[m-1] + '</td>' +
             '<td class="leave-status-cell">' + statusCell + '</td>' +
-            '<td class="leave-date-col">' + dateCell + '</td>' +
+            '<td class="tc leave-date-col">' + dateCell + '</td>' +
             '<td class="tc leave-action-cell">' + actionCell + '</td>' +
         '</tr>';
     }
@@ -227,16 +221,13 @@ function renderLeaveMonths(empId, year, rawMonths) {
     $('#leave_prev_year').click(function() { _leaveYear--; loadLeaveData(empId, _leaveYear); });
     $('#leave_next_year').click(function() { _leaveYear++; loadLeaveData(empId, _leaveYear); });
 
-    // 사용추가 → 인라인 날짜 입력 표시
+    // 사용추가 → 액션 셀을 인라인 폼으로 교체
     $('.leave-use-btn').click(function() {
         var m = $(this).data('month');
-        var $row = $('tr[data-month="' + m + '"]');
-        var $actionCell = $row.find('.leave-action-cell');
+        var $cell = $('tr[data-month="' + m + '"]').find('.leave-action-cell');
+        if ($cell.find('.leave-date-input').length) return;
 
-        // 이미 열려있으면 닫기
-        if ($actionCell.find('.leave-date-input').length) return;
-
-        $actionCell.html(
+        $cell.html(
             '<div class="leave-inline-form">' +
                 '<input type="date" class="leave-date-input" value="' + _todayStr() + '">' +
                 '<input type="text" class="leave-reason-input" placeholder="사유 (선택)">' +
@@ -244,29 +235,23 @@ function renderLeaveMonths(empId, year, rawMonths) {
                 '<button class="leave-use-cancel-btn" data-month="' + m + '">취소</button>' +
             '</div>'
         );
+        $cell.find('.leave-date-input').focus();
 
-        $actionCell.find('.leave-date-input').focus();
-
-        // 확인
-        $actionCell.find('.leave-use-confirm-btn').click(function() {
-            var dateVal   = $actionCell.find('.leave-date-input').val();
-            var reasonVal = $actionCell.find('.leave-reason-input').val().trim();
-            if (!dateVal) { $actionCell.find('.leave-date-input').focus(); return; }
+        $cell.find('.leave-use-confirm-btn').click(function() {
+            var dateVal   = $cell.find('.leave-date-input').val();
+            var reasonVal = $cell.find('.leave-reason-input').val().trim();
+            if (!dateVal) { $cell.find('.leave-date-input').focus(); return; }
             var upd = JSON.parse(JSON.stringify(months));
             upd[String(m)].uses.push({ date: dateVal, reason: reasonVal });
             upd[String(m)].paidAt = null;
             saveLeaveData(empId, year, upd);
         });
-
-        // 취소
-        $actionCell.find('.leave-use-cancel-btn').click(function() {
+        $cell.find('.leave-use-cancel-btn').click(function() {
             loadLeaveData(empId, year);
         });
-
-        // Enter 키
-        $actionCell.find('.leave-date-input').keydown(function(e) {
-            if (e.key === 'Enter') $actionCell.find('.leave-use-confirm-btn').click();
-            if (e.key === 'Escape') $actionCell.find('.leave-use-cancel-btn').click();
+        $cell.find('input').keydown(function(e) {
+            if (e.key === 'Enter') $cell.find('.leave-use-confirm-btn').click();
+            if (e.key === 'Escape') $cell.find('.leave-use-cancel-btn').click();
         });
     });
 

@@ -244,6 +244,12 @@
     gap: 6px;
     justify-content: center;
     flex-wrap: wrap;
+    min-width: 110px;
+}
+
+.leave-date-col {
+    white-space: nowrap;
+    min-width: 90px;
 }
 
 /* ── 배지 ── */
@@ -424,41 +430,43 @@
 
 .leave-use-cancel-btn:hover { background: #fee2e2; color: #c0392b; }
 
-/* ── 사용 내역 목록 ── */
-.leave-uses-wrap {
+/* ── 사용 내역 (가로 칩) ── */
+.leave-status-inner {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     align-items: flex-start;
 }
 
-.leave-use-item {
+.leave-chips {
     display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.leave-chip {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 6px;
-    padding: 2px 8px 2px 10px;
-    font-size: 12px;
-}
-
-.leave-use-date {
-    color: #166534;
-    font-weight: 600;
-    font-size: 12px;
-}
-
-.leave-use-reason {
+    border: 1px solid #86efac;
+    border-radius: 20px;
+    padding: 3px 4px 3px 10px;
     font-size: 11px;
-    color: #4a5568;
-    background: #f0f2f5;
-    border-radius: 4px;
-    padding: 1px 7px;
-    max-width: 140px;
+    white-space: nowrap;
+}
+
+.leave-chip-date {
+    color: #166534;
+    font-weight: 700;
+}
+
+.leave-chip-reason {
+    color: #4b7a5c;
+    font-weight: 400;
+    max-width: 80px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .leave-del-use-btn {
@@ -466,13 +474,18 @@
     border: none;
     color: #aab0bb;
     cursor: pointer;
-    font-size: 11px;
-    padding: 0 2px;
+    font-size: 10px;
+    padding: 0 3px;
     line-height: 1;
     transition: color 0.13s;
 }
 
 .leave-del-use-btn:hover { color: #e94560; }
+
+.leave-dash {
+    color: #c0c8d4;
+    font-size: 13px;
+}
 
 /* 지급 버튼 비활성화 */
 .leave-pay-btn[disabled] {
