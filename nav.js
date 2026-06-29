@@ -5,11 +5,8 @@ $(function() {
         $activeItem.closest('.nav-category').addClass('open active-cat');
     }
 
-    // 카테고리 헤더 클릭 → 아코디언 토글
+    // 카테고리 헤더 클릭 → 개별 토글 (다른 카테고리 유지)
     $('.nav-cat-header').click(function() {
-        var $cat = $(this).closest('.nav-category');
-        var wasOpen = $cat.hasClass('open');
-        $('.nav-category').removeClass('open');
-        if (!wasOpen) $cat.addClass('open');
+        $(this).closest('.nav-category').toggleClass('open');
     });
 });
