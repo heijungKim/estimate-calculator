@@ -31,7 +31,7 @@ function loadEmployeesForSalary() {
             var $sel = $('#sal_emp');
             $sel.html('<option value="">-- 직접 입력 --</option>');
             _salEmployees.forEach(function(e) {
-                $sel.append('<option value="' + e.id + '" data-salary="' + (e.salary || 0) + '" data-name="' + (e.name || '') + '">' + e.name + (e.salary ? ' (' + Math.round(e.salary / 12).toLocaleString('ko-KR') + '원/월)' : '') + '</option>');
+                $sel.append('<option value="' + e.id + '" data-hourly="' + (e.hourly || 0) + '" data-name="' + (e.name || '') + '">' + e.name + (e.hourly ? ' (' + (e.hourly).toLocaleString('ko-KR') + '원/h)' : '') + '</option>');
             });
         })
         .catch(function() {});
@@ -49,24 +49,17 @@ function estimateIncomeTax(monthly) {
 }
 
 function calcSalary() {
-    var isHourly = $('#sal_type_hourly').is(':checked');
     var workDays = parseFloat($('#sal_work_days').val()) || 22;
     var workHours = parseFloat($('#sal_work_hours').val()) || 8;
     var overtime = parseFloat($('#sal_overtime').val()) || 0;
     var bonus = parseInt($('#sal_bonus').val(), 10) || 0;
     var name = $.trim($('#sal_name').val()) || '계산 결과';
 
-    var baseMonthly;
-    if (isHourly) {
-        var hourly = parseInt($('#sal_hourly').val(), 10) || MIN_HOURLY;
-        baseMonthly = hourly * workDays * workHours;
-    } else {
-        var annual = parseInt($('#sal_annual').val(), 10) || 0;
-        baseMonthly = Math.round(annual / 12);
-    }
+    var hourly = parseInt($('#sal_hourly').val(), 10) || MIN_HOURLY;
+    var baseMonthly = hourly * workDays * workHours;
 
     if (baseMonthly <= 0) {
-        alert('연봉 또는 시급을 입력하세요.');
+        alert('시급을 입력하세요.');
         return;
     }
 
@@ -110,15 +103,11 @@ function calcSalary() {
 function resetSalary() {
     $('#sal_emp').val('');
     $('#sal_name').val('');
-    $('#sal_type_annual').prop('checked', true);
-    $('#sal_annual').val('');
     $('#sal_hourly').val('');
     $('#sal_work_days').val('22');
     $('#sal_work_hours').val('8');
     $('#sal_overtime').val('0');
     $('#sal_bonus').val('0');
-    $('#sal_annual_field').show();
-    $('#sal_hourly_field').hide();
     $('#sal_result_card').hide();
 }
 
@@ -127,29 +116,10 @@ $(function() {
 
     // 직원 선택 시 자동 입력
     $('#sal_emp').change(function() {
-        var id = $(this).val();
-        if (!id) return;
         var opt = $(this).find('option:selected');
         $('#sal_name').val(opt.data('name') || '');
-        var salary = parseInt(opt.data('salary'), 10) || 0;
-        if (salary > 0) {
-            $('#sal_type_annual').prop('checked', true);
-            $('#sal_annual_field').show();
-            $('#sal_hourly_field').hide();
-            $('#sal_annual').val(salary);
-        }
-    });
-
-    // 급여 기준 전환
-    $('input[name="sal_type"]').change(function() {
-        if ($('#sal_type_hourly').is(':checked')) {
-            $('#sal_annual_field').hide();
-            $('#sal_hourly_field').show();
-            if (!$('#sal_hourly').val()) $('#sal_hourly').val(MIN_HOURLY);
-        } else {
-            $('#sal_annual_field').show();
-            $('#sal_hourly_field').hide();
-        }
+        var hourly = parseInt(opt.data('hourly'), 10) || 0;
+        if (hourly > 0) $('#sal_hourly').val(hourly);
     });
 
     $('#btn_sal_calc').click(calcSalary);

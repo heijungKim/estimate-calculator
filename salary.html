@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache" />
-    <title>급여 계산 - 우성디지탈 관리 시스템</title>
+    <title>야간 수당 관리 - 우성디지탈 관리 시스템</title>
     <link rel="icon" href="logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="index.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,8 +78,7 @@
                     <span>연차 관리</span>
                 </a>
                 <a href="salary.html" class="nav-item active">
-                    <span class="nav-icon">&#128184;</span>
-                    <span>급여 계산</span>
+                    <span class="nav-icon">&#127761;</span><span>야간 수당 관리</span>
                 </a>
             </div>
         </div>
@@ -99,7 +98,7 @@
             <img src="logo.svg" class="logo-img" alt="우성디지탈" />
             <span class="logo-text">우성디지탈 관리 시스템</span>
         </div>
-        <p class="header-sub">직원 급여를 계산하세요</p>
+        <p class="header-sub">야간 수당을 계산하세요</p>
     </div>
 </header>
 
@@ -109,7 +108,7 @@
     <div class="sal-card">
         <div class="sal-card-title">
             <span class="title-bar"></span>
-            급여 계산
+            야간 수당 관리
         </div>
 
         <div class="sal-form-grid">
@@ -125,20 +124,7 @@
                 <input type="text" id="sal_name" placeholder="홍길동" />
             </div>
 
-            <!-- 급여 기준 -->
             <div class="sal-field">
-                <label>급여 기준</label>
-                <div class="sal-radio-group">
-                    <label class="sal-radio"><input type="radio" name="sal_type" id="sal_type_annual" checked /> 연봉 기준</label>
-                    <label class="sal-radio"><input type="radio" name="sal_type" id="sal_type_hourly" /> 시급 기준</label>
-                </div>
-            </div>
-
-            <div class="sal-field" id="sal_annual_field">
-                <label for="sal_annual">연봉 (원)</label>
-                <input type="number" id="sal_annual" placeholder="예: 30000000" min="0" />
-            </div>
-            <div class="sal-field" id="sal_hourly_field" style="display:none">
                 <label for="sal_hourly">시급 (원)</label>
                 <input type="number" id="sal_hourly" placeholder="예: 10320" min="0" />
             </div>
