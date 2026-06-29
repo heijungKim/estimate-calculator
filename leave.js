@@ -148,11 +148,11 @@ function renderLeaveMonths(empId, year, rawMonths) {
         var isFuture = (year > curYear) || (year === curYear && m > curMonth);
         var hasUse = md.uses.length > 0;
 
-        // ── 연차 사용 내역 셀 ──
+        // ── 사용여부 셀 ──
         var statusCell;
         if (isFuture) {
             statusCell = '<span class="leave-badge leave-badge-future">-</span>';
-        } else {
+        } else if (hasUse) {
             var useList = '';
             md.uses.forEach(function(u, idx) {
                 useList += '<div class="leave-use-item">' +
@@ -161,31 +161,42 @@ function renderLeaveMonths(empId, year, rawMonths) {
                     '<button class="leave-del-use-btn" data-month="' + m + '" data-idx="' + idx + '" title="삭제">✕</button>' +
                 '</div>';
             });
-            var badge = hasUse
-                ? '<span class="leave-badge leave-badge-used">사용 ' + md.uses.length + '회</span>'
-                : '<span class="leave-badge leave-badge-unpaid">미사용</span>';
             statusCell = '<div class="leave-uses-wrap">' +
-                badge + useList +
-                '<button class="leave-use-btn" data-month="' + m + '">+ 사용추가</button>' +
+                '<span class="leave-badge leave-badge-used">사용 ' + md.uses.length + '회</span>' +
+                useList +
             '</div>';
+        } else {
+            statusCell = '<span class="leave-badge leave-badge-unpaid">미사용</span>';
         }
 
         // ── 지급일 셀 ──
         var dateCell;
-        if (isFuture) {
+        if (isFuture || hasUse) {
             dateCell = '-';
         } else if (md.paidAt) {
-            dateCell = '<span class="leave-paid-date">' + _leaveEsc(md.paidAt) + '</span>' +
-                '<button class="leave-undo-btn" data-month="' + m + '">취소</button>';
+            dateCell = '<span class="leave-paid-date">' + _leaveEsc(md.paidAt) + '</span>';
         } else {
-            dateCell = '<span class="leave-nopay">미지급</span>' +
-                '<button class="leave-pay-btn" data-month="' + m + '"' + (hasUse ? ' disabled' : '') + '>지급</button>';
+            dateCell = '<span class="leave-nopay">미지급</span>';
+        }
+
+        // ── 액션 셀 ──
+        var actionCell = '';
+        if (!isFuture) {
+            // 사용추가 버튼 (항상 표시, 날짜 입력 인라인)
+            actionCell += '<button class="leave-use-btn" data-month="' + m + '">+ 사용추가</button>';
+            // 지급 버튼: 사용 내역 있으면 비활성화
+            if (md.paidAt) {
+                actionCell += '<button class="leave-undo-btn" data-month="' + m + '">취소</button>';
+            } else {
+                actionCell += '<button class="leave-pay-btn" data-month="' + m + '"' + (hasUse ? ' disabled' : '') + '>지급</button>';
+            }
         }
 
         rows += '<tr' + (isFuture ? ' class="leave-row-future"' : '') + ' data-month="' + m + '">' +
             '<td class="tc leave-month-cell">' + MONTHS[m-1] + '</td>' +
             '<td class="leave-status-cell">' + statusCell + '</td>' +
-            '<td class="leave-date-col">' + dateCell + '</td>' +
+            '<td class="tc leave-date-col">' + dateCell + '</td>' +
+            '<td class="tc leave-action-cell">' + actionCell + '</td>' +
         '</tr>';
     }
 
@@ -214,7 +225,7 @@ function renderLeaveMonths(empId, year, rawMonths) {
             '<div class="leave-stat-item"><span class="leave-stat-label">미지급</span><span class="leave-stat-val leave-stat-unpaid">' + unpaidCount + '개월</span></div>' +
         '</div>' +
         '<table class="leave-month-table">' +
-            '<thead><tr><th>월</th><th>연차 사용 내역</th><th>지급일</th></tr></thead>' +
+            '<thead><tr><th>월</th><th>연차 사용 내역</th><th>지급일</th><th>액션</th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
         '</table>';
 
@@ -225,17 +236,17 @@ function renderLeaveMonths(empId, year, rawMonths) {
     $('#leave_prev_year').click(function() { _leaveYear--; loadLeaveData(empId, _leaveYear); });
     $('#leave_next_year').click(function() { _leaveYear++; loadLeaveData(empId, _leaveYear); });
 
-    // 사용추가 → 인라인 날짜 입력 표시 (연차 사용 내역 셀 내부)
+    // 사용추가 → 인라인 날짜 입력 표시
     $('.leave-use-btn').click(function() {
         var m = $(this).data('month');
-        var $statusCell = $('tr[data-month="' + m + '"]').find('.leave-status-cell');
+        var $row = $('tr[data-month="' + m + '"]');
+        var $actionCell = $row.find('.leave-action-cell');
 
-        // 이미 폼 열려있으면 무시
-        if ($statusCell.find('.leave-date-input').length) return;
+        // 이미 열려있으면 닫기
+        if ($actionCell.find('.leave-date-input').length) return;
 
-        // 사용추가 버튼을 폼으로 교체
-        $(this).replaceWith(
-            '<div class="leave-inline-form" data-month="' + m + '">' +
+        $actionCell.html(
+            '<div class="leave-inline-form">' +
                 '<input type="date" class="leave-date-input" value="' + _todayStr() + '">' +
                 '<input type="text" class="leave-reason-input" placeholder="사유 (선택)">' +
                 '<button class="leave-use-confirm-btn" data-month="' + m + '">확인</button>' +
@@ -243,26 +254,28 @@ function renderLeaveMonths(empId, year, rawMonths) {
             '</div>'
         );
 
-        var $form = $statusCell.find('.leave-inline-form');
-        $form.find('.leave-date-input').focus();
+        $actionCell.find('.leave-date-input').focus();
 
-        $form.find('.leave-use-confirm-btn').click(function() {
-            var dateVal   = $form.find('.leave-date-input').val();
-            var reasonVal = $form.find('.leave-reason-input').val().trim();
-            if (!dateVal) { $form.find('.leave-date-input').focus(); return; }
+        // 확인
+        $actionCell.find('.leave-use-confirm-btn').click(function() {
+            var dateVal   = $actionCell.find('.leave-date-input').val();
+            var reasonVal = $actionCell.find('.leave-reason-input').val().trim();
+            if (!dateVal) { $actionCell.find('.leave-date-input').focus(); return; }
             var upd = JSON.parse(JSON.stringify(months));
             upd[String(m)].uses.push({ date: dateVal, reason: reasonVal });
             upd[String(m)].paidAt = null;
             saveLeaveData(empId, year, upd);
         });
 
-        $form.find('.leave-use-cancel-btn').click(function() {
+        // 취소
+        $actionCell.find('.leave-use-cancel-btn').click(function() {
             loadLeaveData(empId, year);
         });
 
-        $form.find('.leave-date-input, .leave-reason-input').keydown(function(e) {
-            if (e.key === 'Enter') $form.find('.leave-use-confirm-btn').click();
-            if (e.key === 'Escape') $form.find('.leave-use-cancel-btn').click();
+        // Enter 키
+        $actionCell.find('.leave-date-input').keydown(function(e) {
+            if (e.key === 'Enter') $actionCell.find('.leave-use-confirm-btn').click();
+            if (e.key === 'Escape') $actionCell.find('.leave-use-cancel-btn').click();
         });
     });
 

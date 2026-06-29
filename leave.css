@@ -239,14 +239,11 @@
     width: 60px;
 }
 
-.leave-date-col {
-    white-space: nowrap;
-}
-
-.leave-date-col .leave-paid-date,
-.leave-date-col .leave-nopay {
-    display: block;
-    margin-bottom: 5px;
+.leave-action-cell {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* ── 배지 ── */
@@ -411,9 +408,8 @@
 .leave-uses-wrap {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     align-items: flex-start;
-    padding: 2px 0;
 }
 
 .leave-use-item {
