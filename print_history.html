@@ -18,43 +18,70 @@
         <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
         <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
     </div>
-    <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-            <span class="nav-icon">&#9998;</span>
-            <span>견적 계산기</span>
-        </a>
-        <a href="estimates.html" class="nav-item">
-            <span class="nav-icon">&#128196;</span>
-            <span>견적서 관리</span>
-        </a>
-        <a href="vendor.html" class="nav-item">
-            <span class="nav-icon">&#9679;</span>
-            <span>업체 관리</span>
-        </a>
-        <a href="price.html" class="nav-item">
-            <span class="nav-icon">&#128176;</span>
-            <span>단가 설정표</span>
-        </a>
-        <a href="materials.html" class="nav-item">
-            <span class="nav-icon">&#128230;</span>
-            <span>자재 관리</span>
-        </a>
-        <a href="print_history.html" class="nav-item active">
-            <span class="nav-icon">&#128424;</span>
-            <span>출력 내역</span>
-        </a>
-        <a href="employees.html" class="nav-item">
-            <span class="nav-icon">&#128100;</span>
-            <span>직원 관리</span>
-        </a>
-        <a href="leave.html" class="nav-item">
-            <span class="nav-icon">&#128197;</span>
-            <span>연차 관리</span>
-        </a>
-        <a href="salary.html" class="nav-item">
-            <span class="nav-icon">&#128184;</span>
-            <span>급여 계산</span>
-        </a>
+            <nav class="sidebar-nav">
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128203;</span>
+                <span class="nav-cat-label">견적</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="index.html" class="nav-item">
+                    <span class="nav-icon">&#9998;</span>
+                    <span>견적 계산기</span>
+                </a>
+                <a href="estimates.html" class="nav-item">
+                    <span class="nav-icon">&#128196;</span>
+                    <span>견적서 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#9881;</span>
+                <span class="nav-cat-label">관리</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="price.html" class="nav-item">
+                    <span class="nav-icon">&#128176;</span>
+                    <span>단가 설정표</span>
+                </a>
+                <a href="materials.html" class="nav-item">
+                    <span class="nav-icon">&#128230;</span>
+                    <span>자재 관리</span>
+                </a>
+                <a href="vendor.html" class="nav-item">
+                    <span class="nav-icon">&#9679;</span>
+                    <span>업체 관리</span>
+                </a>
+                <a href="print_history.html" class="nav-item active">
+                    <span class="nav-icon">&#128424;</span>
+                    <span>출력 내역</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128101;</span>
+                <span class="nav-cat-label">인사/급여</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="employees.html" class="nav-item">
+                    <span class="nav-icon">&#128100;</span>
+                    <span>직원 관리</span>
+                </a>
+                <a href="leave.html" class="nav-item">
+                    <span class="nav-icon">&#128197;</span>
+                    <span>연차 관리</span>
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">&#128184;</span>
+                    <span>급여 계산</span>
+                </a>
+            </div>
+        </div>
     </nav>
     <button type="button" class="nav-logout" onclick="wsLogout()">
         <span class="nav-icon">&#9711;</span>
@@ -125,7 +152,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="auth.js"></script>
+<script src="nav.js"></script>`n<script src="auth.js"></script>
 <script src="print_history.js"></script>
 </body>
 </html>

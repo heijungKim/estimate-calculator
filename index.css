@@ -67,14 +67,63 @@ body {
 .sidebar-nav::-webkit-scrollbar { width: 3px; }
 .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
 
+/* ── 카테고리 헤더 ── */
+.nav-category + .nav-category {
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0 10px 18px;
+    color: rgba(255,255,255,0.35);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    user-select: none;
+}
+.nav-cat-header:hover {
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.6);
+}
+.nav-category.active-cat .nav-cat-header {
+    color: rgba(233,69,96,0.7);
+}
+
+.nav-cat-label {
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.15s 0.05s;
+}
+.sidebar:hover .nav-cat-label { opacity: 1; }
+
+.nav-cat-arrow {
+    opacity: 0;
+    font-size: 9px;
+    margin-right: 14px;
+    transition: opacity 0.15s 0.05s, transform 0.2s;
+    transform: rotate(-90deg);
+}
+.sidebar:hover .nav-cat-arrow { opacity: 1; }
+.nav-category.open .nav-cat-arrow { transform: rotate(0deg); }
+
+/* ── 카테고리 하위 아이템 ── */
+.nav-cat-items { display: none; }
+.sidebar:hover .nav-category.open .nav-cat-items { display: block; }
+
 .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 13px 0 13px 18px;
+    padding: 11px 0 11px 30px;
     color: rgba(255,255,255,0.55);
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     transition: background 0.15s, color 0.15s;
     border-right: 3px solid transparent;
@@ -91,9 +140,12 @@ body {
     font-weight: 600;
 }
 .nav-icon {
-    font-size: 15px;
+    font-size: 14px;
     min-width: 20px;
     text-align: center;
+}
+.nav-cat-header .nav-icon {
+    font-size: 15px;
 }
 .nav-item span:not(.nav-icon) {
     opacity: 0;
