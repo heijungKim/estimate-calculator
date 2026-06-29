@@ -226,9 +226,16 @@ $(function() {
         setTimeout(function() { $(_btn).text("적용하기").removeClass("applied"); }, 1500);
     });
 
-    // 초기화
-    $("#btn_reset_prices").click(function() {
-        resetPrices();
-        savePricesToFirebase(DEFAULT_PRICES);
+    // 섹션별 초기화
+    $(document).on('click', '.price_section_reset_btn', function() {
+        var $section = $(this).closest('.price_section');
+        $section.find('input').each(function() {
+            var key = $(this).attr('id').replace(/^p_/, '');
+            if (DEFAULT_PRICES.hasOwnProperty(key)) {
+                $(this).val(fmtNum(DEFAULT_PRICES[key]));
+                PRICES[key] = DEFAULT_PRICES[key];
+            }
+        });
+        savePricesToFirebase(PRICES);
     });
 });

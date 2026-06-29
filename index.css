@@ -421,10 +421,48 @@ input::placeholder {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 28px;
-    padding: 20px 24px;
+    padding: 16px 24px;
     background: #fff;
     border: 1.5px solid #e2e8f0;
     border-radius: 14px;
+    position: sticky;
+    bottom: 20px;
+    z-index: 20;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+}
+
+.price_section_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.price_section_header .price_section_title {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.price_section_reset_btn {
+    height: 28px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+    background: #f7f8fa;
+    color: #8892a4;
+    border: 1.5px solid #dde1e9;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.price_section_reset_btn:hover {
+    background: #fee2e2;
+    color: #c0392b;
+    border-color: #fca5a5;
 }
 
 .price_reset_btn,
