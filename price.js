@@ -1,7 +1,7 @@
 // ── 단가 기본값 ──────────────────────────────────────────────
 var DEFAULT_PRICES = {
-    sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
-    sign02_flex_print: 38000, sign02_flex_sheet: 40000, sign02_tension_none: 33000,
+    sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
+    sign02_base: 33000, sign02_flex_print: 38000, sign02_flex_sheet: 40000, sign02_tension_none: 33000,
     sign03_w800: 70000, sign03_w900: 75000, sign03_w1000: 80000, sign03_w1100: 85000, sign03_w1200: 90000,
     sign03_flex_uv: 8000, sign03_flex_sol: 7000, sign03_flex_sheet: 10000,
     sign_led: 4500, sign_sten_molding: 20000, sign_color_paint_nol: 10000, sign_color_paint_light: 10000,
