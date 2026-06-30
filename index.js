@@ -75,7 +75,7 @@ var DEFAULT_PRICES = {
     // UV 실사 (m²)
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
-    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_cut: 2000,
+    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_cut: 2000, uv_print_price: 10000,
     // 솔벤 실사 (m²)
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
@@ -3922,39 +3922,47 @@ function uv_silsa(){ //UV실사
 }
 
 function uv_silsa_cal(){ //UV실사 계산
-    	
-    var target_width = nv("#frame_product_width")/1000;
-    var target_vertical = nv("#frame_product_vertical")/1000;
-	var frequency_price = 0;
-   	var total_price = 0;
-    
-  
+    var target_width = nv("#frame_product_width") / 1000;
+    var target_vertical_mm = nv("#frame_product_vertical");
+    var total_price = 0;
+
+    // 세로 배율 (mm 기준)
+    var height_mult;
+    if      (target_vertical_mm <= 1000) height_mult = 1.0;
+    else if (target_vertical_mm <= 1100) height_mult = 1.1;
+    else if (target_vertical_mm <= 1200) height_mult = 1.2;
+    else if (target_vertical_mm <= 1300) height_mult = 1.3;
+    else if (target_vertical_mm <= 1400) height_mult = 1.4;
+    else                                  height_mult = 1.5;
+
+    var has_cut = $("#actual_more_order02").is(":checked");
+    var print_unit = PRICES.uv_print_price || 10000;
+    var cut_unit   = has_cut ? PRICES.uv_cut : 0;
+    var unit_sum   = print_unit + cut_unit;
 
     if($("#actual_material01").is(":checked")){ //LG 백색시트
-        total_price = (target_width * target_vertical) * PRICES.uv_white;
+        total_price = target_width * height_mult * unit_sum;
     }else if($("#actual_material02").is(":checked")){ //LG 백색시트(그레이)
-        total_price = (target_width * target_vertical) * PRICES.uv_white_grey;
+        total_price = target_width * height_mult * unit_sum;
     }else if($("#actual_material03").is(":checked")){ //LG 클리어(투명시트)
         if($("#actual_material03_01").is(":checked")){
-            total_price = (target_width * target_vertical) * PRICES.uv_clear;
+            total_price = target_width * height_mult * unit_sum;
         }else if($("#actual_material03_02").is(":checked")){
-            total_price = (target_width * target_vertical) * PRICES.uv_clear_mirror;
+            total_price = target_width * height_mult * unit_sum;
         }else if($("#actual_material03_03").is(":checked")){
-            total_price = (target_width * target_vertical) * PRICES.uv_clear_black;
+            total_price = target_width * height_mult * unit_sum;
         }
     }else if($("#actual_material04").is(":checked")){ //타공 페트
-        total_price = (target_width * target_vertical) * PRICES.uv_punch_pet;
+        total_price = target_width * height_mult * unit_sum;
     }else if($("#actual_material05").is(":checked")){ //LG 조명용 백색
-        total_price = (target_width * target_vertical) * PRICES.uv_light_white;
+        total_price = target_width * height_mult * unit_sum;
     }else if($("#actual_material06").is(":checked")){ //엠보(안개 시트)
-        total_price = (target_width * target_vertical) * PRICES.uv_embo;
+        total_price = target_width * height_mult * unit_sum;
     }
 
-    if($("#actual_more_order02").is(":checked")){
-        $("#actual_more_order_price").val(fmtNum(Math.floor((target_width * target_vertical) * PRICES.uv_cut))); //재단 가격 입력
-	}else{
-        $("#actual_more_order_price").val(0); //재단 가격 입력
-    }
+    // 재단 있음이면 단가에 포함, 별도 표시 없음
+    $("#actual_more_order_price").val(0);
+
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
     $("#order_price").text(String(_r10((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
