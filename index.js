@@ -3185,13 +3185,15 @@ function sign_top_01_cal(){ //사인탑_비조명 계산
         if(target_vertical <= 1.5 && target_vertical != 0) target_vertical = 1.5;
     }
     var color_price = 0, total_price = 0, angle_price = 0;
+    var area = target_width * target_vertical;
 
+    total_price += area * (PRICES.sign01_base || 0);
     if($("#sigh_display_01").is(":checked")){
-        total_price = (target_width * target_vertical) * PRICES.sign01_flex_print;
+        total_price += area * PRICES.sign01_flex_print;
     }else if($("#sigh_display_02").is(":checked")){
-        total_price = (target_width * target_vertical) * PRICES.sign01_flex_sheet;
+        total_price += area * PRICES.sign01_flex_sheet;
     }else if($("#sigh_display_03").is(":checked")){
-        total_price = (target_width * target_vertical) * PRICES.sign01_tension_none;
+        total_price += area * PRICES.sign01_tension_none;
     }
 
     if($("#sigh_frame_color_custom").is(":checked")){
@@ -3257,12 +3259,15 @@ function sign_top_02_cal(){ //사인탑_조명 계산
    	var total_price = 0;
     var angle_price = 0;
     var led_price = 0;
+    var area = target_width * target_vertical;
+
+    total_price += area * (PRICES.sign02_base || 0);
     if($("#sigh_display_01").is(":checked")){
-     	total_price =(target_width * target_vertical) * PRICES.sign02_flex_print;
+     	total_price += area * PRICES.sign02_flex_print;
     }else if($("#sigh_display_02").is(":checked")){
-    	total_price = (target_width * target_vertical) * PRICES.sign02_flex_sheet;
+    	total_price += area * PRICES.sign02_flex_sheet;
     }else if($("#sigh_display_03").is(":checked")){
-    	total_price = (target_width * target_vertical) * PRICES.sign02_tension_none;
+    	total_price += area * PRICES.sign02_tension_none;
     }
     
     if($("#sigh_frame_color_white").is(":checked")){
