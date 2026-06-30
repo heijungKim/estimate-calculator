@@ -2656,18 +2656,18 @@ function set_actual_top_option_select(){
 				append_html += "<label><input type='radio' name='actual_more_order_mising' id='actual_more_order_mising07'>양면 테이프</label>";
 			append_html += "</td>";
 		append_html += "</tr>";	
-		append_html += "<tr>";
+		append_html += "<tr class='soosung-cut-row'>";
 			append_html += "<th>재단</th>";
 			append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='actual_more_order_price' placeholder='추가 금액을 입력해주세요' disabled='disabled'> 원</td>";
-		append_html += "</tr>";	
+		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 	}
 
 	$("#option_table tbody").html(append_html);
@@ -4026,13 +4026,15 @@ function solven_silsa_cal(){ //솔벤실사 계산
 
 function soosung_silsa(){ //수성실사
 	setTimeout(function(){
+        function _soosungToggleCutRow() {
+            var isKel = $("#actual_material02,#actual_material03").is(":checked");
+            $(".soosung-cut-row").toggle(!isKel);
+        }
         $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']").click(function(){
             $("#frame_product_width,#frame_product_vertical,#actual_more_order_price,#more_order_price,#add_more_text").val("");
             $("#actual_more_order01,#actual_more_order_mising01").prop("checked",true);
-          
-            //초기 리셋
+            _soosungToggleCutRow();
             soosung_silsa_cal();
-
         });
         $(".woosung_wrap .contents_wrap #option_table td input#frame_product_width,.woosung_wrap .contents_wrap #option_table td input#frame_product_vertical").bind("change keyup paste", function(){
             soosung_silsa_cal();
@@ -4096,10 +4098,17 @@ function soosung_silsa_cal(){ //수성실사 계산
             }else{
                 total_price = target_width * target_vertical * 5000;
             }
-        }else if($("#actual_material02").is(":checked")){ //켈(백색)
-            total_price = (target_width * target_vertical) * 10000;
-        }else if($("#actual_material03").is(":checked")){ //켈(그레이)
-            total_price = (target_width * target_vertical) * 10000;
+        }else if($("#actual_material02").is(":checked") || $("#actual_material03").is(":checked")){ //켈(백색/그레이)
+            var kel_vertical_mm = nv("#frame_product_vertical");
+            var kel_height_mult;
+            if      (kel_vertical_mm <= 1000) kel_height_mult = 1.0;
+            else if (kel_vertical_mm <= 1100) kel_height_mult = 1.1;
+            else if (kel_vertical_mm <= 1200) kel_height_mult = 1.2;
+            else if (kel_vertical_mm <= 1300) kel_height_mult = 1.3;
+            else if (kel_vertical_mm <= 1400) kel_height_mult = 1.4;
+            else                               kel_height_mult = 1.5;
+            var kel_cut = $("#actual_more_order02").is(":checked") ? (PRICES.sol_cut || 2000) : 0;
+            total_price = target_width * kel_height_mult * (10000 + kel_cut);
         }else if($("#actual_material04").is(":checked")){ //유포(백색)
             total_price = (target_width * target_vertical) * 8000;
         }else if($("#actual_material05").is(":checked")){ //유포(그레이)
@@ -4136,14 +4145,15 @@ function soosung_silsa_cal(){ //수성실사 계산
     	}
 
      }else{
-         if($("#actual_more_order02").is(":checked")){
+         if($("#actual_material02,#actual_material03").is(":checked")){
+            $("#actual_more_order_price").val(0); //켈: 재단비 단가에 포함
+         }else if($("#actual_more_order02").is(":checked")){
             $("#actual_more_order_price").val(fmtNum(Math.floor((target_width * target_vertical) * 2000))); //재단 가격 입력
         }else if($("#actual_more_order03").is(":checked")){
             $("#actual_more_order_price").val(0); //아일렛 펀칭 가격 입력
         }else{
             $("#actual_more_order_price").val(0); //재단 & 코팅 미포함
         }
-         
      }
 
   
@@ -5508,6 +5518,9 @@ $(".save_btn").click(function(){
             total_html +=" / 소재 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']:checked").parent("label").text();
             if($("#actual_material02,#actual_material03").is(":checked")){
                 total_html +=" / 출력비 : 10,000 원";
+                if($("#actual_more_order02").is(":checked")){
+                    total_html +=" / 재단비 : "+fmtNum(PRICES.sol_cut || 2000)+" 원";
+                }
             }
             total_html +=" / 가로(기장) : "+$("#frame_product_width").val()+" mm";
             total_html +=" / 세로(폭) : "+$("#frame_product_vertical").val()+" mm";
