@@ -84,6 +84,8 @@ var DEFAULT_PRICES = {
     skasi_gom_n50_10: 2500, skasi_gom_n50_15: 3000, skasi_gom_n50_20: 3700, skasi_gom_n50_25: 4500, skasi_gom_n50_30: 5000, skasi_gom_n50_35: 6800, skasi_gom_n50_40: 8800, skasi_gom_n50_45: 11200, skasi_gom_n50_50: 13800, skasi_gom_n50_55: 16800, skasi_gom_n50_60: 20000, skasi_gom_n50_65: 23400, skasi_gom_n50_70: 27200, skasi_gom_n50_75: 31200, skasi_gom_n50_80: 35500, skasi_gom_n50_85: 40100, skasi_gom_n50_90: 45000, skasi_gom_n50_95: 50100, skasi_gom_n50_100: 55500, skasi_gom_n50_105: 61200, skasi_gom_n50_110: 67200, skasi_gom_n50_115: 73400, skasi_gom_n50_120: 80000, skasi_gom_n50_125: 86800, skasi_gom_n50_130: 93800, skasi_gom_n50_135: 101200, skasi_gom_n50_140: 108800, skasi_gom_n50_145: 116800, skasi_gom_n50_150: 125000,
     skasi_gom_s30_10: 3000, skasi_gom_s30_15: 4000, skasi_gom_s30_20: 5000, skasi_gom_s30_25: 6000, skasi_gom_s30_30: 7000, skasi_gom_s30_35: 9500, skasi_gom_s30_40: 12400, skasi_gom_s30_45: 15700, skasi_gom_s30_50: 19400, skasi_gom_s30_55: 23500, skasi_gom_s30_60: 28000, skasi_gom_s30_65: 32800, skasi_gom_s30_70: 38100, skasi_gom_s30_75: 43700, skasi_gom_s30_80: 49700, skasi_gom_s30_85: 56100, skasi_gom_s30_90: 63000, skasi_gom_s30_95: 70100, skasi_gom_s30_100: 77700, skasi_gom_s30_105: 85700, skasi_gom_s30_110: 94100, skasi_gom_s30_115: 102800, skasi_gom_s30_120: 112000, skasi_gom_s30_125: 121500, skasi_gom_s30_130: 131400, skasi_gom_s30_135: 141700, skasi_gom_s30_140: 152400, skasi_gom_s30_145: 163500, skasi_gom_s30_150: 175000,
     skasi_gom_s50_10: 4000, skasi_gom_s50_15: 5000, skasi_gom_s50_20: 6000, skasi_gom_s50_25: 7000, skasi_gom_s50_30: 8000, skasi_gom_s50_35: 10800, skasi_gom_s50_40: 14200, skasi_gom_s50_45: 18000, skasi_gom_s50_50: 22200, skasi_gom_s50_55: 26800, skasi_gom_s50_60: 32000, skasi_gom_s50_65: 37500, skasi_gom_s50_70: 43500, skasi_gom_s50_75: 50000, skasi_gom_s50_80: 56800, skasi_gom_s50_85: 64200, skasi_gom_s50_90: 72000, skasi_gom_s50_95: 80200, skasi_gom_s50_100: 88800, skasi_gom_s50_105: 98000, skasi_gom_s50_110: 107500, skasi_gom_s50_115: 117500, skasi_gom_s50_120: 128000, skasi_gom_s50_125: 138800, skasi_gom_s50_130: 150200, skasi_gom_s50_135: 162000, skasi_gom_s50_140: 174200, skasi_gom_s50_145: 186800, skasi_gom_s50_150: 200000,
+    // 스카시 화면 색상 할증
+    skasi_gom_color_pct: 50, skasi_acr_color_pct: 50, skasi_acr_docolor: 20000,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
@@ -160,11 +162,14 @@ function getSignDimensions() {
         else if($("#sigh_angle_width_1000").is(":checked")) w = 1.0;
         else if($("#sigh_angle_width_1100").is(":checked")) w = 1.1;
         else                                                w = 1.2;
-        h = nv("#sigh_vertical") / 1000;
+        var _rh3 = nv("#sigh_vertical");
+        h = (_rh3 > 0 ? Math.ceil(_rh3 / 10) * 10 : 0) / 1000;
         if(h < 1.5 && h > 0) h = 1.5;
     } else {
-        w = nv("#sigh_row") / 1000;
-        h = nv("#sigh_vertical") / 1000;
+        var _rw = nv("#sigh_row");
+        var _rh = nv("#sigh_vertical");
+        w = (_rw > 0 ? Math.ceil(_rw / 10) * 10 : 0) / 1000;
+        h = (_rh > 0 ? Math.ceil(_rh / 10) * 10 : 0) / 1000;
         if($("#sigh_option_row").is(":checked")) {
             if(w < 1.5 && w > 0) w = 1.5;
             if(h < 1   && h > 0) h = 1;
@@ -2775,12 +2780,6 @@ function actual_punch(){
 				append_html += "</td>";
 			append_html += "</tr>";	
             append_html += "<tr>";
-				append_html += "<th>수량 (총 글자수)</th>";
-				append_html += "<td>";
-					append_html += "<input type='text'  id='skasicolor_count' placeholder='수량을 입력해주세요.'> 개";
-				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
 					append_html += "<select id='skasi_width'>";
@@ -2826,13 +2825,19 @@ function actual_punch(){
 				append_html += "</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
+				append_html += "<th>수량 (총 글자수)</th>";
+				append_html += "<td>";
+					append_html += "<input type='text'  id='skasicolor_count' placeholder='수량을 입력해주세요.'> 개";
+				append_html += "</td>";
+			append_html += "</tr>";
+			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 		}else if($("#skasi_option02").is(":checked")){ //아크릴
             append_html += "<tr>";
 				append_html += "<th>아크릴 타입</th>";
@@ -2858,12 +2863,6 @@ function actual_punch(){
 				append_html += "</td>";
 			append_html += "</tr>";
             append_html += "<tr>";
-				append_html += "<th>수량(총 글자수)</th>";
-				append_html += "<td>";
-					append_html += "<input type='text'  id='skasi_acrylic_count' placeholder='총 글자수를 입력해주세요.'> 개";
-				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
 				append_html += "<th>색상</th>";
 				append_html += "<td>";
 					append_html += "<input type='text'  id='skasi_color01' placeholder='색상을 입력해주세요.'>";
@@ -2927,15 +2926,21 @@ function actual_punch(){
             append_html += "<tr class='skasi_screen_color_count add_row'>";
 				append_html += "<th>도색 가지수</th>";
 				append_html += "<td><input type='number' id='skasi_screen_color_count' placeholder='색상 가지수를 입력해주세요'> 개</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
+			append_html += "<tr>";
+				append_html += "<th>수량(총 글자수)</th>";
+				append_html += "<td>";
+					append_html += "<input type='text'  id='skasi_acrylic_count' placeholder='총 글자수를 입력해주세요.'> 개";
+				append_html += "</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";		
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 		}else if($("#skasi_option03").is(":checked")){ //포멕스
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
@@ -3038,15 +3043,19 @@ function actual_punch(){
 					append_html += "<label><input type='radio' name='skasi_screen_color' id='skasi_screen_color03'>실사부착</label>";
 					append_html += "<label><input type='radio' name='skasi_screen_color' id='skasi_screen_color04'>평판인쇄</label>";
 				append_html += "</td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
+			append_html += "<tr>";
+				append_html += "<th>수량</th>";
+				append_html += "<td><input type='number' id='silsa_acrylic_count' placeholder='수량을 입력해주세요.'> 개</td>";
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
 				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
-			append_html += "</tr>";	
+			append_html += "</tr>";
 		}
 
 		$("#option_table tbody").html(append_html);
@@ -3164,8 +3173,10 @@ function sign_top_01(){ //사인탑_비조명
 
 }
 function sign_top_01_cal(){ //사인탑_비조명 계산
-    var target_width = nv("#sigh_row")/1000;
-    var target_vertical = nv("#sigh_vertical")/1000;
+    var _raw_w = nv("#sigh_row");
+    var _raw_h = nv("#sigh_vertical");
+    var target_width    = (_raw_w > 0 ? Math.ceil(_raw_w / 10) * 10 : 0) / 1000;
+    var target_vertical = (_raw_h > 0 ? Math.ceil(_raw_h / 10) * 10 : 0) / 1000;
     if($("#sigh_option_row").is(":checked")){
         if(target_width <= 1.5 && target_width != 0) target_width = 1.5;
         if(target_vertical <= 1 && target_vertical != 0) target_vertical = 1;
@@ -3223,9 +3234,10 @@ function sign_top_02(){ //사인탑_조명
 
 }
 function sign_top_02_cal(){ //사인탑_조명 계산
-    
-    var target_width = nv("#sigh_row")/1000;
-    var target_vertical = nv("#sigh_vertical")/1000;
+    var _raw_w = nv("#sigh_row");
+    var _raw_h = nv("#sigh_vertical");
+    var target_width    = (_raw_w > 0 ? Math.ceil(_raw_w / 10) * 10 : 0) / 1000;
+    var target_vertical = (_raw_h > 0 ? Math.ceil(_raw_h / 10) * 10 : 0) / 1000;
     if($("#sigh_option_row").is(":checked")){ //가로형
       if(target_width <= 1.5 && target_width != 0){
          target_width = 1.5;
@@ -3342,9 +3354,9 @@ function sign_top_03(){ //사인탑_돌출
 
 }
 function sign_top_03_cal(){ //사인탑_돌출 계산
-    
     var target_width = 0;
- 	var target_vertical = nv("#sigh_vertical")/1000;
+    var _raw_h03 = nv("#sigh_vertical");
+    var target_vertical = (_raw_h03 > 0 ? Math.ceil(_raw_h03 / 10) * 10 : 0) / 1000;
     var total_price = 0;
     var woorex_price = 0;
     var led_price = 0;
@@ -4195,7 +4207,8 @@ function skasi_gomoo_cal(){ //스카시 고무 계산
     price = PRICES['skasi_gom_' + typeKey + '_' + skasi_width] || 0;
 
     if(!$("#skasi_screen_color01").is(":checked")){
-        price = price * 1.5;
+        var _gomPct = PRICES.skasi_gom_color_pct !== undefined ? PRICES.skasi_gom_color_pct : 50;
+        price = price * (1 + _gomPct / 100);
     }
 
     $("#order_price").text(String(_r10(total_count * price + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
@@ -4236,21 +4249,23 @@ function skasi_acrylic_cal(){ //스카시 아크릴 계산
     else if (thumbId === "skasi_thumb04") colName = isKor ? "10t_kor" : "10t_eng";
     if (colName && skasi_width > 0) price = PRICES["skasi_acr_" + colName + "_" + skasi_width] || 0;
 
+    var _acrPct = PRICES.skasi_acr_color_pct !== undefined ? PRICES.skasi_acr_color_pct : 50;
+    var _acrDo  = PRICES.skasi_acr_docolor  !== undefined ? PRICES.skasi_acr_docolor  : 20000;
     if($("#skasi_acrylic01").is(":checked")){ //아크릴
         if($("#skasi_screen_color01").is(":checked")){ //기본
             total_price = total_count * price;
         }else if($("#skasi_screen_color04").is(":checked")){ // 도색색상
-            total_price = total_count * price + (20000 * Number($("#skasi_screen_color_count").val()));
+            total_price = total_count * price + (_acrDo * Number($("#skasi_screen_color_count").val()));
         }else{ //시트 & 실사부착
-            total_price = total_count * price * 1.5;
+            total_price = total_count * price * (1 + _acrPct / 100);
         }
     }else{ //밀러 아크릴
         if($("#skasi_screen_color01").is(":checked")){ //기본
             total_price = total_count * price * 2;
         }else if($("#skasi_screen_color04").is(":checked")){ // 도색색상
-            total_price = total_count * price * 2 + (20000 * Number($("#skasi_screen_color_count").val()));
+            total_price = total_count * price * 2 + (_acrDo * Number($("#skasi_screen_color_count").val()));
         }else{ //시트 & 실사부착
-            total_price = total_count * price * 1.5 * 2;
+            total_price = total_count * price * 2 * (1 + _acrPct / 100);
         }
 
     }
