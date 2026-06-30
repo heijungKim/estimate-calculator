@@ -75,10 +75,10 @@ var DEFAULT_PRICES = {
     // UV 실사 (m²)
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
-    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_cut: 2000, uv_print_price: 10000,
+    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_print_price: 10000,
     // 솔벤 실사 (m²)
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
-    sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
+    sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
@@ -3933,7 +3933,7 @@ function uv_silsa_cal(){ //UV실사 계산
 
     var has_cut = $("#actual_more_order02").is(":checked");
     var print_unit = PRICES.uv_print_price || 10000;
-    var cut_unit   = has_cut ? PRICES.uv_cut : 0;
+    var cut_unit   = has_cut ? PRICES.silsa_cut : 0;
     var unit_sum   = print_unit + cut_unit;
 
     if($("#actual_material01").is(":checked")){ //LG 백색시트
@@ -4014,7 +4014,7 @@ function solven_silsa_cal(){ //솔벤실사 계산
     }
 
     if($("#actual_more_order02").is(":checked")){
-        $("#actual_more_order_price").val(fmtNum(Math.floor((target_width * target_vertical) * PRICES.sol_cut))); //재단 가격 입력
+        $("#actual_more_order_price").val(fmtNum(Math.floor((target_width * target_vertical) * PRICES.silsa_cut))); //재단 가격 입력
 	}else if($("#actual_more_order03").is(":checked")){
         $("#actual_more_order_price").val(fmtNum(Math.floor((target_width * target_vertical) * PRICES.sol_coat))); //코팅 가격 입력
 	}else{
@@ -4107,7 +4107,7 @@ function soosung_silsa_cal(){ //수성실사 계산
             else if (kel_vertical_mm <= 1300) kel_height_mult = 1.3;
             else if (kel_vertical_mm <= 1400) kel_height_mult = 1.4;
             else                               kel_height_mult = 1.5;
-            var kel_cut = $("#actual_more_order02").is(":checked") ? (PRICES.sol_cut || 2000) : 0;
+            var kel_cut = $("#actual_more_order02").is(":checked") ? (PRICES.silsa_cut || 2000) : 0;
             total_price = target_width * kel_height_mult * (10000 + kel_cut);
         }else if($("#actual_material04").is(":checked")){ //유포(백색)
             total_price = (target_width * target_vertical) * 8000;
@@ -5479,7 +5479,7 @@ $(".save_btn").click(function(){
             total_html +="/ 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
             total_html +=" / 출력비 : "+fmtNum(PRICES.uv_print_price)+" 원";
             if($("#actual_more_order02").is(":checked")){
-                total_html +=" / 재단비 : "+fmtNum(PRICES.uv_cut)+" 원";
+                total_html +=" / 재단비 : "+fmtNum(PRICES.silsa_cut)+" 원";
             }
             if(Number($("#channel_trim_color_custom").val()) != 0){
                 total_html +=" / "+getExtraCostText();
@@ -5519,7 +5519,7 @@ $(".save_btn").click(function(){
             if($("#actual_material02,#actual_material03").is(":checked")){
                 total_html +=" / 출력비 : 10,000 원";
                 if($("#actual_more_order02").is(":checked")){
-                    total_html +=" / 재단비 : "+fmtNum(PRICES.sol_cut || 2000)+" 원";
+                    total_html +=" / 재단비 : "+fmtNum(PRICES.silsa_cut || 2000)+" 원";
                 }
             }
             total_html +=" / 가로(기장) : "+$("#frame_product_width").val()+" mm";

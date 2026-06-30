@@ -49,9 +49,9 @@ var DEFAULT_PRICES = {
     flex_uv_double: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
-    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_cut: 2000, uv_print_price: 10000,
+    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_print_price: 10000,
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
-    sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_cut: 2000, sol_coat: 3000,
+    sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
