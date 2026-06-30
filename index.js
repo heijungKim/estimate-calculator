@@ -2559,14 +2559,10 @@ function set_actual_top_option_select(){
 				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order02'>재단</label>";
 			append_html += "</td>";
 		append_html += "</tr>";	
-		append_html += "<tr class='actual_more_order01 add_row'>";
-			append_html += "<th>재단</th>";
-			append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='actual_more_order_price' placeholder='추가 금액을 입력해주세요' disabled='disabled'> 원</td>";
-		append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 금액</th>";
-				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'></td>";
-			append_html += "</tr>";	
+				append_html += "<td><div id='extra_cost_list'></div><button type='button' class='btn-add-extra' onclick='addExtraCostRow()'>+ 항목 추가</button><input type='hidden' id='more_order_price' value='0'><input type='hidden' id='actual_more_order_price' value='0'></td>";
+			append_html += "</tr>";
 		append_html += "<tr>";
 				append_html += "<th>추가 입력 사항</th>";
 				append_html += "<td><textarea id='add_more_text' placeholder='추가 입력 사항을 입력해주세요'></textarea></td>";
