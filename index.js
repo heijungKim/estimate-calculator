@@ -5467,8 +5467,9 @@ $(".save_btn").click(function(){
             total_html +=" / 가로 : "+$("#frame_product_width").val()+" mm";
             total_html +=" / 세로 : "+$("#frame_product_vertical").val()+" mm";
             total_html +="/ 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
+            total_html +=" / 출력비 : "+fmtNum(PRICES.uv_print_price)+" 원";
             if($("#actual_more_order02").is(":checked")){
-                total_html +=" / 재단 비용 : "+fmtNum(PRICES.uv_cut)+" 원";
+                total_html +=" / 재단비 : "+fmtNum(PRICES.uv_cut)+" 원";
             }
             if(Number($("#channel_trim_color_custom").val()) != 0){
                 total_html +=" / "+getExtraCostText();
