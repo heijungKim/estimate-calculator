@@ -5502,10 +5502,13 @@ $(".save_btn").click(function(){
             total_html +="/ 견적 비용 : <span class='list_price'>";
             total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }else if($("#actual_option04").is(":checked")){ //수성실사
-            
+
             total_html += "<li><span class='number'></span>";
             total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text();
             total_html +=" / 소재 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']:checked").parent("label").text();
+            if($("#actual_material02,#actual_material03").is(":checked")){
+                total_html +=" / 출력비 : 10,000 원";
+            }
             total_html +=" / 가로(기장) : "+$("#frame_product_width").val()+" mm";
             total_html +=" / 세로(폭) : "+$("#frame_product_vertical").val()+" mm";
             total_html +="/ 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
