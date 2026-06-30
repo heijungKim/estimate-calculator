@@ -2776,12 +2776,6 @@ function actual_punch(){
 				append_html += "</td>";
 			append_html += "</tr>";	
 			append_html += "<tr>";
-				append_html += "<th>고무 색상</th>";
-				append_html += "<td>";
-					append_html += "<input type='text'  id='skasi_color02' placeholder='색상을 입력해주세요.'>";
-				append_html += "</td>";
-			append_html += "</tr>";	
-			append_html += "<tr>";
 				append_html += "<th>크기</th>";
 				append_html += "<td>";
 					append_html += "<select id='skasi_width'>";
@@ -5543,7 +5537,7 @@ $(".save_btn").click(function(){
         }
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child05")){ //스카시
     	if($("#skasi_option01").is(":checked")){ //고무
-     		total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 알루미늄 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasicolor_type']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasicolor_count").val()+" 개 / 고무 색상 : "+$("#skasi_color02").val()+" / 크기 : "+$("#skasi_width").val()+" / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
+     		total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 알루미늄 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasicolor_type']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasicolor_count").val()+" 개 / 크기 : "+$("#skasi_width").val()+" / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }else if($("#skasi_option02").is(":checked")){ //아크릴
            total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 아크릴 타입 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic']:checked").parent("label").text()+" / 문자 형태 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasi_acrylic_count").val()+" 개 / 색상 : "+$("#skasi_color01").val()+" / 크기 (mm): "+$("#skasi_width").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / ※ 도색시※ 도색 가지수 : "+$("#skasi_screen_color_count").val()+"개 / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
         }else if($("#skasi_option03").is(":checked")){ //포멕스
