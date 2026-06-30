@@ -1,6 +1,7 @@
 ﻿// ============================================================
 // 단가 설정 (기본값 - 단가설정 모달에서 변경 가능)
 // ============================================================
+var PRICE_VERSION = 2; // DEFAULT_PRICES 변경 시 올림 → Firebase 강제 초기화
 var DEFAULT_PRICES = {
     // 사인탑 비조명 (m²)
     sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
@@ -5703,11 +5704,21 @@ $(function(){
     if (_pricesDoc) {
         _pricesDoc.get()
             .then(function(doc) {
-                if (!doc.exists) return;
+                if (!doc.exists) {
+                    recalcCurrent();
+                    return;
+                }
                 var saved = doc.data();
-                Object.keys(DEFAULT_PRICES).forEach(function(key) {
-                    if (saved[key] !== undefined) PRICES[key] = saved[key];
-                });
+                if (!saved._priceVersion || saved._priceVersion < PRICE_VERSION) {
+                    // 버전 불일치: DEFAULT_PRICES로 Firebase 초기화
+                    var toSave = Object.assign({}, DEFAULT_PRICES, { _priceVersion: PRICE_VERSION });
+                    _pricesDoc.set(toSave).catch(function(){});
+                    // PRICES는 이미 DEFAULT_PRICES이므로 그대로 사용
+                } else {
+                    Object.keys(DEFAULT_PRICES).forEach(function(key) {
+                        if (saved[key] !== undefined) PRICES[key] = saved[key];
+                    });
+                }
                 recalcCurrent();
             })
             .catch(function(){});
@@ -5832,12 +5843,9 @@ $(function(){
 function recalcCurrent(){
     var $tab = $(".woosung_wrap .tab_area ul li.active");
     if($tab.hasClass("child01")){
-        if($("#sigh_option01").is(":checked") || $("#sigh_option02").is(":checked")){
-            // 사인탑 비조명/조명 - 가로/세로 change 이벤트 트리거
-            $("#sigh_row").trigger("change");
-        } else if($("#sigh_option03").is(":checked")){
-            $("input[name='sigh_angle_width']:checked").trigger("change");
-        }
+        if($("#sigh_option01").is(":checked")) sign_top_01_cal();
+        else if($("#sigh_option02").is(":checked")) sign_top_02_cal();
+        else if($("#sigh_option03").is(":checked")) sign_top_03_cal();
     } else if($tab.hasClass("child02")){
         if($("input[name='channel_option']:checked").length) chnnel_taka_cal();
     } else if($tab.hasClass("child04")){
@@ -5846,7 +5854,9 @@ function recalcCurrent(){
         else if($("#actual_option03").is(":checked")) solven_silsa_cal();
         else if($("#actual_option04").is(":checked")) soosung_silsa_cal();
     } else if($tab.hasClass("child05")){
-        if($("#skasi_option02").is(":checked")) skasi_acrylic_cal();
+        if($("#skasi_option01").is(":checked")) skasi_gomoo_cal();
+        else if($("#skasi_option02").is(":checked")) skasi_acrylic_cal();
+        else if($("#skasi_option03").is(":checked")) skasi_pomex_cal();
     }
 }
 // ─────────────────────────────────────────────────────────

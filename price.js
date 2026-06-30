@@ -1,4 +1,5 @@
 // ── 단가 기본값 ──────────────────────────────────────────────
+var PRICE_VERSION = 2; // index.js와 반드시 동일하게 유지
 var DEFAULT_PRICES = {
     sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
     sign02_base: 33000, sign02_flex_print: 38000, sign02_flex_sheet: 40000, sign02_tension_none: 33000,
@@ -153,6 +154,7 @@ function _initPricesDoc() {
 function savePricesToFirebase(data) {
     _initPricesDoc();
     if (!_pricesDoc) return;
+    data._priceVersion = PRICE_VERSION;
     _pricesDoc.set(data).catch(function(){});
 }
 
