@@ -79,6 +79,11 @@ var DEFAULT_PRICES = {
     // 솔벤 실사 (m²)
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
+    // 스카시 고무 (글자당) n=일반, s=수입금/은색, 30=30mm이하, 50=50mm
+    skasi_gom_n30_10: 2000, skasi_gom_n30_15: 2500, skasi_gom_n30_20: 3000, skasi_gom_n30_25: 3500, skasi_gom_n30_30: 4000, skasi_gom_n30_35: 5400, skasi_gom_n30_40: 7100, skasi_gom_n30_45: 9000, skasi_gom_n30_50: 11000, skasi_gom_n30_55: 13400, skasi_gom_n30_60: 16000, skasi_gom_n30_65: 18700, skasi_gom_n30_70: 21700, skasi_gom_n30_75: 25000, skasi_gom_n30_80: 28400, skasi_gom_n30_85: 32100, skasi_gom_n30_90: 36000, skasi_gom_n30_95: 40100, skasi_gom_n30_100: 44400, skasi_gom_n30_105: 49000, skasi_gom_n30_110: 53700, skasi_gom_n30_115: 58700, skasi_gom_n30_120: 64000, skasi_gom_n30_125: 69400, skasi_gom_n30_130: 75100, skasi_gom_n30_135: 81000, skasi_gom_n30_140: 87000, skasi_gom_n30_145: 93400, skasi_gom_n30_150: 100000,
+    skasi_gom_n50_10: 2500, skasi_gom_n50_15: 3000, skasi_gom_n50_20: 3700, skasi_gom_n50_25: 4500, skasi_gom_n50_30: 5000, skasi_gom_n50_35: 6800, skasi_gom_n50_40: 8800, skasi_gom_n50_45: 11200, skasi_gom_n50_50: 13800, skasi_gom_n50_55: 16800, skasi_gom_n50_60: 20000, skasi_gom_n50_65: 23400, skasi_gom_n50_70: 27200, skasi_gom_n50_75: 31200, skasi_gom_n50_80: 35500, skasi_gom_n50_85: 40100, skasi_gom_n50_90: 45000, skasi_gom_n50_95: 50100, skasi_gom_n50_100: 55500, skasi_gom_n50_105: 61200, skasi_gom_n50_110: 67200, skasi_gom_n50_115: 73400, skasi_gom_n50_120: 80000, skasi_gom_n50_125: 86800, skasi_gom_n50_130: 93800, skasi_gom_n50_135: 101200, skasi_gom_n50_140: 108800, skasi_gom_n50_145: 116800, skasi_gom_n50_150: 125000,
+    skasi_gom_s30_10: 3000, skasi_gom_s30_15: 4000, skasi_gom_s30_20: 5000, skasi_gom_s30_25: 6000, skasi_gom_s30_30: 7000, skasi_gom_s30_35: 9500, skasi_gom_s30_40: 12400, skasi_gom_s30_45: 15700, skasi_gom_s30_50: 19400, skasi_gom_s30_55: 23500, skasi_gom_s30_60: 28000, skasi_gom_s30_65: 32800, skasi_gom_s30_70: 38100, skasi_gom_s30_75: 43700, skasi_gom_s30_80: 49700, skasi_gom_s30_85: 56100, skasi_gom_s30_90: 63000, skasi_gom_s30_95: 70100, skasi_gom_s30_100: 77700, skasi_gom_s30_105: 85700, skasi_gom_s30_110: 94100, skasi_gom_s30_115: 102800, skasi_gom_s30_120: 112000, skasi_gom_s30_125: 121500, skasi_gom_s30_130: 131400, skasi_gom_s30_135: 141700, skasi_gom_s30_140: 152400, skasi_gom_s30_145: 163500, skasi_gom_s30_150: 175000,
+    skasi_gom_s50_10: 4000, skasi_gom_s50_15: 5000, skasi_gom_s50_20: 6000, skasi_gom_s50_25: 7000, skasi_gom_s50_30: 8000, skasi_gom_s50_35: 10800, skasi_gom_s50_40: 14200, skasi_gom_s50_45: 18000, skasi_gom_s50_50: 22200, skasi_gom_s50_55: 26800, skasi_gom_s50_60: 32000, skasi_gom_s50_65: 37500, skasi_gom_s50_70: 43500, skasi_gom_s50_75: 50000, skasi_gom_s50_80: 56800, skasi_gom_s50_85: 64200, skasi_gom_s50_90: 72000, skasi_gom_s50_95: 80200, skasi_gom_s50_100: 88800, skasi_gom_s50_105: 98000, skasi_gom_s50_110: 107500, skasi_gom_s50_115: 117500, skasi_gom_s50_120: 128000, skasi_gom_s50_125: 138800, skasi_gom_s50_130: 150200, skasi_gom_s50_135: 162000, skasi_gom_s50_140: 174200, skasi_gom_s50_145: 186800, skasi_gom_s50_150: 200000,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
@@ -4177,267 +4182,24 @@ function skasi_gomoo(){ //스카시 고무 계산
 }
 
 function skasi_gomoo_cal(){ //스카시 고무 계산
-   
-    var total_count = $("#skasicolor_count").val(); //총 글자수
-    var seat_count = $("#skasi_screen_color_count").val(); // 시트지 글자수
-    var skasi_width = $("#skasi_width").val(); // 스카시 각수
-	var price = 0; //단가
-    
-    if($("#skasi_thumb01").is(":checked")){ // 10~30T
-        if($("#skasicolor_type01").is(":checked")){ //알루미늄 색상 - 일반
-			if(skasi_width == 10){  // 각수
-                price = 2000;
-            }else if(skasi_width == 15){
-            	price = 2500;
-            }else if(skasi_width == 20){
-            	price = 3000;
-            }else if(skasi_width == 25){
-            	price = 3500;
-            }else if(skasi_width == 30){
-                price = 4000;	
-            }else if(skasi_width == 35){
-                price = 5400;
-            }else if(skasi_width == 40){
-                price = 7100;
-            }else if(skasi_width == 45){
-                price = 9000;
-            }else if(skasi_width == 50){
-                price = 11000;
-            }else if(skasi_width == 55){
-                price = 13400;
-            }else if(skasi_width == 60){
-                price = 16000;
-            }else if(skasi_width == 65){
-                price = 18700;
-            }else if(skasi_width == 70){
-                price = 21700;
-            }else if(skasi_width == 75){
-                price = 25000;
-            }else if(skasi_width == 80){
-                price = 28400;
-            }else if(skasi_width == 85){
-                price = 32100;
-            }else if(skasi_width == 90){
-                price = 36000;
-            }else if(skasi_width == 95){
-                price = 40100;
-            }else if(skasi_width == 100){
-                price = 44400;
-            }else if(skasi_width == 105){
-                price = 49000;
-            }else if(skasi_width == 110){
-                price = 53700;
-            }else if(skasi_width == 115){
-                price = 58700;
-            }else if(skasi_width == 120){
-                price = 64000;
-            }else if(skasi_width == 125){
-                price = 69400;
-            }else if(skasi_width == 130){
-                price = 75100;
-            }else if(skasi_width == 135){
-                price = 81000;
-            }else if(skasi_width == 140){
-                price = 87000;
-            }else if(skasi_width == 145){
-                price = 93400;
-            }else if(skasi_width == 150){
-                price = 100000;
-            }
-        }else if($("#skasicolor_type02").is(":checked")){ //알루미늄 색상 - 수입 (금 / 은색)
-            if(skasi_width == 10){  // 각수
-                    price = 3000;
-                }else if(skasi_width == 15){
-                    price = 4000;
-                }else if(skasi_width == 20){
-                    price = 5000;
-                }else if(skasi_width == 25){
-                    price = 6000;
-                }else if(skasi_width == 30){
-                    price = 7000;	
-                }else if(skasi_width == 35){
-                    price = 9500;
-                }else if(skasi_width == 40){
-                    price = 12400;
-                }else if(skasi_width == 45){
-                    price = 15700;
-                }else if(skasi_width == 50){
-                    price = 19400;
-                }else if(skasi_width == 55){
-                    price = 23500;
-                }else if(skasi_width == 60){
-                    price = 28000;
-                }else if(skasi_width == 65){
-                    price = 32800;
-                }else if(skasi_width == 70){
-                    price = 38100;
-                }else if(skasi_width == 75){
-                    price = 43700;
-                }else if(skasi_width == 80){
-                    price = 49700;
-                }else if(skasi_width == 85){
-                    price = 56100;
-                }else if(skasi_width == 90){
-                    price = 63000;
-                }else if(skasi_width == 95){
-                    price = 70100;
-                }else if(skasi_width == 100){
-                    price = 77700;
-                }else if(skasi_width == 105){
-                    price = 85700;
-                }else if(skasi_width == 110){
-                    price = 94100;
-                }else if(skasi_width == 115){
-                    price = 102800;
-                }else if(skasi_width == 120){
-                    price = 112000;
-                }else if(skasi_width == 125){
-                    price = 121500;
-                }else if(skasi_width == 130){
-                    price = 131400;
-                }else if(skasi_width == 135){
-                    price = 141700;
-                }else if(skasi_width == 140){
-                    price = 152400;
-                }else if(skasi_width == 145){
-                    price = 163500;
-                }else if(skasi_width == 150){
-                    price = 175000;
-                }
-        }
-    }else if($("#skasi_thumb02").is(":checked")){ // 50T
-        if($("#skasicolor_type01").is(":checked")){ //알루미늄 색상 - 일반
-           if(skasi_width == 10){  // 각수
-                price = 2500;
-            }else if(skasi_width == 15){
-            	price = 3000;
-            }else if(skasi_width == 20){
-            	price = 3700;
-            }else if(skasi_width == 25){
-            	price = 4500;
-            }else if(skasi_width == 30){
-                price = 5000;	
-            }else if(skasi_width == 35){
-                price = 6800;
-            }else if(skasi_width == 40){
-                price = 8800;
-            }else if(skasi_width == 45){
-                price = 11200;
-            }else if(skasi_width == 50){
-                price = 13800;
-            }else if(skasi_width == 55){
-                price = 16800;
-            }else if(skasi_width == 60){
-                price = 20000;
-            }else if(skasi_width == 65){
-                price = 23400;
-            }else if(skasi_width == 70){
-                price = 27200;
-            }else if(skasi_width == 75){
-                price = 31200;
-            }else if(skasi_width == 80){
-                price = 35500;
-            }else if(skasi_width == 85){
-                price = 40100;
-            }else if(skasi_width == 90){
-                price = 45000;
-            }else if(skasi_width == 95){
-                price = 50100;
-            }else if(skasi_width == 100){
-                price = 55500;
-            }else if(skasi_width == 105){
-                price = 61200;
-            }else if(skasi_width == 110){
-                price = 67200;
-            }else if(skasi_width == 115){
-                price = 73400;
-            }else if(skasi_width == 120){
-                price = 80000;
-            }else if(skasi_width == 125){
-                price = 86800;
-            }else if(skasi_width == 130){
-                price = 93800;
-            }else if(skasi_width == 135){
-                price = 101200;
-            }else if(skasi_width == 140){
-                price = 108800;
-            }else if(skasi_width == 145){
-                price = 116800;
-            }else if(skasi_width == 150){
-                price = 125000;
-            }
-        }else if($("#skasicolor_type02").is(":checked")){ //알루미늄 색상 - 수입 (금 / 은색)
-        	if(skasi_width == 10){  // 각수
-                    price = 4000;
-                }else if(skasi_width == 15){
-                    price = 5000;
-                }else if(skasi_width == 20){
-                    price = 6000;
-                }else if(skasi_width == 25){
-                    price = 7000;
-                }else if(skasi_width == 30){
-                    price = 8000;	
-                }else if(skasi_width == 35){
-                    price = 10800;
-                }else if(skasi_width == 40){
-                    price = 14200;
-                }else if(skasi_width == 45){
-                    price = 18000;
-                }else if(skasi_width == 50){
-                    price = 22200;
-                }else if(skasi_width == 55){
-                    price = 26800;
-                }else if(skasi_width == 60){
-                    price = 32000;
-                }else if(skasi_width == 65){
-                    price = 37500;
-                }else if(skasi_width == 70){
-                    price = 43500;
-                }else if(skasi_width == 75){
-                    price = 50000;
-                }else if(skasi_width == 80){
-                    price = 56800;
-                }else if(skasi_width == 85){
-                    price = 64200;
-                }else if(skasi_width == 90){
-                    price = 72000;
-                }else if(skasi_width == 95){
-                    price = 80200;
-                }else if(skasi_width == 100){
-                    price = 88800;
-                }else if(skasi_width == 105){
-                    price = 98000;
-                }else if(skasi_width == 110){
-                    price = 107500;
-                }else if(skasi_width == 115){
-                    price = 117500;
-                }else if(skasi_width == 120){
-                    price = 128000;
-                }else if(skasi_width == 125){
-                    price = 138800;
-                }else if(skasi_width == 130){
-                    price = 150200;
-                }else if(skasi_width == 135){
-                    price = 162000;
-                }else if(skasi_width == 140){
-                    price = 174200;
-                }else if(skasi_width == 145){
-                    price = 186800;
-                }else if(skasi_width == 150){
-                    price = 200000;
-                }
-        }
-     }
-    if($("#skasi_screen_color01").is(":checked")){
-       	price = price;
-    }else{
+    var total_count = parseInt($("#skasicolor_count").val()) || 0;
+    var skasi_width = $("#skasi_width").val();
+    var price = 0;
+
+    var typeKey = '';
+    if($("#skasi_thumb01").is(":checked")){
+        typeKey = $("#skasicolor_type01").is(":checked") ? 'n30' : 's30';
+    } else {
+        typeKey = $("#skasicolor_type01").is(":checked") ? 'n50' : 's50';
+    }
+    price = PRICES['skasi_gom_' + typeKey + '_' + skasi_width] || 0;
+
+    if(!$("#skasi_screen_color01").is(":checked")){
         price = price * 1.5;
     }
 
-	$("#order_price").text(String(_r10((total_count*price)+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-    //console.log(Math.floor(total_price + nv("#actual_more_order_price") + nv("#more_order_price")));
+    $("#order_price").text(String(_r10(total_count * price + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
-
 function skasi_acrylic(){ //스카시 아크릴 계산
 	setTimeout(function(){
         $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']").click(function(){
