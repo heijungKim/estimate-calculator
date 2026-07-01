@@ -155,6 +155,15 @@ function savePricesToFirebase(data) {
     _pricesDoc.set(data).catch(function(){});
 }
 
+function _ceil100(mm) {
+    return mm > 0 ? Math.ceil(mm / 100) * 100 : 0;
+}
+function _dimRoundText(rawMm) {
+    if(!rawMm || rawMm <= 0) return rawMm + "mm";
+    var rounded = _ceil100(rawMm);
+    return rounded === rawMm ? rawMm + "mm" : rawMm + " → " + rounded + "mm (올림적용)";
+}
+
 function getSignDimensions() {
     var w, h;
     if($("#sigh_option03").is(":checked")) {
@@ -163,14 +172,11 @@ function getSignDimensions() {
         else if($("#sigh_angle_width_1000").is(":checked")) w = 1.0;
         else if($("#sigh_angle_width_1100").is(":checked")) w = 1.1;
         else                                                w = 1.2;
-        var _rh3 = nv("#sigh_vertical");
-        h = (_rh3 > 0 ? Math.ceil(_rh3 / 10) * 10 : 0) / 1000;
+        h = _ceil100(nv("#sigh_vertical")) / 1000;
         if(h < 1.5 && h > 0) h = 1.5;
     } else {
-        var _rw = nv("#sigh_row");
-        var _rh = nv("#sigh_vertical");
-        w = (_rw > 0 ? Math.ceil(_rw / 10) * 10 : 0) / 1000;
-        h = (_rh > 0 ? Math.ceil(_rh / 10) * 10 : 0) / 1000;
+        w = _ceil100(nv("#sigh_row")) / 1000;
+        h = _ceil100(nv("#sigh_vertical")) / 1000;
         if($("#sigh_option_row").is(":checked")) {
             if(w < 1.5 && w > 0) w = 1.5;
             if(h < 1   && h > 0) h = 1;
@@ -3174,10 +3180,8 @@ function sign_top_01(){ //사인탑_비조명
 
 }
 function sign_top_01_cal(){ //사인탑_비조명 계산
-    var _raw_w = nv("#sigh_row");
-    var _raw_h = nv("#sigh_vertical");
-    var target_width    = (_raw_w > 0 ? Math.ceil(_raw_w / 10) * 10 : 0) / 1000;
-    var target_vertical = (_raw_h > 0 ? Math.ceil(_raw_h / 10) * 10 : 0) / 1000;
+    var target_width    = _ceil100(nv("#sigh_row")) / 1000;
+    var target_vertical = _ceil100(nv("#sigh_vertical")) / 1000;
     if($("#sigh_option_row").is(":checked")){
         if(target_width <= 1.5 && target_width != 0) target_width = 1.5;
         if(target_vertical <= 1 && target_vertical != 0) target_vertical = 1;
@@ -3238,10 +3242,8 @@ function sign_top_02(){ //사인탑_조명
 
 }
 function sign_top_02_cal(){ //사인탑_조명 계산
-    var _raw_w = nv("#sigh_row");
-    var _raw_h = nv("#sigh_vertical");
-    var target_width    = (_raw_w > 0 ? Math.ceil(_raw_w / 10) * 10 : 0) / 1000;
-    var target_vertical = (_raw_h > 0 ? Math.ceil(_raw_h / 10) * 10 : 0) / 1000;
+    var target_width    = _ceil100(nv("#sigh_row")) / 1000;
+    var target_vertical = _ceil100(nv("#sigh_vertical")) / 1000;
     if($("#sigh_option_row").is(":checked")){ //가로형
       if(target_width <= 1.5 && target_width != 0){
          target_width = 1.5;
@@ -3364,7 +3366,7 @@ function sign_top_03(){ //사인탑_돌출
 function sign_top_03_cal(){ //사인탑_돌출 계산
     var target_width = 0;
     var _raw_h03 = nv("#sigh_vertical");
-    var target_vertical = (_raw_h03 > 0 ? Math.ceil(_raw_h03 / 10) * 10 : 0) / 1000;
+    var target_vertical = _ceil100(_raw_h03) / 1000;
     var total_price = 0;
     var woorex_price = 0;
     var led_price = 0;
@@ -4934,8 +4936,8 @@ $(".save_btn").click(function(){
      			total_html += "<li><span class='number'></span>";
             	total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_option']:checked").parent("label").text();
             	total_html +=" / 방향 선택 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_option_direction']:checked").parent("label").text();
-            	total_html +=" / 가로 :"+$("#sigh_row").val();
-            	total_html +=" / 세로 :"+$("#sigh_vertical").val();
+            	total_html +=" / 가로 : "+_dimRoundText(nv("#sigh_row"));
+            	total_html +=" / 세로 : "+_dimRoundText(nv("#sigh_vertical"));
             	total_html +=" / 화면 작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_display']:checked").parent("label").text();
             	total_html +=" / 프레임 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_frame_color']:checked").parent("label").text();
            		if($("#sigh_frame_color_custom").is(":checked")){
@@ -4965,7 +4967,7 @@ $(".save_btn").click(function(){
 
             	(function(){
                     function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
-                    var tw=nv("#sigh_row")/1000, tv=nv("#sigh_vertical")/1000;
+                    var tw=_ceil100(nv("#sigh_row"))/1000, tv=_ceil100(nv("#sigh_vertical"))/1000;
                     if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
                     else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
                     var dUnit=$("#sigh_display_01").is(":checked")?PRICES.sign01_flex_print:$("#sigh_display_02").is(":checked")?PRICES.sign01_flex_sheet:PRICES.sign01_tension_none;
@@ -4991,8 +4993,8 @@ $(".save_btn").click(function(){
                 total_html += "<li><span class='number'></span>";
             	total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_option']:checked").parent("label").text();
             	total_html +=" / 방향 선택 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_option_direction']:checked").parent("label").text();
-            	total_html +=" / 가로 :"+$("#sigh_row").val();
-            	total_html +=" / 세로 :"+$("#sigh_vertical").val();
+            	total_html +=" / 가로 : "+_dimRoundText(nv("#sigh_row"));
+            	total_html +=" / 세로 : "+_dimRoundText(nv("#sigh_vertical"));
             	total_html +=" / 화면 작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_display']:checked").parent("label").text();
             	total_html +=" / 등조립 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_light']:checked").parent("label").text();
             	if($("#sigh_light_led").is(":checked")){
@@ -5026,7 +5028,7 @@ $(".save_btn").click(function(){
 
             	(function(){
                     function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
-                    var tw=nv("#sigh_row")/1000, tv=nv("#sigh_vertical")/1000;
+                    var tw=_ceil100(nv("#sigh_row"))/1000, tv=_ceil100(nv("#sigh_vertical"))/1000;
                     if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
                     else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
                     var dUnit=$("#sigh_display_01").is(":checked")?PRICES.sign02_flex_print:$("#sigh_display_02").is(":checked")?PRICES.sign02_flex_sheet:PRICES.sign02_tension_none;
@@ -5055,7 +5057,7 @@ $(".save_btn").click(function(){
              	total_html += "<li><span class='number'></span>";
             	total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_option']:checked").parent("label").text();
             	total_html +=" / 가로 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_angle_width']:checked").parent("label").text();
-            	total_html +=" / 세로 :"+$("#sigh_vertical").val();
+            	total_html +=" / 세로 : "+_dimRoundText(nv("#sigh_vertical"));
             	total_html +=" / 화면 작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_display']:checked").parent("label").text();
                 if($("#sigh_display_01").is(":checked")){
             		total_html +=" / 후렉스 출력 타입 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_display']:checked").parent("label").text();
