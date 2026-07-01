@@ -5,7 +5,7 @@ var DEFAULT_PRICES = {
     sign02_base: 33000, sign02_flex_print: 38000, sign02_flex_sheet: 40000, sign02_tension_none: 33000,
     sign03_w800: 70000, sign03_w900: 75000, sign03_w1000: 80000, sign03_w1100: 85000, sign03_w1200: 90000,
     sign03_flex_uv: 8000, sign03_flex_sol: 7000, sign03_flex_sheet: 10000,
-    sign_led: 4500, sign_sten_molding: 20000, sign_color_paint_nol: 10000, sign_color_paint_light: 10000,
+    sign_led: 4500, sign_sten_molding: 20000, sign_color_paint_nol: 10000, sign_color_paint_light: 10000, sign_backdrop: 3000,
     angle_w200: 2000, angle_w250: 2500, angle_w300: 3000, angle_w400: 3500, angle_w500: 4000, angle_w600: 4200, angle_w700: 4500,
     angle_w800: 4800, angle_w900: 5000, angle_w1000: 5800, angle_w1100: 5800,
     angle_w1200: 6000, angle_w1300: 6800, angle_w1400: 6800, angle_w1500: 6800,
