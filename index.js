@@ -158,6 +158,9 @@ function savePricesToFirebase(data) {
 function _ceil100(mm) {
     return mm > 0 ? Math.ceil(mm / 100) * 100 : 0;
 }
+function _ceil10(mm) {
+    return mm > 0 ? Math.ceil(mm / 10) * 10 : 0;
+}
 function _dimRoundText(rawMm) {
     if(!rawMm || rawMm <= 0) return rawMm + "mm";
     var rounded = _ceil100(rawMm);
@@ -3951,9 +3954,10 @@ function _uvMaterialPrice() { // 선택된 소재 단가 반환
     return 0;
 }
 function uv_silsa_cal(){ //UV실사 계산
-    var target_width  = nv("#frame_product_width") / 1000;
+    var _rawW = nv("#frame_product_width");
     var _rawH = nv("#frame_product_vertical");
-    var target_height = _rawH > 0 ? _ceil100(_rawH) / 1000 : 1.0; // 세로 미입력시 1m 기본, 입력시 100mm 올림
+    var target_width  = (_rawW > 0 ? _ceil10(_rawW) : 0) / 1000;
+    var target_height = (_rawH > 0 ? _ceil10(_rawH) : 1000) / 1000; // 세로 미입력시 1m 기본, 입력시 10mm 올림
 
     var mat_unit   = _uvMaterialPrice();
     var print_fee  = PRICES.uv_print_price || 0;
@@ -5249,8 +5253,9 @@ $(".save_btn").click(function(){
                 function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
                 var rawW   = nv("#frame_product_width");
                 var rawH   = nv("#frame_product_vertical");
-                var ceilH  = rawH > 0 ? _ceil100(rawH) : 1000;
-                var tw = rawW / 1000;
+                var ceilW  = rawW > 0 ? _ceil10(rawW) : 0;
+                var ceilH  = rawH > 0 ? _ceil10(rawH) : 1000;
+                var tw = ceilW / 1000;
                 var th = ceilH / 1000;
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
                 var matUnit   = _uvMaterialPrice();
@@ -5260,7 +5265,7 @@ $(".save_btn").click(function(){
                 var matCost   = _r10(tw * th * matUnit);
                 var lineP     = _r10(matCost + printFee + cutFee);
                 var bd = "<span class='price_breakdown'>";
-                var wText = _fmt(rawW) + "mm";
+                var wText = (ceilW !== rawW) ? _fmt(rawW) + " → " + _fmt(ceilW) + "mm (올림적용)" : _fmt(ceilW) + "mm";
                 var hText = rawH <= 0 ? "1000mm (기본값)"
                           : (ceilH !== rawH) ? _fmt(rawH) + " → " + _fmt(ceilH) + "mm (올림적용)"
                           : _fmt(ceilH) + "mm";
