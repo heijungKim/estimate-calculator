@@ -3956,8 +3956,8 @@ function _uvMaterialPrice() { // 선택된 소재 단가 반환
 function uv_silsa_cal(){ //UV실사 계산
     var _rawW = nv("#frame_product_width");
     var _rawH = nv("#frame_product_vertical");
-    var target_width  = (_rawW > 0 ? _ceil10(_rawW) : 0) / 1000;
-    var target_height = (_rawH > 0 ? _ceil10(_rawH) : 1000) / 1000; // 세로 미입력시 1m 기본, 입력시 10mm 올림
+    var target_width  = (_rawW > 0 ? _ceil100(_rawW) : 0) / 1000;
+    var target_height = (_rawH > 0 ? _ceil100(_rawH) : 1000) / 1000; // 세로 미입력시 1m 기본, 입력시 100mm 올림
 
     var mat_unit   = _uvMaterialPrice();
     var print_fee  = PRICES.uv_print_price || 0;
@@ -5253,8 +5253,8 @@ $(".save_btn").click(function(){
                 function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
                 var rawW   = nv("#frame_product_width");
                 var rawH   = nv("#frame_product_vertical");
-                var ceilW  = rawW > 0 ? _ceil10(rawW) : 0;
-                var ceilH  = rawH > 0 ? _ceil10(rawH) : 1000;
+                var ceilW  = rawW > 0 ? _ceil100(rawW) : 0;
+                var ceilH  = rawH > 0 ? _ceil100(rawH) : 1000;
                 var tw = ceilW / 1000;
                 var th = ceilH / 1000;
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
