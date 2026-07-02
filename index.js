@@ -3938,20 +3938,30 @@ function uv_silsa(){ //UV실사
    },500);
 }
 
+function _uvMaterialPrice() { // 선택된 소재 단가 반환
+    if($("#actual_material01").is(":checked")) return PRICES.uv_white        || 0;
+    if($("#actual_material02").is(":checked")) return PRICES.uv_white_grey   || 0;
+    if($("#actual_material03").is(":checked")){
+        if($("#actual_material03_02").is(":checked")) return PRICES.uv_clear_mirror || 0;
+        if($("#actual_material03_03").is(":checked")) return PRICES.uv_clear_black  || 0;
+        return PRICES.uv_clear || 0; // 1레이어 기본
+    }
+    if($("#actual_material05").is(":checked")) return PRICES.uv_light_white  || 0;
+    if($("#actual_material06").is(":checked")) return PRICES.uv_embo         || 0;
+    return 0;
+}
 function uv_silsa_cal(){ //UV실사 계산
     var target_width  = nv("#frame_product_width") / 1000;
     var _rawH = nv("#frame_product_vertical");
     var target_height = _rawH > 0 ? _ceil100(_rawH) / 1000 : 1.0; // 세로 미입력시 1m 기본, 입력시 100mm 올림
 
+    var mat_unit   = _uvMaterialPrice();
+    var print_unit = PRICES.uv_print_price || 0;
     var has_cut    = $("#actual_more_order02").is(":checked");
-    var print_unit = PRICES.uv_print_price || 10000;
-    var cut_unit   = has_cut ? PRICES.silsa_cut : 0;
-    var unit_sum   = print_unit + cut_unit;
+    var cut_unit   = has_cut ? (PRICES.silsa_cut || 0) : 0;
+    var unit_sum   = mat_unit + print_unit + cut_unit;
 
-    var total_price = 0;
-    if($("#actual_material01,#actual_material02,#actual_material03,#actual_material04,#actual_material05,#actual_material06").is(":checked")){
-        total_price = target_width * target_height * unit_sum;
-    }
+    var total_price = target_width * target_height * unit_sum;
 
     $("#actual_more_order_price").val(0);
 
@@ -5240,22 +5250,27 @@ $(".save_btn").click(function(){
                 function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
                 var rawW   = nv("#frame_product_width");
                 var rawH   = nv("#frame_product_vertical");
-                var ceilH  = rawH > 0 ? _ceil100(rawH) : 1000; // 미입력시 1000mm 기본
+                var ceilH  = rawH > 0 ? _ceil100(rawH) : 1000;
                 var tw = rawW / 1000;
                 var th = ceilH / 1000;
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
-                var printUnit = PRICES.uv_print_price || 10000;
-                var hasCut = $("#actual_more_order02").is(":checked");
-                var cutUnit = hasCut ? (PRICES.silsa_cut || 0) : 0;
-                var lineP = _r10(tw * th * (printUnit + cutUnit));
+                var matUnit   = _uvMaterialPrice();
+                var printUnit = PRICES.uv_print_price || 0;
+                var hasCut    = $("#actual_more_order02").is(":checked");
+                var cutUnit   = hasCut ? (PRICES.silsa_cut || 0) : 0;
+                var unitSum   = matUnit + printUnit + cutUnit;
+                var lineP = _r10(tw * th * unitSum);
                 var bd = "<span class='price_breakdown'>";
                 var wText = _fmt(rawW) + "mm";
                 var hText = rawH <= 0 ? "1000mm (기본값)"
                           : (ceilH !== rawH) ? _fmt(rawH) + " → " + _fmt(ceilH) + "mm (올림적용)"
                           : _fmt(ceilH) + "mm";
-                var printDesc = "가로 " + wText + " × 세로 " + hText + " × " + _fmt(printUnit) + "원/m²";
-                if(hasCut) printDesc += " + 재단 " + _fmt(cutUnit) + "원/m²";
-                bd += "<span class='bd_item'>출력비 <em>" + printDesc + " = " + _fmt(lineP) + "원</em></span>";
+                var unitDesc = "가로 " + wText + " × 세로 " + hText + " × (";
+                if(matUnit > 0)   unitDesc += "자재 " + _fmt(matUnit) + " + ";
+                unitDesc += "출력비 " + _fmt(printUnit);
+                if(hasCut)        unitDesc += " + 재단 " + _fmt(cutUnit);
+                unitDesc += ")원/m²";
+                bd += "<span class='bd_item'>출력비 <em>" + unitDesc + " = " + _fmt(lineP) + "원</em></span>";
                 if(aqty > 1) bd += "<span class='bd_item'>수량 <em>" + _fmt(lineP) + "원 × " + aqty + "개 = " + _fmt(_r10(lineP * aqty)) + "원</em></span>";
                 bd += extraCostBdItems();
                 bd += "</span>";
