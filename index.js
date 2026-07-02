@@ -81,12 +81,10 @@ var DEFAULT_PRICES = {
     uv_pr_white: 10000, uv_pr_white_grey: 10000, uv_pr_clear: 10000,
     uv_pr_clear_mirror: 10000, uv_pr_clear_black: 10000,
     uv_pr_punch_pet: 10000, uv_pr_light_white: 10000, uv_pr_embo: 10000,
-    // 솔벤 실사 자재단가 (m²)
-    sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
-    sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
-    // 솔벤 실사 출력비 (품목별 정액)
-    sol_pr_white: 0, sol_pr_white_grey: 0, sol_pr_oneway: 0, sol_pr_light_white: 0,
-    sol_pr_embo: 0, sol_pr_high_reflect: 0, sol_pr_banner: 0,
+    // 솔벤 실사 전용 자재단가 (m²) — 공통 소재는 uv_* 재사용
+    sol_oneway: 13000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
+    // 솔벤 실사 전용 출력비 (품목별 정액)
+    sol_pr_oneway: 0, sol_pr_high_reflect: 0, sol_pr_banner: 0,
     // 스카시 고무 (글자당) n=일반, s=수입금/은색, 30=30mm이하, 50=50mm
     skasi_gom_n30_10: 2000, skasi_gom_n30_15: 2500, skasi_gom_n30_20: 3000, skasi_gom_n30_25: 3500, skasi_gom_n30_30: 4000, skasi_gom_n30_35: 5400, skasi_gom_n30_40: 7100, skasi_gom_n30_45: 9000, skasi_gom_n30_50: 11000, skasi_gom_n30_55: 13400, skasi_gom_n30_60: 16000, skasi_gom_n30_65: 18700, skasi_gom_n30_70: 21700, skasi_gom_n30_75: 25000, skasi_gom_n30_80: 28400, skasi_gom_n30_85: 32100, skasi_gom_n30_90: 36000, skasi_gom_n30_95: 40100, skasi_gom_n30_100: 44400, skasi_gom_n30_105: 49000, skasi_gom_n30_110: 53700, skasi_gom_n30_115: 58700, skasi_gom_n30_120: 64000, skasi_gom_n30_125: 69400, skasi_gom_n30_130: 75100, skasi_gom_n30_135: 81000, skasi_gom_n30_140: 87000, skasi_gom_n30_145: 93400, skasi_gom_n30_150: 100000,
     skasi_gom_n50_10: 2500, skasi_gom_n50_15: 3000, skasi_gom_n50_20: 3700, skasi_gom_n50_25: 4500, skasi_gom_n50_30: 5000, skasi_gom_n50_35: 6800, skasi_gom_n50_40: 8800, skasi_gom_n50_45: 11200, skasi_gom_n50_50: 13800, skasi_gom_n50_55: 16800, skasi_gom_n50_60: 20000, skasi_gom_n50_65: 23400, skasi_gom_n50_70: 27200, skasi_gom_n50_75: 31200, skasi_gom_n50_80: 35500, skasi_gom_n50_85: 40100, skasi_gom_n50_90: 45000, skasi_gom_n50_95: 50100, skasi_gom_n50_100: 55500, skasi_gom_n50_105: 61200, skasi_gom_n50_110: 67200, skasi_gom_n50_115: 73400, skasi_gom_n50_120: 80000, skasi_gom_n50_125: 86800, skasi_gom_n50_130: 93800, skasi_gom_n50_135: 101200, skasi_gom_n50_140: 108800, skasi_gom_n50_145: 116800, skasi_gom_n50_150: 125000,
@@ -2553,21 +2551,17 @@ function set_actual_top_option_select(){
 		append_html += "<tr>";
 			append_html += "<th>소재</th>";
 			append_html += "<td>";
-				// UV 소재
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material01' checked='checked'>LG 백색시트 (UV)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material02'>LG 백색시트(그레이) (UV)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material03'>LG 클리어(투명시트) (UV)</label>";
-				//append_html += "<label><input type='radio' name='actual_material' id='actual_material04'>타공 페트 (UV)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material05'>LG 조명용 백색 (UV)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material06'>엠보(안개시트) (UV)</label>";
-				// 솔벤 소재
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material11'>LG 백색시트 (솔벤)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material12'>LG 백색시트(그레이) (솔벤)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material13'>원웨이(타공) (솔벤)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material14'>LG 조명용 백색 (솔벤)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material15'>엠보(안개시트) (솔벤)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material16'>고휘도반사 (솔벤)</label>";
-				append_html += "<label><input type='radio' name='actual_material' id='actual_material17'>솔벤현수막 (솔벤)</label>";
+				// 공통 소재
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material01' checked='checked'>LG 백색시트</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material02'>LG 백색시트(그레이)</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material05'>LG 조명용 백색</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material06'>엠보(안개시트)</label>";
+				// UV 전용
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material03'>LG 클리어(투명시트)</label>";
+				// 솔벤 전용
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material13'>원웨이(타공)</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material16'>고휘도반사</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material17'>솔벤현수막</label>";
 			append_html += "</td>";
 		append_html += "</tr>";
 		append_html += "<tr class='actual_material03 add_row'>";
@@ -3914,22 +3908,19 @@ function uv_sol_silsa(){ //UV / 솔벤 실사 (통합)
 
 // 선택된 소재 라디오 → { mat: 자재단가, print: 출력비, isSol: 솔벤여부 } 반환
 function _silsaMatKeys() {
-    // UV 소재
+    // 공통 소재 (UV 단가 재사용)
     if($("#actual_material01").is(":checked")) return { mat: PRICES.uv_white||0,       print: PRICES.uv_pr_white||0,       isSol:false };
     if($("#actual_material02").is(":checked")) return { mat: PRICES.uv_white_grey||0,  print: PRICES.uv_pr_white_grey||0,  isSol:false };
-    if($("#actual_material03").is(":checked")){ // LG 클리어 (레이어별)
+    if($("#actual_material05").is(":checked")) return { mat: PRICES.uv_light_white||0,  print: PRICES.uv_pr_light_white||0, isSol:false };
+    if($("#actual_material06").is(":checked")) return { mat: PRICES.uv_embo||0,         print: PRICES.uv_pr_embo||0,        isSol:false };
+    // UV 전용 - LG 클리어 (레이어별)
+    if($("#actual_material03").is(":checked")){
         if($("#actual_material03_02").is(":checked")) return { mat: PRICES.uv_clear_mirror||0, print: PRICES.uv_pr_clear_mirror||0, isSol:false };
         if($("#actual_material03_03").is(":checked")) return { mat: PRICES.uv_clear_black||0,  print: PRICES.uv_pr_clear_black||0,  isSol:false };
         return { mat: PRICES.uv_clear||0, print: PRICES.uv_pr_clear||0, isSol:false };
     }
-    if($("#actual_material05").is(":checked")) return { mat: PRICES.uv_light_white||0,  print: PRICES.uv_pr_light_white||0, isSol:false };
-    if($("#actual_material06").is(":checked")) return { mat: PRICES.uv_embo||0,         print: PRICES.uv_pr_embo||0,        isSol:false };
-    // 솔벤 소재
-    if($("#actual_material11").is(":checked")) return { mat: PRICES.sol_white||0,        print: PRICES.sol_pr_white||0,        isSol:true };
-    if($("#actual_material12").is(":checked")) return { mat: PRICES.sol_white_grey||0,   print: PRICES.sol_pr_white_grey||0,   isSol:true };
+    // 솔벤 전용
     if($("#actual_material13").is(":checked")) return { mat: PRICES.sol_oneway||0,       print: PRICES.sol_pr_oneway||0,       isSol:true };
-    if($("#actual_material14").is(":checked")) return { mat: PRICES.sol_light_white||0,  print: PRICES.sol_pr_light_white||0,  isSol:true };
-    if($("#actual_material15").is(":checked")) return { mat: PRICES.sol_embo||0,         print: PRICES.sol_pr_embo||0,         isSol:true };
     if($("#actual_material16").is(":checked")) return { mat: PRICES.sol_high_reflect||0, print: PRICES.sol_pr_high_reflect||0, isSol:true };
     if($("#actual_material17").is(":checked")) return { mat: PRICES.sol_banner||0,       print: PRICES.sol_pr_banner||0,       isSol:true };
     return { mat:0, print:0, isSol:false };
