@@ -3939,45 +3939,19 @@ function uv_silsa(){ //UV실사
 }
 
 function uv_silsa_cal(){ //UV실사 계산
-    var target_width = nv("#frame_product_width") / 1000;
-    var target_vertical_mm = nv("#frame_product_vertical");
-    var total_price = 0;
+    var target_width  = nv("#frame_product_width") / 1000;
+    var target_height = _ceil100(nv("#frame_product_vertical")) / 1000; // 100mm 단위 올림 후 m 변환
 
-    // 세로 배율 (mm 기준)
-    var height_mult;
-    if      (target_vertical_mm <= 1000) height_mult = 1.0;
-    else if (target_vertical_mm <= 1100) height_mult = 1.1;
-    else if (target_vertical_mm <= 1200) height_mult = 1.2;
-    else if (target_vertical_mm <= 1300) height_mult = 1.3;
-    else if (target_vertical_mm <= 1400) height_mult = 1.4;
-    else                                  height_mult = 1.5;
-
-    var has_cut = $("#actual_more_order02").is(":checked");
+    var has_cut    = $("#actual_more_order02").is(":checked");
     var print_unit = PRICES.uv_print_price || 10000;
     var cut_unit   = has_cut ? PRICES.silsa_cut : 0;
     var unit_sum   = print_unit + cut_unit;
 
-    if($("#actual_material01").is(":checked")){ //LG 백색시트
-        total_price = target_width * height_mult * unit_sum;
-    }else if($("#actual_material02").is(":checked")){ //LG 백색시트(그레이)
-        total_price = target_width * height_mult * unit_sum;
-    }else if($("#actual_material03").is(":checked")){ //LG 클리어(투명시트)
-        if($("#actual_material03_01").is(":checked")){
-            total_price = target_width * height_mult * unit_sum;
-        }else if($("#actual_material03_02").is(":checked")){
-            total_price = target_width * height_mult * unit_sum;
-        }else if($("#actual_material03_03").is(":checked")){
-            total_price = target_width * height_mult * unit_sum;
-        }
-    }else if($("#actual_material04").is(":checked")){ //타공 페트
-        total_price = target_width * height_mult * unit_sum;
-    }else if($("#actual_material05").is(":checked")){ //LG 조명용 백색
-        total_price = target_width * height_mult * unit_sum;
-    }else if($("#actual_material06").is(":checked")){ //엠보(안개 시트)
-        total_price = target_width * height_mult * unit_sum;
+    var total_price = 0;
+    if($("#actual_material01,#actual_material02,#actual_material03,#actual_material04,#actual_material05,#actual_material06").is(":checked")){
+        total_price = target_width * target_height * unit_sum;
     }
 
-    // 재단 있음이면 단가에 포함, 별도 표시 없음
     $("#actual_more_order_price").val(0);
 
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
@@ -5263,23 +5237,21 @@ $(".save_btn").click(function(){
             }
             (function(){
                 function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
-                var tw = nv("#frame_product_width") / 1000;
-                var tvmm = nv("#frame_product_vertical");
+                var rawW   = nv("#frame_product_width");
+                var rawH   = nv("#frame_product_vertical");
+                var ceilH  = _ceil100(rawH);
+                var tw = rawW / 1000;
+                var th = ceilH / 1000;
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
-                var hMult;
-                if      (tvmm <= 1000) hMult = 1.0;
-                else if (tvmm <= 1100) hMult = 1.1;
-                else if (tvmm <= 1200) hMult = 1.2;
-                else if (tvmm <= 1300) hMult = 1.3;
-                else if (tvmm <= 1400) hMult = 1.4;
-                else                   hMult = 1.5;
                 var printUnit = PRICES.uv_print_price || 10000;
                 var hasCut = $("#actual_more_order02").is(":checked");
                 var cutUnit = hasCut ? (PRICES.silsa_cut || 0) : 0;
-                var lineP = _r10(tw * hMult * (printUnit + cutUnit));
+                var lineP = _r10(tw * th * (printUnit + cutUnit));
                 var bd = "<span class='price_breakdown'>";
-                var printDesc = _fmt(Math.round(tw * 1000)) + "mm × 세로배율 " + hMult + " × " + _fmt(printUnit) + "원/m";
-                if(hasCut) printDesc += " + 재단 " + _fmt(cutUnit) + "원/m";
+                var wText = _fmt(rawW) + "mm";
+                var hText = (ceilH !== rawH) ? _fmt(rawH) + " → " + _fmt(ceilH) + "mm (올림적용)" : _fmt(ceilH) + "mm";
+                var printDesc = "가로 " + wText + " × 세로 " + hText + " × " + _fmt(printUnit) + "원/m²";
+                if(hasCut) printDesc += " + 재단 " + _fmt(cutUnit) + "원/m²";
                 bd += "<span class='bd_item'>출력비 <em>" + printDesc + " = " + _fmt(lineP) + "원</em></span>";
                 if(aqty > 1) bd += "<span class='bd_item'>수량 <em>" + _fmt(lineP) + "원 × " + aqty + "개 = " + _fmt(_r10(lineP * aqty)) + "원</em></span>";
                 bd += extraCostBdItems();
