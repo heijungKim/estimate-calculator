@@ -3956,12 +3956,11 @@ function uv_silsa_cal(){ //UV실사 계산
     var target_height = _rawH > 0 ? _ceil100(_rawH) / 1000 : 1.0; // 세로 미입력시 1m 기본, 입력시 100mm 올림
 
     var mat_unit   = _uvMaterialPrice();
-    var print_unit = PRICES.uv_print_price || 0;
+    var print_fee  = PRICES.uv_print_price || 0;
     var has_cut    = $("#actual_more_order02").is(":checked");
-    var cut_unit   = has_cut ? (PRICES.silsa_cut || 0) : 0;
-    var unit_sum   = mat_unit + print_unit + cut_unit;
+    var cut_fee    = has_cut ? (PRICES.silsa_cut || 0) : 0;
 
-    var total_price = target_width * target_height * unit_sum;
+    var total_price = (target_width * target_height * mat_unit) + print_fee + cut_fee;
 
     $("#actual_more_order_price").val(0);
 
@@ -5255,22 +5254,19 @@ $(".save_btn").click(function(){
                 var th = ceilH / 1000;
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
                 var matUnit   = _uvMaterialPrice();
-                var printUnit = PRICES.uv_print_price || 0;
+                var printFee  = PRICES.uv_print_price || 0;
                 var hasCut    = $("#actual_more_order02").is(":checked");
-                var cutUnit   = hasCut ? (PRICES.silsa_cut || 0) : 0;
-                var unitSum   = matUnit + printUnit + cutUnit;
-                var lineP = _r10(tw * th * unitSum);
+                var cutFee    = hasCut ? (PRICES.silsa_cut || 0) : 0;
+                var matCost   = _r10(tw * th * matUnit);
+                var lineP     = _r10(matCost + printFee + cutFee);
                 var bd = "<span class='price_breakdown'>";
                 var wText = _fmt(rawW) + "mm";
                 var hText = rawH <= 0 ? "1000mm (기본값)"
                           : (ceilH !== rawH) ? _fmt(rawH) + " → " + _fmt(ceilH) + "mm (올림적용)"
                           : _fmt(ceilH) + "mm";
-                var unitDesc = "가로 " + wText + " × 세로 " + hText + " × (";
-                if(matUnit > 0)   unitDesc += "자재 " + _fmt(matUnit) + " + ";
-                unitDesc += "출력비 " + _fmt(printUnit);
-                if(hasCut)        unitDesc += " + 재단 " + _fmt(cutUnit);
-                unitDesc += ")원/m²";
-                bd += "<span class='bd_item'>출력비 <em>" + unitDesc + " = " + _fmt(lineP) + "원</em></span>";
+                bd += "<span class='bd_item'>자재비 <em>가로 " + wText + " × 세로 " + hText + " × " + _fmt(matUnit) + "원/m² = " + _fmt(matCost) + "원</em></span>";
+                bd += "<span class='bd_item'>출력비 <em>" + _fmt(printFee) + "원</em></span>";
+                if(hasCut) bd += "<span class='bd_item'>재단비 <em>" + _fmt(cutFee) + "원</em></span>";
                 if(aqty > 1) bd += "<span class='bd_item'>수량 <em>" + _fmt(lineP) + "원 × " + aqty + "개 = " + _fmt(_r10(lineP * aqty)) + "원</em></span>";
                 bd += extraCostBdItems();
                 bd += "</span>";
