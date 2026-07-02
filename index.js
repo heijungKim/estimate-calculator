@@ -1,7 +1,7 @@
 ﻿// ============================================================
 // 단가 설정 (기본값 - 단가설정 모달에서 변경 가능)
 // ============================================================
-var PRICE_VERSION = 2; // DEFAULT_PRICES 변경 시 올림 → Firebase 강제 초기화
+var PRICE_VERSION = 3; // DEFAULT_PRICES 변경 시 올림 → Firebase 강제 초기화
 var DEFAULT_PRICES = {
     // 사인탑 비조명 (m²)
     sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
@@ -73,10 +73,14 @@ var DEFAULT_PRICES = {
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
     flex_uv_double: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
-    // UV 실사 (m²)
+    // UV 실사 자재단가 (m²)
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
-    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000, uv_print_price: 10000,
+    uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000,
+    // UV 실사 출력비 (품목별 정액)
+    uv_pr_white: 10000, uv_pr_white_grey: 10000, uv_pr_clear: 10000,
+    uv_pr_clear_mirror: 10000, uv_pr_clear_black: 10000,
+    uv_pr_punch_pet: 10000, uv_pr_light_white: 10000, uv_pr_embo: 10000,
     // 솔벤 실사 (m²)
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
@@ -3941,16 +3945,28 @@ function uv_silsa(){ //UV실사
    },500);
 }
 
-function _uvMaterialPrice() { // 선택된 소재 단가 반환
+function _uvMaterialPrice() { // 선택된 소재 자재단가 반환
     if($("#actual_material01").is(":checked")) return PRICES.uv_white        || 0;
     if($("#actual_material02").is(":checked")) return PRICES.uv_white_grey   || 0;
     if($("#actual_material03").is(":checked")){
         if($("#actual_material03_02").is(":checked")) return PRICES.uv_clear_mirror || 0;
         if($("#actual_material03_03").is(":checked")) return PRICES.uv_clear_black  || 0;
-        return PRICES.uv_clear || 0; // 1레이어 기본
+        return PRICES.uv_clear || 0;
     }
     if($("#actual_material05").is(":checked")) return PRICES.uv_light_white  || 0;
     if($("#actual_material06").is(":checked")) return PRICES.uv_embo         || 0;
+    return 0;
+}
+function _uvPrintFee() { // 선택된 소재별 출력비 반환
+    if($("#actual_material01").is(":checked")) return PRICES.uv_pr_white        || 0;
+    if($("#actual_material02").is(":checked")) return PRICES.uv_pr_white_grey   || 0;
+    if($("#actual_material03").is(":checked")){
+        if($("#actual_material03_02").is(":checked")) return PRICES.uv_pr_clear_mirror || 0;
+        if($("#actual_material03_03").is(":checked")) return PRICES.uv_pr_clear_black  || 0;
+        return PRICES.uv_pr_clear || 0;
+    }
+    if($("#actual_material05").is(":checked")) return PRICES.uv_pr_light_white  || 0;
+    if($("#actual_material06").is(":checked")) return PRICES.uv_pr_embo         || 0;
     return 0;
 }
 function uv_silsa_cal(){ //UV실사 계산
@@ -3960,7 +3976,7 @@ function uv_silsa_cal(){ //UV실사 계산
     var target_height = (_rawH > 0 ? _ceil100(_rawH) : 1000) / 1000; // 세로 미입력시 1m 기본, 입력시 100mm 올림
 
     var mat_unit   = _uvMaterialPrice();
-    var print_fee  = PRICES.uv_print_price || 0;
+    var print_fee  = _uvPrintFee();
     var has_cut    = $("#actual_more_order02").is(":checked");
     var cut_fee    = has_cut ? (PRICES.silsa_cut || 0) : 0;
 
@@ -5259,7 +5275,7 @@ $(".save_btn").click(function(){
                 var th = ceilH / 1000;
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
                 var matUnit   = _uvMaterialPrice();
-                var printFee  = PRICES.uv_print_price || 0;
+                var printFee  = _uvPrintFee();
                 var hasCut    = $("#actual_more_order02").is(":checked");
                 var cutFee    = hasCut ? (PRICES.silsa_cut || 0) : 0;
                 var matCost   = _r10(tw * th * matUnit);

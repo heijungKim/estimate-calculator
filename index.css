@@ -435,6 +435,58 @@ input::placeholder {
     text-align: left;
 }
 
+.price_row_uv {
+    display: grid;
+    grid-template-columns: 1fr 68px 18px 68px 18px;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 5px;
+}
+.price_row_uv label {
+    font-size: 12px;
+    color: #4a5568;
+    word-break: keep-all;
+    line-height: 1.4;
+}
+.price_row_uv input[type='text'] {
+    height: 30px;
+    width: 100%;
+    padding: 0 6px;
+    font-size: 12px;
+    border: 1px solid #dde1e9;
+    border-radius: 6px;
+    background: #f7f8fa;
+    color: #1a1a2e;
+    font-family: inherit;
+    transition: all 0.15s;
+    text-align: right;
+    box-sizing: border-box;
+}
+.price_row_uv input[type='text']:focus {
+    outline: none;
+    border-color: #e94560;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(233,69,96,0.1);
+}
+.price_row_uv span {
+    font-size: 12px;
+    color: #aab0bb;
+    text-align: left;
+}
+.price_subhead_uv {
+    display: grid;
+    grid-template-columns: 1fr 68px 18px 68px 18px;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+.price_subhead_uv span {
+    font-size: 10px;
+    color: #8892a4;
+    font-weight: 600;
+    text-align: right;
+}
+.price_subhead_uv span:first-child { text-align: left; }
+
 .ch_taka_table {
     border-collapse: collapse;
     font-size: 12px;
