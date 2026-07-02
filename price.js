@@ -1,5 +1,5 @@
 // ── 단가 기본값 ──────────────────────────────────────────────
-var PRICE_VERSION = 3; // index.js와 반드시 동일하게 유지
+var PRICE_VERSION = 4; // index.js와 반드시 동일하게 유지
 var DEFAULT_PRICES = {
     sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
     sign02_base: 33000, sign02_flex_print: 38000, sign02_flex_sheet: 40000, sign02_tension_none: 33000,
@@ -47,7 +47,7 @@ var DEFAULT_PRICES = {
     ch_ggachi_200: 2000, ch_ggachi_250: 2500, ch_ggachi_300: 3000, ch_ggachi_400: 3500,
     ch_complete: 100000,
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
-    flex_uv_double: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
+    flex_uv_double: 8000, flex_uv_single: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
     uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000,
@@ -56,6 +56,8 @@ var DEFAULT_PRICES = {
     uv_pr_punch_pet: 10000, uv_pr_light_white: 10000, uv_pr_embo: 10000,
     sol_white: 10000, sol_white_grey: 10000, sol_oneway: 13000, sol_light_white: 13000,
     sol_embo: 10000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
+    sol_pr_white: 0, sol_pr_white_grey: 0, sol_pr_oneway: 0, sol_pr_light_white: 0,
+    sol_pr_embo: 0, sol_pr_high_reflect: 0, sol_pr_banner: 0,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
