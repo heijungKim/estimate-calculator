@@ -5251,24 +5251,41 @@ $(".save_btn").click(function(){
         }else if($("#actual_option02").is(":checked")){ //UV실사
             total_html += "<li><span class='number'></span>";
             total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text();
-            total_html +=" / 소재 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']:checked").parent("label").text();
+            total_html +=" / 소재 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']:checked").parent("label").text();
             if($("#actual_material03").is(":checked")){
-                total_html +=" / 레이어 수 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material03']:checked").parent("label").text();
+                total_html +=" / 레이어 수 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material03']:checked").parent("label").text();
             }
             total_html +=" / 가로 : "+$("#frame_product_width").val()+" mm";
             total_html +=" / 세로 : "+$("#frame_product_vertical").val()+" mm";
-            total_html +="/ 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
-            total_html +=" / 출력비 : "+fmtNum(PRICES.uv_print_price)+" 원";
-            if($("#actual_more_order02").is(":checked")){
-                total_html +=" / 재단비 : "+fmtNum(PRICES.silsa_cut)+" 원";
-            }
-            if(Number($("#channel_trim_color_custom").val()) != 0){
-                total_html +=" / "+getExtraCostText();
-            }
-            if($("#add_more_text").val().length !=0 ){
+            total_html +=" / 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
+            if($("#add_more_text").val().length != 0){
                 total_html +=" / 추가입력 사항 : "+$("#add_more_text").val();
             }
-
+            (function(){
+                function _fmt(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+                var tw = nv("#frame_product_width") / 1000;
+                var tvmm = nv("#frame_product_vertical");
+                var aqty = parseInt($("#actual_quantity").val()) || 1;
+                var hMult;
+                if      (tvmm <= 1000) hMult = 1.0;
+                else if (tvmm <= 1100) hMult = 1.1;
+                else if (tvmm <= 1200) hMult = 1.2;
+                else if (tvmm <= 1300) hMult = 1.3;
+                else if (tvmm <= 1400) hMult = 1.4;
+                else                   hMult = 1.5;
+                var printUnit = PRICES.uv_print_price || 10000;
+                var hasCut = $("#actual_more_order02").is(":checked");
+                var cutUnit = hasCut ? (PRICES.silsa_cut || 0) : 0;
+                var lineP = _r10(tw * hMult * (printUnit + cutUnit));
+                var bd = "<span class='price_breakdown'>";
+                var printDesc = _fmt(Math.round(tw * 1000)) + "mm × 세로배율 " + hMult + " × " + _fmt(printUnit) + "원/m";
+                if(hasCut) printDesc += " + 재단 " + _fmt(cutUnit) + "원/m";
+                bd += "<span class='bd_item'>출력비 <em>" + printDesc + " = " + _fmt(lineP) + "원</em></span>";
+                if(aqty > 1) bd += "<span class='bd_item'>수량 <em>" + _fmt(lineP) + "원 × " + aqty + "개 = " + _fmt(_r10(lineP * aqty)) + "원</em></span>";
+                bd += extraCostBdItems();
+                bd += "</span>";
+                total_html += bd;
+            })();
             total_html +="/ 견적 비용 : <span class='list_price'>";
             total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }else if($("#actual_option03").is(":checked")){ //솔벤실사
