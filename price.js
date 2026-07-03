@@ -56,6 +56,16 @@ var DEFAULT_PRICES = {
     uv_pr_punch_pet: 10000, uv_pr_light_white: 10000, uv_pr_embo: 10000,
     sol_oneway: 13000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
     sol_pr_oneway: 0, sol_pr_high_reflect: 0, sol_pr_banner: 0,
+    // 수성 실사 - 현수막 (세로 구간별 m당 단가 / 가로 3~4m 정액)
+    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat: 7000,
+    soosung_banner_h11_unit: 3000, soosung_banner_h11_flat: 10000,
+    soosung_banner_h127_unit: 4000, soosung_banner_h127_flat: 12000,
+    soosung_banner_h150_unit: 5000, soosung_banner_h150_flat: 15000,
+    soosung_banner_h180_sqm: 4000, soosung_banner_over_sqm: 5000,
+    // 수성 실사 - 켈/유포/페트/백릿 (m²)
+    soosung_kel_white: 10000, soosung_kel_grey: 10000,
+    soosung_yupo_white: 8000, soosung_yupo_grey: 8000,
+    soosung_pet: 10000, soosung_pet_min: 10000, soosung_baklit: 13000,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,

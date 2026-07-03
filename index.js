@@ -85,6 +85,16 @@ var DEFAULT_PRICES = {
     sol_oneway: 13000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
     // 솔벤 실사 전용 출력비 (품목별 정액)
     sol_pr_oneway: 0, sol_pr_high_reflect: 0, sol_pr_banner: 0,
+    // 수성 실사 - 현수막 (세로 구간별 m당 단가 / 가로 3~4m 정액)
+    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat: 7000,
+    soosung_banner_h11_unit: 3000, soosung_banner_h11_flat: 10000,
+    soosung_banner_h127_unit: 4000, soosung_banner_h127_flat: 12000,
+    soosung_banner_h150_unit: 5000, soosung_banner_h150_flat: 15000,
+    soosung_banner_h180_sqm: 4000, soosung_banner_over_sqm: 5000,
+    // 수성 실사 - 켈/유포/페트/백릿 (m²)
+    soosung_kel_white: 10000, soosung_kel_grey: 10000,
+    soosung_yupo_white: 8000, soosung_yupo_grey: 8000,
+    soosung_pet: 10000, soosung_pet_min: 10000, soosung_baklit: 13000,
     // 스카시 고무 (글자당) n=일반, s=수입금/은색, 30=30mm이하, 50=50mm
     skasi_gom_n30_10: 2000, skasi_gom_n30_15: 2500, skasi_gom_n30_20: 3000, skasi_gom_n30_25: 3500, skasi_gom_n30_30: 4000, skasi_gom_n30_35: 5400, skasi_gom_n30_40: 7100, skasi_gom_n30_45: 9000, skasi_gom_n30_50: 11000, skasi_gom_n30_55: 13400, skasi_gom_n30_60: 16000, skasi_gom_n30_65: 18700, skasi_gom_n30_70: 21700, skasi_gom_n30_75: 25000, skasi_gom_n30_80: 28400, skasi_gom_n30_85: 32100, skasi_gom_n30_90: 36000, skasi_gom_n30_95: 40100, skasi_gom_n30_100: 44400, skasi_gom_n30_105: 49000, skasi_gom_n30_110: 53700, skasi_gom_n30_115: 58700, skasi_gom_n30_120: 64000, skasi_gom_n30_125: 69400, skasi_gom_n30_130: 75100, skasi_gom_n30_135: 81000, skasi_gom_n30_140: 87000, skasi_gom_n30_145: 93400, skasi_gom_n30_150: 100000,
     skasi_gom_n50_10: 2500, skasi_gom_n50_15: 3000, skasi_gom_n50_20: 3700, skasi_gom_n50_25: 4500, skasi_gom_n50_30: 5000, skasi_gom_n50_35: 6800, skasi_gom_n50_40: 8800, skasi_gom_n50_45: 11200, skasi_gom_n50_50: 13800, skasi_gom_n50_55: 16800, skasi_gom_n50_60: 20000, skasi_gom_n50_65: 23400, skasi_gom_n50_70: 27200, skasi_gom_n50_75: 31200, skasi_gom_n50_80: 35500, skasi_gom_n50_85: 40100, skasi_gom_n50_90: 45000, skasi_gom_n50_95: 50100, skasi_gom_n50_100: 55500, skasi_gom_n50_105: 61200, skasi_gom_n50_110: 67200, skasi_gom_n50_115: 73400, skasi_gom_n50_120: 80000, skasi_gom_n50_125: 86800, skasi_gom_n50_130: 93800, skasi_gom_n50_135: 101200, skasi_gom_n50_140: 108800, skasi_gom_n50_145: 116800, skasi_gom_n50_150: 125000,
@@ -3991,40 +4001,40 @@ function soosung_silsa_cal(){ //수성실사 계산
         if($("#actual_material01").is(":checked")){ //현수막
             if(target_vertical <= 0.9){
                 if(target_width < 3){
-                    total_price = target_width * 2000;
+                    total_price = target_width * PRICES.soosung_banner_h9_unit;
                 }else if(target_width <= 4){
-                    total_price = 7000;
+                    total_price = PRICES.soosung_banner_h9_flat;
                 }else{
-                    total_price = target_width * 2000;
+                    total_price = target_width * PRICES.soosung_banner_h9_unit;
                 }
             }else if(target_vertical <= 1.1){
                 if(target_width < 3){
-                    total_price = target_width * 3000;
+                    total_price = target_width * PRICES.soosung_banner_h11_unit;
                 }else if(target_width <= 4){
-                    total_price = 10000;
+                    total_price = PRICES.soosung_banner_h11_flat;
                 }else{
-                    total_price = target_width * 3000;
+                    total_price = target_width * PRICES.soosung_banner_h11_unit;
                 }
             }else if(target_vertical <= 1.27){
                 if(target_width < 3){
-                    total_price = target_width * 4000;
+                    total_price = target_width * PRICES.soosung_banner_h127_unit;
                 }else if(target_width <= 4){
-                    total_price = 12000;
+                    total_price = PRICES.soosung_banner_h127_flat;
                 }else{
-                    total_price = target_width * 4000;
+                    total_price = target_width * PRICES.soosung_banner_h127_unit;
                 }
             }else if(target_vertical <= 1.5){
                 if(target_width < 3){
-                    total_price = target_width * 5000;
+                    total_price = target_width * PRICES.soosung_banner_h150_unit;
                 }else if(target_width <= 4){
-                    total_price = 15000;
+                    total_price = PRICES.soosung_banner_h150_flat;
                 }else{
-                    total_price = target_width * 5000;
+                    total_price = target_width * PRICES.soosung_banner_h150_unit;
                 }
             }else if(target_vertical <= 1.8){
-                total_price = target_width * target_vertical * 4000;
+                total_price = target_width * target_vertical * PRICES.soosung_banner_h180_sqm;
             }else{
-                total_price = target_width * target_vertical * 5000;
+                total_price = target_width * target_vertical * PRICES.soosung_banner_over_sqm;
             }
         }else if($("#actual_material02").is(":checked") || $("#actual_material03").is(":checked")){ //켈(백색/그레이)
             var kel_vertical_mm = nv("#frame_product_vertical");
@@ -4035,22 +4045,23 @@ function soosung_silsa_cal(){ //수성실사 계산
             else if (kel_vertical_mm <= 1300) kel_height_mult = 1.3;
             else if (kel_vertical_mm <= 1400) kel_height_mult = 1.4;
             else                               kel_height_mult = 1.5;
+            var kel_unit = $("#actual_material02").is(":checked") ? PRICES.soosung_kel_white : PRICES.soosung_kel_grey;
             var kel_cut = $("#actual_more_order02").is(":checked") ? (PRICES.silsa_cut || 2000) : 0;
-            total_price = target_width * kel_height_mult * (10000 + kel_cut);
+            total_price = target_width * kel_height_mult * (kel_unit + kel_cut);
         }else if($("#actual_material04").is(":checked")){ //유포(백색)
-            total_price = (target_width * target_vertical) * 8000;
+            total_price = (target_width * target_vertical) * PRICES.soosung_yupo_white;
         }else if($("#actual_material05").is(":checked")){ //유포(그레이)
-            total_price = (target_width * target_vertical) * 8000;
+            total_price = (target_width * target_vertical) * PRICES.soosung_yupo_grey;
         }else if($("#actual_material06").is(":checked")){ //페트
-      
+
             if(target_width <= 0.6 && target_vertical <= 1.8){
-                total_price = 10000;
+                total_price = PRICES.soosung_pet_min;
             }else{
-                total_price = (target_width * target_vertical) * 10000;
+                total_price = (target_width * target_vertical) * PRICES.soosung_pet;
             }
 
         }else if($("#actual_material07").is(":checked")){ //백릿
-            total_price = (target_width * target_vertical) * 13000;
+            total_price = (target_width * target_vertical) * PRICES.soosung_baklit;
         }
  	}
     	console.log(total_price);
