@@ -73,18 +73,18 @@ var DEFAULT_PRICES = {
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
     flex_uv_double: 8000, flex_uv_single: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
-    // UV 실사 자재단가 (m²)
+    // UV/솔벤 실사 공통 소재 자재단가 (m²)
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
     uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000,
-    // UV 실사 출력비 (품목별 정액)
-    uv_pr_white: 10000, uv_pr_white_grey: 10000, uv_pr_clear: 10000,
-    uv_pr_clear_mirror: 10000, uv_pr_clear_black: 10000,
-    uv_pr_punch_pet: 10000, uv_pr_light_white: 10000, uv_pr_embo: 10000,
-    // 솔벤 실사 전용 자재단가 (m²) — 공통 소재는 uv_* 재사용
+    // 솔벤 실사 전용 자재단가 (m²)
     sol_oneway: 13000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
-    // 솔벤 실사 전용 출력비 (품목별 정액)
-    sol_pr_oneway: 0, sol_pr_high_reflect: 0, sol_pr_banner: 0,
+    // 실사 소재별 재단 단가 (m²)
+    silsa_cut_white: 2000, silsa_cut_grey: 2000, silsa_cut_light: 2000, silsa_cut_embo: 2000,
+    silsa_cut_clear: 2000, silsa_cut_oneway: 2000, silsa_cut_reflect: 2000, silsa_cut_banner: 2000,
+    // 실사 소재별 코팅 단가 (m²)
+    silsa_coat_white: 3000, silsa_coat_grey: 3000, silsa_coat_light: 3000, silsa_coat_embo: 3000,
+    silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
     // 수성 실사 - 현수막 (세로 구간별 m당 단가 / 가로 3~4m 정액)
     soosung_banner_h9_unit: 2000, soosung_banner_h9_flat: 7000,
     soosung_banner_h11_unit: 3000, soosung_banner_h11_flat: 10000,
@@ -3916,24 +3916,25 @@ function uv_sol_silsa(){ //UV / 솔벤 실사 (통합)
    },500);
 }
 
-// 선택된 소재 라디오 → { mat: 자재단가, print: 출력비, isSol: 솔벤여부 } 반환
+// 선택된 소재 라디오 → { mat: 자재단가, cut: 재단단가, coat: 코팅단가, isSol: 솔벤여부 } 반환
 function _silsaMatKeys() {
-    // 공통 소재 (UV 단가 재사용)
-    if($("#actual_material01").is(":checked")) return { mat: PRICES.uv_white||0,       print: PRICES.uv_pr_white||0,       isSol:false };
-    if($("#actual_material02").is(":checked")) return { mat: PRICES.uv_white_grey||0,  print: PRICES.uv_pr_white_grey||0,  isSol:false };
-    if($("#actual_material05").is(":checked")) return { mat: PRICES.uv_light_white||0,  print: PRICES.uv_pr_light_white||0, isSol:false };
-    if($("#actual_material06").is(":checked")) return { mat: PRICES.uv_embo||0,         print: PRICES.uv_pr_embo||0,        isSol:false };
-    // UV 전용 - LG 클리어 (레이어별)
+    // 공통 소재 (UV 자재단가 재사용)
+    if($("#actual_material01").is(":checked")) return { mat: PRICES.uv_white||0,      cut: PRICES.silsa_cut_white||0, coat: PRICES.silsa_coat_white||0, isSol:false };
+    if($("#actual_material02").is(":checked")) return { mat: PRICES.uv_white_grey||0, cut: PRICES.silsa_cut_grey||0,  coat: PRICES.silsa_coat_grey||0,  isSol:false };
+    if($("#actual_material05").is(":checked")) return { mat: PRICES.uv_light_white||0, cut: PRICES.silsa_cut_light||0, coat: PRICES.silsa_coat_light||0, isSol:false };
+    if($("#actual_material06").is(":checked")) return { mat: PRICES.uv_embo||0,        cut: PRICES.silsa_cut_embo||0,  coat: PRICES.silsa_coat_embo||0,  isSol:false };
+    // UV 전용 - LG 클리어 (레이어별 자재단가, 재단/코팅 공통)
     if($("#actual_material03").is(":checked")){
-        if($("#actual_material03_02").is(":checked")) return { mat: PRICES.uv_clear_mirror||0, print: PRICES.uv_pr_clear_mirror||0, isSol:false };
-        if($("#actual_material03_03").is(":checked")) return { mat: PRICES.uv_clear_black||0,  print: PRICES.uv_pr_clear_black||0,  isSol:false };
-        return { mat: PRICES.uv_clear||0, print: PRICES.uv_pr_clear||0, isSol:false };
+        var cl = PRICES.uv_clear||0;
+        if($("#actual_material03_02").is(":checked")) cl = PRICES.uv_clear_mirror||0;
+        else if($("#actual_material03_03").is(":checked")) cl = PRICES.uv_clear_black||0;
+        return { mat: cl, cut: PRICES.silsa_cut_clear||0, coat: PRICES.silsa_coat_clear||0, isSol:false };
     }
     // 솔벤 전용
-    if($("#actual_material13").is(":checked")) return { mat: PRICES.sol_oneway||0,       print: PRICES.sol_pr_oneway||0,       isSol:true };
-    if($("#actual_material16").is(":checked")) return { mat: PRICES.sol_high_reflect||0, print: PRICES.sol_pr_high_reflect||0, isSol:true };
-    if($("#actual_material17").is(":checked")) return { mat: PRICES.sol_banner||0,       print: PRICES.sol_pr_banner||0,       isSol:true };
-    return { mat:0, print:0, isSol:false };
+    if($("#actual_material13").is(":checked")) return { mat: PRICES.sol_oneway||0,       cut: PRICES.silsa_cut_oneway||0,  coat: PRICES.silsa_coat_oneway||0,  isSol:true };
+    if($("#actual_material16").is(":checked")) return { mat: PRICES.sol_high_reflect||0, cut: PRICES.silsa_cut_reflect||0, coat: PRICES.silsa_coat_reflect||0, isSol:true };
+    if($("#actual_material17").is(":checked")) return { mat: PRICES.sol_banner||0,       cut: PRICES.silsa_cut_banner||0,  coat: PRICES.silsa_coat_banner||0,  isSol:true };
+    return { mat:0, cut:0, coat:0, isSol:false };
 }
 
 function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
@@ -3944,19 +3945,18 @@ function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
 
     var keys      = _silsaMatKeys();
     var mat_unit  = keys.mat;
-    var print_fee = keys.print;
     var area      = target_width * target_height;
 
-    // 후가공: 재단/코팅 모두 면적 비례
+    // 후가공: 재단/코팅 (소재별 단가, 면적 비례)
     var post_fee = 0;
     if($("#actual_more_order02").is(":checked")){        //재단
-        post_fee = area * (PRICES.silsa_cut || 0);
+        post_fee = area * (keys.cut || 0);
     }else if($("#actual_more_order03").is(":checked")){  //코팅
-        post_fee = area * (PRICES.sol_coat || 0);
+        post_fee = area * (keys.coat || 0);
     }
     $("#actual_more_order_price").val(fmtNum(Math.floor(post_fee)));
 
-    var total_price = (area * mat_unit) + print_fee + nv("#actual_more_order_price");
+    var total_price = (area * mat_unit) + nv("#actual_more_order_price");
 
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
     $("#order_price").text(String(_r10(total_price * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
@@ -5191,20 +5191,18 @@ $(".save_btn").click(function(){
                 var aqty = parseInt($("#actual_quantity").val()) || 1;
                 var keys      = _silsaMatKeys();
                 var matUnit   = keys.mat;
-                var printFee  = keys.print;
                 var isCut     = $("#actual_more_order02").is(":checked");
                 var isCoat    = $("#actual_more_order03").is(":checked");
-                var postUnit  = isCut ? (PRICES.silsa_cut||0) : (isCoat ? (PRICES.sol_coat||0) : 0);
+                var postUnit  = isCut ? (keys.cut||0) : (isCoat ? (keys.coat||0) : 0);
                 var postFee   = _r10(area * postUnit);
                 var matCost   = _r10(area * matUnit);
-                var lineP     = _r10(matCost + printFee + postFee);
+                var lineP     = _r10(matCost + postFee);
                 var bd = "<span class='price_breakdown'>";
                 var wText = (ceilW !== rawW) ? _fmt(rawW) + " → " + _fmt(ceilW) + "mm (올림적용)" : _fmt(ceilW) + "mm";
                 var hText = rawH <= 0 ? "1000mm (기본값)"
                           : (ceilH !== rawH) ? _fmt(rawH) + " → " + _fmt(ceilH) + "mm (올림적용)"
                           : _fmt(ceilH) + "mm";
                 bd += "<span class='bd_item'>자재비 <em>가로 " + wText + " × 세로 " + hText + " × " + _fmt(matUnit) + "원/m² = " + _fmt(matCost) + "원</em></span>";
-                bd += "<span class='bd_item'>출력비 <em>" + _fmt(printFee) + "원</em></span>";
                 if(isCut)  bd += "<span class='bd_item'>재단비 <em>" + _fmt(postFee) + "원</em></span>";
                 if(isCoat) bd += "<span class='bd_item'>코팅비 <em>" + _fmt(postFee) + "원</em></span>";
                 if(aqty > 1) bd += "<span class='bd_item'>수량 <em>" + _fmt(lineP) + "원 × " + aqty + "개 = " + _fmt(_r10(lineP * aqty)) + "원</em></span>";
