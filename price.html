@@ -9,6 +9,25 @@
     <link rel="stylesheet" href="index.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        .price_quicknav {
+            position: sticky; top: 0; z-index: 60;
+            display: flex; flex-wrap: wrap; gap: 8px;
+            padding: 12px 14px; margin: -28px -24px 22px;
+            background: #f5f7fa; border-bottom: 1.5px solid #e2e8f0;
+        }
+        .price_quicknav .pqn_item {
+            display: inline-block; padding: 7px 14px;
+            font-size: 13px; font-weight: 600; color: #4a5568;
+            background: #fff; border: 1.5px solid #e2e8f0; border-radius: 18px;
+            text-decoration: none; white-space: nowrap; cursor: pointer;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+        .price_quicknav .pqn_item:hover { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+        .price_quicknav .pqn_item:active { background: #e94560; border-color: #e94560; }
+        .price_section { scroll-margin-top: 76px; }
+    </style>
 </head>
 <body>
 
@@ -107,8 +126,20 @@
 
             <div id="price_diff_banner" style="display:none"></div>
 
+            <!-- 품목 바로가기 네비게이션 -->
+            <nav class="price_quicknav">
+                <a href="#sec_signtop" class="pqn_item">사인탑</a>
+                <a href="#sec_channel" class="pqn_item">채널문자</a>
+                <a href="#sec_led" class="pqn_item">채널 LED</a>
+                <a href="#sec_silsa" class="pqn_item">실사출력</a>
+                <a href="#sec_screen" class="pqn_item">화면 색상</a>
+                <a href="#sec_skasi_gom" class="pqn_item">스카시 고무</a>
+                <a href="#sec_skasi_acryl" class="pqn_item">스카시 아크릴</a>
+                <a href="#sec_common" class="pqn_item">공통자재</a>
+            </nav>
+
             <!-- 사인탑 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_signtop">
                 <div class="price_section_header"><span class="price_section_title">사인탑</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div class="price_cols">
                     <div class="price_col">
@@ -181,7 +212,7 @@
             </div>
 
             <!-- 채널문자 품목 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_channel">
                 <div class="price_section_header"><span class="price_section_title">채널문자 품목</span><button class="price_section_reset_btn" type="button">초기화</button></div>
 
                 <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;">
@@ -452,7 +483,7 @@
             </div>
 
             <!-- 채널문자 LED 기본개수 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_led">
                 <div class="price_section_header"><span class="price_section_title">채널문자 크기별 LED 기본개수 (갈바/스텐/티타늄)</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div style="overflow-x:auto">
                     <table class="ch_taka_table">
@@ -496,7 +527,7 @@
             </div>
 
             <!-- 실사출력 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_silsa">
                 <div class="price_section_header"><span class="price_section_title">실사출력 (m²당)</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div class="price_cols">
                     <div class="price_col">
@@ -587,7 +618,7 @@
             <div class="price_category_header">스카시</div>
 
             <!-- 화면 색상 단가 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_screen">
                 <div class="price_section_header"><span class="price_section_title">화면 색상 단가</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div class="price_cols">
                     <div class="price_col">
@@ -603,7 +634,7 @@
             </div>
 
             <!-- 스카시 고무 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_skasi_gom">
                 <div class="price_section_header"><span class="price_section_title">스카시 고무 (글자당)</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div style="overflow-x:auto">
                     <table class="ch_taka_table">
@@ -654,7 +685,7 @@
             </div>
 
             <!-- 스카시 아크릴 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_skasi_acryl">
                 <div class="price_section_header"><span class="price_section_title">스카시 아크릴 (글자당)</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div style="overflow-x:auto">
                     <table class="ch_taka_table">
@@ -706,7 +737,7 @@
             </div><!-- /price_category 스카시 -->
 
             <!-- 공통자재 -->
-            <div class="price_section">
+            <div class="price_section" id="sec_common">
                 <div class="price_section_header"><span class="price_section_title">공통자재</span><button class="price_section_reset_btn" type="button">초기화</button></div>
                 <div class="price_cols">
                     <div class="price_col">
