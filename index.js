@@ -3947,16 +3947,18 @@ function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
     var mat_unit  = keys.mat;
     var area      = target_width * target_height;
 
-    // 후가공: 재단/코팅 (소재별 단가, 면적 비례)
-    var post_fee = 0;
+    // 후가공: 재단/코팅 (소재별 단가). 자재단가에 합산 후 면적 곱
+    var post_unit = 0;
     if($("#actual_more_order02").is(":checked")){        //재단
-        post_fee = area * (keys.cut || 0);
+        post_unit = keys.cut || 0;
     }else if($("#actual_more_order03").is(":checked")){  //코팅
-        post_fee = area * (keys.coat || 0);
+        post_unit = keys.coat || 0;
     }
-    $("#actual_more_order_price").val(fmtNum(Math.floor(post_fee)));
+    // 재단/코팅 금액 표시용 (면적 × 후가공 단가)
+    $("#actual_more_order_price").val(fmtNum(Math.floor(area * post_unit)));
 
-    var total_price = (area * mat_unit) + nv("#actual_more_order_price");
+    // 견적 = 가로올림 × 세로올림 × (자재단가 + 재단/코팅 단가)
+    var total_price = area * (mat_unit + post_unit);
 
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
     $("#order_price").text(String(_r10(total_price * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
@@ -5194,17 +5196,17 @@ $(".save_btn").click(function(){
                 var isCut     = $("#actual_more_order02").is(":checked");
                 var isCoat    = $("#actual_more_order03").is(":checked");
                 var postUnit  = isCut ? (keys.cut||0) : (isCoat ? (keys.coat||0) : 0);
-                var postFee   = _r10(area * postUnit);
-                var matCost   = _r10(area * matUnit);
-                var lineP     = _r10(matCost + postFee);
+                var lineP     = _r10(area * (matUnit + postUnit));
+                var postLabel = isCut ? "재단" : (isCoat ? "코팅" : "");
                 var bd = "<span class='price_breakdown'>";
                 var wText = (ceilW !== rawW) ? _fmt(rawW) + " → " + _fmt(ceilW) + "mm (올림적용)" : _fmt(ceilW) + "mm";
                 var hText = rawH <= 0 ? "1000mm (기본값)"
                           : (ceilH !== rawH) ? _fmt(rawH) + " → " + _fmt(ceilH) + "mm (올림적용)"
                           : _fmt(ceilH) + "mm";
-                bd += "<span class='bd_item'>자재비 <em>가로 " + wText + " × 세로 " + hText + " × " + _fmt(matUnit) + "원/m² = " + _fmt(matCost) + "원</em></span>";
-                if(isCut)  bd += "<span class='bd_item'>재단비 <em>" + _fmt(postFee) + "원</em></span>";
-                if(isCoat) bd += "<span class='bd_item'>코팅비 <em>" + _fmt(postFee) + "원</em></span>";
+                var unitSum = postUnit > 0
+                    ? _fmt(matUnit) + " + " + postLabel + " " + _fmt(postUnit) + " = " + _fmt(matUnit + postUnit) + "원/m²"
+                    : _fmt(matUnit) + "원/m²";
+                bd += "<span class='bd_item'>견적 <em>가로 " + wText + " × 세로 " + hText + " × (" + unitSum + ") = " + _fmt(lineP) + "원</em></span>";
                 if(aqty > 1) bd += "<span class='bd_item'>수량 <em>" + _fmt(lineP) + "원 × " + aqty + "개 = " + _fmt(_r10(lineP * aqty)) + "원</em></span>";
                 bd += extraCostBdItems();
                 bd += "</span>";
