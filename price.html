@@ -25,7 +25,7 @@
             transition: background .15s, color .15s, border-color .15s;
         }
         .price_quicknav .pqn_item:hover { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
-        .price_quicknav .pqn_item:active { background: #e94560; border-color: #e94560; }
+        .price_quicknav .pqn_item.active { background: #e94560; color: #fff; border-color: #e94560; box-shadow: 0 2px 8px rgba(233,69,96,0.3); }
         .price_section { scroll-margin-top: 76px; }
     </style>
 </head>
@@ -823,5 +823,31 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="nav.js"></script>`n<script src="auth.js"></script>
 <script src="price.js?v=8"></script>
+<script>
+    // 품목 네비게이션 스크롤 스파이: 현재 보고 있는 섹션 강조
+    (function(){
+        var nav = document.querySelector('.price_quicknav');
+        if(!nav) return;
+        var links = Array.prototype.slice.call(nav.querySelectorAll('.pqn_item'));
+        var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+        var ticking = false;
+        function update(){
+            ticking = false;
+            var offset = 90; // 고정 네비 높이 + 여백
+            var idx = 0;
+            for(var i=0;i<sections.length;i++){
+                var s = sections[i];
+                if(s && s.getBoundingClientRect().top - offset <= 1) idx = i;
+            }
+            // 맨 아래까지 스크롤 시 마지막 섹션 활성화
+            if((window.innerHeight + window.scrollY) >= document.body.scrollHeight - 2) idx = links.length - 1;
+            for(var j=0;j<links.length;j++){ links[j].classList.toggle('active', j === idx); }
+        }
+        function onScroll(){ if(!ticking){ ticking = true; window.requestAnimationFrame(update); } }
+        window.addEventListener('scroll', onScroll, { passive:true });
+        window.addEventListener('resize', onScroll);
+        update();
+    })();
+</script>
 </body>
 </html>
