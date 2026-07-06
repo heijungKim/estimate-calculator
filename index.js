@@ -73,6 +73,8 @@ var DEFAULT_PRICES = {
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
     flex_uv_double: 8000, flex_uv_single: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
+    // 후렉스 후가공 (m²)
+    flex_post_cut: 2000, flex_post_punch: 3000,
     // UV/솔벤 실사 공통 소재 자재단가 (m²)
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
@@ -82,6 +84,9 @@ var DEFAULT_PRICES = {
     // 실사 소재별 재단 단가 (m²)
     silsa_cut_white: 2000, silsa_cut_grey: 2000, silsa_cut_light: 2000, silsa_cut_embo: 2000,
     silsa_cut_clear: 2000, silsa_cut_oneway: 2000, silsa_cut_reflect: 2000, silsa_cut_banner: 2000,
+    // 실사 소재별 시트돔보 단가 (m²)
+    silsa_dombo_white: 3000, silsa_dombo_grey: 3000, silsa_dombo_light: 3000, silsa_dombo_embo: 3000,
+    silsa_dombo_clear: 3000, silsa_dombo_oneway: 3000, silsa_dombo_reflect: 3000, silsa_dombo_banner: 3000,
     // 실사 소재별 코팅 단가 (m²)
     silsa_coat_white: 3000, silsa_coat_grey: 3000, silsa_coat_light: 3000, silsa_coat_embo: 3000,
     silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
@@ -2541,6 +2546,14 @@ function set_actual_top_option_select(){
 			append_html += "</td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
+			append_html += "<th>후가공</th>";
+			append_html += "<td>";
+				append_html += "<label><input type='radio' name='actual_flex_post' id='actual_flex_post01' checked='checked'>없음</label>";
+				append_html += "<label><input type='radio' name='actual_flex_post' id='actual_flex_post02'>재단</label>";
+				append_html += "<label><input type='radio' name='actual_flex_post' id='actual_flex_post03'>재단+펀치</label>";
+			append_html += "</td>";
+		append_html += "</tr>";
+		append_html += "<tr>";
 			append_html += "<th>추가 작업</th>";
 			append_html += "<td>";
 				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order01' checked='checked'>없음</label>";
@@ -2597,6 +2610,7 @@ function set_actual_top_option_select(){
 			append_html += "<td>";
 				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order01' checked='checked'>없음</label>";
 				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order02'>재단</label>";
+				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order04'>시트돔보</label>";
 				append_html += "<label><input type='radio' name='actual_more_order' id='actual_more_order03'>코팅</label>";
 			append_html += "</td>";
 		append_html += "</tr>";
@@ -3835,9 +3849,9 @@ function whoorex(){ //후렉스
     	whoorex_cal();
       
     });
-    $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']").click(function(){
+    $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_flex_post']").click(function(){
     	whoorex_cal();
- 
+
     });
     $(".woosung_wrap .contents_wrap #option_table td label input#frame_product_width,.woosung_wrap .contents_wrap #option_table td input#more_order_price").bind("change keyup paste", function(){
     	whoorex_cal();
@@ -3885,9 +3899,17 @@ function whoorex_cal(){ //후렉스 계산
         frequency_price = ((target_width * 3) + (target_vertical * 2)) * PRICES.flex_freq;
     }
 
-  
+    // 후가공: 재단 / 재단+펀치 (면적 비례)
+    var post_price = 0;
+    var flex_area = target_width * target_vertical;
+    if($("#actual_flex_post02").is(":checked")){        //재단
+        post_price = flex_area * (PRICES.flex_post_cut || 0);
+    }else if($("#actual_flex_post03").is(":checked")){  //재단+펀치
+        post_price = flex_area * ((PRICES.flex_post_cut || 0) + (PRICES.flex_post_punch || 0));
+    }
+
     var flex_qty = parseInt($("#actual_quantity").val()) || 1;
-    var subtotal = (total_price + frequency_price + hole_price) * flex_qty;
+    var subtotal = (total_price + frequency_price + hole_price + post_price) * flex_qty;
 
     $(".order_info .right_area #order_price").text(String(_r10(subtotal + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
@@ -3916,25 +3938,25 @@ function uv_sol_silsa(){ //UV / 솔벤 실사 (통합)
    },500);
 }
 
-// 선택된 소재 라디오 → { mat: 자재단가, cut: 재단단가, coat: 코팅단가, isSol: 솔벤여부 } 반환
+// 선택된 소재 라디오 → { mat: 자재단가, cut: 재단, dombo: 시트돔보, coat: 코팅, isSol: 솔벤여부 } 반환
 function _silsaMatKeys() {
     // 공통 소재 (UV 자재단가 재사용)
-    if($("#actual_material01").is(":checked")) return { mat: PRICES.uv_white||0,      cut: PRICES.silsa_cut_white||0, coat: PRICES.silsa_coat_white||0, isSol:false };
-    if($("#actual_material02").is(":checked")) return { mat: PRICES.uv_white_grey||0, cut: PRICES.silsa_cut_grey||0,  coat: PRICES.silsa_coat_grey||0,  isSol:false };
-    if($("#actual_material05").is(":checked")) return { mat: PRICES.uv_light_white||0, cut: PRICES.silsa_cut_light||0, coat: PRICES.silsa_coat_light||0, isSol:false };
-    if($("#actual_material06").is(":checked")) return { mat: PRICES.uv_embo||0,        cut: PRICES.silsa_cut_embo||0,  coat: PRICES.silsa_coat_embo||0,  isSol:false };
-    // UV 전용 - LG 클리어 (레이어별 자재단가, 재단/코팅 공통)
+    if($("#actual_material01").is(":checked")) return { mat: PRICES.uv_white||0,      cut: PRICES.silsa_cut_white||0, dombo: PRICES.silsa_dombo_white||0, coat: PRICES.silsa_coat_white||0, isSol:false };
+    if($("#actual_material02").is(":checked")) return { mat: PRICES.uv_white_grey||0, cut: PRICES.silsa_cut_grey||0,  dombo: PRICES.silsa_dombo_grey||0,  coat: PRICES.silsa_coat_grey||0,  isSol:false };
+    if($("#actual_material05").is(":checked")) return { mat: PRICES.uv_light_white||0, cut: PRICES.silsa_cut_light||0, dombo: PRICES.silsa_dombo_light||0, coat: PRICES.silsa_coat_light||0, isSol:false };
+    if($("#actual_material06").is(":checked")) return { mat: PRICES.uv_embo||0,        cut: PRICES.silsa_cut_embo||0,  dombo: PRICES.silsa_dombo_embo||0,  coat: PRICES.silsa_coat_embo||0,  isSol:false };
+    // UV 전용 - LG 클리어 (레이어별 자재단가, 후가공 공통)
     if($("#actual_material03").is(":checked")){
         var cl = PRICES.uv_clear||0;
         if($("#actual_material03_02").is(":checked")) cl = PRICES.uv_clear_mirror||0;
         else if($("#actual_material03_03").is(":checked")) cl = PRICES.uv_clear_black||0;
-        return { mat: cl, cut: PRICES.silsa_cut_clear||0, coat: PRICES.silsa_coat_clear||0, isSol:false };
+        return { mat: cl, cut: PRICES.silsa_cut_clear||0, dombo: PRICES.silsa_dombo_clear||0, coat: PRICES.silsa_coat_clear||0, isSol:false };
     }
     // 솔벤 전용
-    if($("#actual_material13").is(":checked")) return { mat: PRICES.sol_oneway||0,       cut: PRICES.silsa_cut_oneway||0,  coat: PRICES.silsa_coat_oneway||0,  isSol:true };
-    if($("#actual_material16").is(":checked")) return { mat: PRICES.sol_high_reflect||0, cut: PRICES.silsa_cut_reflect||0, coat: PRICES.silsa_coat_reflect||0, isSol:true };
-    if($("#actual_material17").is(":checked")) return { mat: PRICES.sol_banner||0,       cut: PRICES.silsa_cut_banner||0,  coat: PRICES.silsa_coat_banner||0,  isSol:true };
-    return { mat:0, cut:0, coat:0, isSol:false };
+    if($("#actual_material13").is(":checked")) return { mat: PRICES.sol_oneway||0,       cut: PRICES.silsa_cut_oneway||0,  dombo: PRICES.silsa_dombo_oneway||0,  coat: PRICES.silsa_coat_oneway||0,  isSol:true };
+    if($("#actual_material16").is(":checked")) return { mat: PRICES.sol_high_reflect||0, cut: PRICES.silsa_cut_reflect||0, dombo: PRICES.silsa_dombo_reflect||0, coat: PRICES.silsa_coat_reflect||0, isSol:true };
+    if($("#actual_material17").is(":checked")) return { mat: PRICES.sol_banner||0,       cut: PRICES.silsa_cut_banner||0,  dombo: PRICES.silsa_dombo_banner||0,  coat: PRICES.silsa_coat_banner||0,  isSol:true };
+    return { mat:0, cut:0, dombo:0, coat:0, isSol:false };
 }
 
 function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
@@ -3947,10 +3969,12 @@ function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
     var mat_unit  = keys.mat;
     var area      = target_width * target_height;
 
-    // 후가공: 재단/코팅 (소재별 단가). 자재단가에 합산 후 면적 곱
+    // 후가공: 재단/시트돔보/코팅 (소재별 단가). 자재단가에 합산 후 면적 곱
     var post_unit = 0;
     if($("#actual_more_order02").is(":checked")){        //재단
         post_unit = keys.cut || 0;
+    }else if($("#actual_more_order04").is(":checked")){  //시트돔보
+        post_unit = keys.dombo || 0;
     }else if($("#actual_more_order03").is(":checked")){  //코팅
         post_unit = keys.coat || 0;
     }
@@ -5164,7 +5188,7 @@ $(".save_btn").click(function(){
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child04")){ //실사출력
     	if($("#actual_option01").is(":checked")){ //후렉스
             if($("#actual_punch02").is(":checked")){
-            	total_html = "<li><span class='number'></span>"+$("#actual_option01").parent("label").text()+" / "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_type']:checked").parent("label").text()+" / 가로값 :"+$("#frame_product_width").val()+"mm / 세로값 :"+$("#frame_product_vertical").val()+" / 타공(유무 ):"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch']:checked").parent("label").text()+" / 추가작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text()+" / 추가금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
+            	total_html = "<li><span class='number'></span>"+$("#actual_option01").parent("label").text()+" / "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_type']:checked").parent("label").text()+" / 가로값 :"+$("#frame_product_width").val()+"mm / 세로값 :"+$("#frame_product_vertical").val()+" / 타공(유무 ):"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch']:checked").parent("label").text()+" / 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_flex_post']:checked").parent("label").text()+" / 추가작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text()+" / 추가금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         	}else{
                 total_html = "<li><span class='number'></span>"+$("#actual_option01").parent("label").text()+" / "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_type']:checked").parent("label").text()+" / 가로값 :"+$("#frame_product_width").val()+"mm / 세로값 :"+$("#frame_product_vertical").val()+" / 타공(유무 ):"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch']:checked").parent("label").text()+"/ 타공 개수 : " +$("#actual_punch_count").val()+ "개 / 추가작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text()+" / 추가금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
             }
@@ -5194,10 +5218,11 @@ $(".save_btn").click(function(){
                 var keys      = _silsaMatKeys();
                 var matUnit   = keys.mat;
                 var isCut     = $("#actual_more_order02").is(":checked");
+                var isDombo   = $("#actual_more_order04").is(":checked");
                 var isCoat    = $("#actual_more_order03").is(":checked");
-                var postUnit  = isCut ? (keys.cut||0) : (isCoat ? (keys.coat||0) : 0);
+                var postUnit  = isCut ? (keys.cut||0) : (isDombo ? (keys.dombo||0) : (isCoat ? (keys.coat||0) : 0));
                 var lineP     = _r10(area * (matUnit + postUnit));
-                var postLabel = isCut ? "재단" : (isCoat ? "코팅" : "");
+                var postLabel = isCut ? "재단" : (isDombo ? "시트돔보" : (isCoat ? "코팅" : ""));
                 var bd = "<span class='price_breakdown'>";
                 var wText = (ceilW !== rawW) ? _fmt(rawW) + " → " + _fmt(ceilW) + "mm (올림적용)" : _fmt(ceilW) + "mm";
                 var hText = rawH <= 0 ? "1000mm (기본값)"
