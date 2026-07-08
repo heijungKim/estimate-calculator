@@ -185,29 +185,6 @@
                         <div class="price_row"><label>LED 형광등 (개당)</label><input type="text" inputmode="numeric" id="p_sign_led"><span>원</span></div>
                         <div class="price_row"><label>뒷판작업 (m²당)</label><input type="text" inputmode="numeric" id="p_sign_backdrop"><span>원</span></div>
                     </div>
-                    <div class="price_col">
-                        <div class="price_col_head">까치발 단가 (개당)</div>
-                        <div class="price_row"><label>200mm</label><input type="text" inputmode="numeric" id="p_angle_w200"><span>원</span></div>
-                        <div class="price_row"><label>250mm</label><input type="text" inputmode="numeric" id="p_angle_w250"><span>원</span></div>
-                        <div class="price_row"><label>300mm</label><input type="text" inputmode="numeric" id="p_angle_w300"><span>원</span></div>
-                        <div class="price_row"><label>400mm</label><input type="text" inputmode="numeric" id="p_angle_w400"><span>원</span></div>
-                        <div class="price_row"><label>500mm</label><input type="text" inputmode="numeric" id="p_angle_w500"><span>원</span></div>
-                        <div class="price_row"><label>600mm</label><input type="text" inputmode="numeric" id="p_angle_w600"><span>원</span></div>
-                        <div class="price_row"><label>700mm</label><input type="text" inputmode="numeric" id="p_angle_w700"><span>원</span></div>
-                        <div class="price_row"><label>800mm</label><input type="text" inputmode="numeric" id="p_angle_w800"><span>원</span></div>
-                        <div class="price_row"><label>900mm</label><input type="text" inputmode="numeric" id="p_angle_w900"><span>원</span></div>
-                        <div class="price_row"><label>1000mm</label><input type="text" inputmode="numeric" id="p_angle_w1000"><span>원</span></div>
-                        <div class="price_row"><label>1100mm</label><input type="text" inputmode="numeric" id="p_angle_w1100"><span>원</span></div>
-                        <div class="price_row"><label>1200mm</label><input type="text" inputmode="numeric" id="p_angle_w1200"><span>원</span></div>
-                        <div class="price_row"><label>1300mm</label><input type="text" inputmode="numeric" id="p_angle_w1300"><span>원</span></div>
-                        <div class="price_row"><label>1400mm</label><input type="text" inputmode="numeric" id="p_angle_w1400"><span>원</span></div>
-                        <div class="price_row"><label>1500mm</label><input type="text" inputmode="numeric" id="p_angle_w1500"><span>원</span></div>
-                        <div class="price_row"><label>1600mm</label><input type="text" inputmode="numeric" id="p_angle_w1600"><span>원</span></div>
-                        <div class="price_row"><label>1700mm</label><input type="text" inputmode="numeric" id="p_angle_w1700"><span>원</span></div>
-                        <div class="price_row"><label>1800mm</label><input type="text" inputmode="numeric" id="p_angle_w1800"><span>원</span></div>
-                        <div class="price_row"><label>1900mm</label><input type="text" inputmode="numeric" id="p_angle_w1900"><span>원</span></div>
-                        <div class="price_row"><label>2000mm</label><input type="text" inputmode="numeric" id="p_angle_w2000"><span>원</span></div>
-                    </div>
                 </div>
             </div>
 
@@ -469,15 +446,9 @@
                         <div class="price_row"><label>전후광</label><input type="text" inputmode="numeric" id="p_ch_led_pos_jeonhu"><span>원</span></div>
                     </div>
                     <div class="price_col">
-                        <div class="price_col_head">까치발 (개당)</div>
-                        <div class="price_row"><label>200mm</label><input type="text" inputmode="numeric" id="p_ch_ggachi_200"><span>원</span></div>
-                        <div class="price_row"><label>250mm</label><input type="text" inputmode="numeric" id="p_ch_ggachi_250"><span>원</span></div>
-                        <div class="price_row"><label>300mm</label><input type="text" inputmode="numeric" id="p_ch_ggachi_300"><span>원</span></div>
-                        <div class="price_row"><label>400mm</label><input type="text" inputmode="numeric" id="p_ch_ggachi_400"><span>원</span></div>
-                    </div>
-                    <div class="price_col">
                         <div class="price_col_head">기타</div>
                         <div class="price_row"><label>완조립</label><input type="text" inputmode="numeric" id="p_ch_complete"><span>원</span></div>
+                        <div class="price_row_note">까치발 단가는 공통자재 탭으로 이동했습니다.</div>
                     </div>
                 </div>
             </div>
@@ -743,7 +714,8 @@
                     <div class="price_col">
                         <div class="price_col_head">투광기 / 형광등</div>
                         <div class="price_row"><label>투광기</label><input type="text" inputmode="numeric" id="p_cm_floodlight"><span>원</span></div>
-                        <div class="price_row"><label>형광등</label><input type="text" inputmode="numeric" id="p_cm_fluorescent"><span>원</span></div>
+                        <div class="price_row"><label>조립 형광등</label><input type="text" inputmode="numeric" id="p_cm_fluorescent_assembled"><span>원</span></div>
+                        <div class="price_row"><label>비조립 형광등</label><input type="text" inputmode="numeric" id="p_cm_fluorescent_unassembled"><span>원</span></div>
                     </div>
                     <div class="price_col">
                         <div class="price_col_head">전자 타이머</div>
@@ -774,6 +746,30 @@
                         <div class="price_row"><label>RGB</label><input type="text" inputmode="numeric" id="p_cm_led_rgb"><span>원</span></div>
                         <div class="price_row"><label>파노라마</label><input type="text" inputmode="numeric" id="p_cm_led_panorama"><span>원</span></div>
                         <div class="price_row"><label>컬러(적/청/녹)</label><input type="text" inputmode="numeric" id="p_cm_led_color"><span>원</span></div>
+                    </div>
+                    <div class="price_col">
+                        <div class="price_col_head">까치발 단가 (개당)</div>
+                        <div class="price_row"><label>200mm</label><input type="text" inputmode="numeric" id="p_angle_w200"><span>원</span></div>
+                        <div class="price_row"><label>250mm</label><input type="text" inputmode="numeric" id="p_angle_w250"><span>원</span></div>
+                        <div class="price_row"><label>300mm</label><input type="text" inputmode="numeric" id="p_angle_w300"><span>원</span></div>
+                        <div class="price_row"><label>400mm</label><input type="text" inputmode="numeric" id="p_angle_w400"><span>원</span></div>
+                        <div class="price_row"><label>500mm</label><input type="text" inputmode="numeric" id="p_angle_w500"><span>원</span></div>
+                        <div class="price_row"><label>600mm</label><input type="text" inputmode="numeric" id="p_angle_w600"><span>원</span></div>
+                        <div class="price_row"><label>700mm</label><input type="text" inputmode="numeric" id="p_angle_w700"><span>원</span></div>
+                        <div class="price_row"><label>800mm</label><input type="text" inputmode="numeric" id="p_angle_w800"><span>원</span></div>
+                        <div class="price_row"><label>900mm</label><input type="text" inputmode="numeric" id="p_angle_w900"><span>원</span></div>
+                        <div class="price_row"><label>1000mm</label><input type="text" inputmode="numeric" id="p_angle_w1000"><span>원</span></div>
+                        <div class="price_row"><label>1100mm</label><input type="text" inputmode="numeric" id="p_angle_w1100"><span>원</span></div>
+                        <div class="price_row"><label>1200mm</label><input type="text" inputmode="numeric" id="p_angle_w1200"><span>원</span></div>
+                        <div class="price_row"><label>1300mm</label><input type="text" inputmode="numeric" id="p_angle_w1300"><span>원</span></div>
+                        <div class="price_row"><label>1400mm</label><input type="text" inputmode="numeric" id="p_angle_w1400"><span>원</span></div>
+                        <div class="price_row"><label>1500mm</label><input type="text" inputmode="numeric" id="p_angle_w1500"><span>원</span></div>
+                        <div class="price_row"><label>1600mm</label><input type="text" inputmode="numeric" id="p_angle_w1600"><span>원</span></div>
+                        <div class="price_row"><label>1700mm</label><input type="text" inputmode="numeric" id="p_angle_w1700"><span>원</span></div>
+                        <div class="price_row"><label>1800mm</label><input type="text" inputmode="numeric" id="p_angle_w1800"><span>원</span></div>
+                        <div class="price_row"><label>1900mm</label><input type="text" inputmode="numeric" id="p_angle_w1900"><span>원</span></div>
+                        <div class="price_row"><label>2000mm</label><input type="text" inputmode="numeric" id="p_angle_w2000"><span>원</span></div>
+                        <div class="price_row_note">사인탑·채널문자 까치발 계산에 공통으로 사용됩니다.</div>
                     </div>
                 </div>
             </div>
@@ -821,7 +817,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="nav.js"></script>`n<script src="auth.js"></script>
+<script src="nav.js"></script>
+<script src="auth.js"></script>
 <script src="price.js?v=8"></script>
 <script>
     // 품목 네비게이션 스크롤 스파이: 현재 보고 있는 섹션 강조

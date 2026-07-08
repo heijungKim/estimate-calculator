@@ -44,7 +44,6 @@ var DEFAULT_PRICES = {
     ch_epox_got_20: 0, ch_epox_got_25: 0, ch_epox_got_30: 0, ch_epox_got_35: 0, ch_epox_got_40: 0, ch_epox_got_45: 0, ch_epox_got_50: 0, ch_epox_got_55: 0, ch_epox_got_60: 0, ch_epox_got_65: 0, ch_epox_got_70: 0,
     ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
     ch_led_pos_jeon: 0, ch_led_pos_hu: 0, ch_led_pos_jeonhu: 0,
-    ch_ggachi_200: 2000, ch_ggachi_250: 2500, ch_ggachi_300: 3000, ch_ggachi_400: 3500,
     ch_complete: 100000,
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     flex_uv_double: 8000, flex_uv_single: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
@@ -73,7 +72,7 @@ var DEFAULT_PRICES = {
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
     cm_smps_60w: 0, cm_smps_100w: 0, cm_smps_150w: 0, cm_smps_200w: 0, cm_smps_300w: 0, cm_smps_400w: 0, cm_smps_500w: 0,
-    cm_fluorescent: 0,
+    cm_fluorescent_assembled: 0, cm_fluorescent_unassembled: 0,
     cm_led_ctrl_1ch: 0, cm_led_ctrl_2ch: 0, cm_led_ctrl_3ch: 0,
     cm_led_white: 450, cm_led_warm: 500, cm_led_rgb: 800, cm_led_panorama: 3500, cm_led_color: 500,
     // 스카시 고무 (글자당) n=일반, s=수입금/은색

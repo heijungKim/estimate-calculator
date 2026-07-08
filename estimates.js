@@ -157,6 +157,30 @@ function parseBdRow(t) {
     return null;
 }
 
+// ── 인쇄 전용: 같은 색상(같은 이름)의 LED 행 합산 ─────────────
+function _mergeLedRows(rows, fmtFn){
+    var ledMap = {};
+    var merged = [];
+    rows.forEach(function(r){
+        var isLed = !r.separator && !r.itemHeader && r.name && /^└?\s*(전광 LED|후광 LED|LED)\(/.test(r.name);
+        if (isLed) {
+            var key = r.name.replace(/^└\s*/, '');
+            if (ledMap[key]) {
+                var target = ledMap[key];
+                var newQty = (parseInt(String(target.qty).replace(/[^0-9]/g,'')) || 0) + (parseInt(String(r.qty).replace(/[^0-9]/g,'')) || 0);
+                var newTotal = (parseInt(String(target.total).replace(/[^0-9]/g,'')) || 0) + (parseInt(String(r.total).replace(/[^0-9]/g,'')) || 0);
+                target.qty = String(newQty);
+                target.total = fmtFn(newTotal);
+                if (newQty > 0) target.unit = fmtFn(Math.round(newTotal / newQty));
+                return;
+            }
+            ledMap[key] = r;
+        }
+        merged.push(r);
+    });
+    return merged;
+}
+
 function buildPrintDoc(items, totalNum, customer, manager, notes) {
     var _f = function(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
     var totalFormatted = _f(totalNum);
@@ -169,29 +193,72 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
     var tableRows = [];
     items.forEach(function(item) {
         var chItemLines = [];
-        if (item.details && item.details.indexOf('[담긴 항목') > -1) {
-            item.details.split('\n').forEach(function(ln) {
-                var m = ln.trim().match(/^\((\d+)\)\s+(.+?)\s+→\s+([\d,]+)원/);
-                if (m) chItemLines.push({ name: item.category + ' - ' + m[2], qty: '1', unit: m[3], total: m[3] });
-            });
-        }
         if (item.breakdown) {
             var parts = item.breakdown.split(' / '), added = false;
             parts.forEach(function(p) {
+                // 신형: "#채널메인# (N). name × qty개 = price원"
+                var chMainM = p.match(/^#채널메인#\s+\((\d+)\)\.\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+                if (chMainM) {
+                    var _qty = parseInt(chMainM[3]);
+                    var _total = Number(chMainM[4].replace(/,/g, ''));
+                    var _unit = _qty > 0 ? Math.round(_total / _qty) : _total;
+                    chItemLines.push({ name: chMainM[2], qty: String(_qty), unit: _f(_unit), total: chMainM[4] });
+                    added = true;
+                    return;
+                }
+                // 신형: "#채널서브# (N). 옵션명" – 설명 행 (가격 없음)
+                var chSubM = p.match(/^#채널서브#\s+\((\d+)\)\.\s+(.+)$/);
+                if (chSubM) {
+                    var _subName = chSubM[2].replace(/\s+@\d+$/, '');
+                    chItemLines.push({ name: '└ ' + _subName, qty: '-', unit: '-', total: '-' });
+                    added = true;
+                    return;
+                }
+                // 구형 LED: "#채널LED# LED(color) × cnt개 = price원"
+                var ledM = p.match(/^#채널LED#\s+LED\((.+?)\)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+                if (ledM) {
+                    var _lc = parseInt(ledM[2]), _lt = Number(ledM[3].replace(/,/g,''));
+                    var _lu = _lc > 0 ? Math.round(_lt / _lc) : 0;
+                    chItemLines.push({ name: '└ LED(' + ledM[1] + ')', qty: String(_lc), unit: _f(_lu), total: ledM[3] });
+                    added = true;
+                    return;
+                }
+                // 신형 LED v2: "#채널LEDv2# 전광/후광/LED(color) × cnt개 = price원"
+                var ledV2M = p.match(/^#채널LEDv2#\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+                if (ledV2M) {
+                    var _lc2 = parseInt(ledV2M[2]), _lt2 = Number(ledV2M[3].replace(/,/g,''));
+                    var _lu2 = _lc2 > 0 ? Math.round(_lt2 / _lc2) : 0;
+                    chItemLines.push({ name: '└ ' + ledV2M[1], qty: String(_lc2), unit: _f(_lu2), total: ledV2M[3] });
+                    added = true;
+                    return;
+                }
                 if (chItemLines.length > 0 && p.indexOf('담긴 항목 합계') > -1) return;
                 var r = parseBdRow(p);
-                if (r) { tableRows.push(r); added = true; }
+                if (r) {
+                    if (r.name && r.name.indexOf('색상도장') >= 0) {
+                        var _colorM = (item.details || '').match(/지정색 도장\s*:\s*([^\n]+)/);
+                        var _colorN = _colorM ? _colorM[1].trim() : '';
+                        r.name = "지정색 도장" + (_colorN ? " (입력 값 : " + _colorN + ")" : "");
+                        r.qty = ''; r.unit = '';
+                    }
+                    if (r.name && r.name.indexOf('뒷판작업') >= 0) {
+                        r.name = "뒷판작업"; r.qty = ''; r.unit = '';
+                    }
+                    if (r.name === "까치발") {
+                        var _sizeM = (item.details || '').match(/크기\s*:\s*([^\n]+)/);
+                        if (_sizeM) r.name = "까치발(" + _sizeM[1].trim() + ")";
+                    }
+                    tableRows.push(r); added = true;
+                }
             });
             chItemLines.forEach(function(r) { tableRows.push(r); added = true; });
             if (!added) tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
         } else {
-            if (chItemLines.length > 0) {
-                chItemLines.forEach(function(r) { tableRows.push(r); });
-            } else {
-                tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
-            }
+            tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
         }
     });
+
+    tableRows = _mergeLedRows(tableRows, _f);
 
     var rowsHtml = '';
     tableRows.forEach(function(r) {

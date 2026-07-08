@@ -68,7 +68,6 @@ var DEFAULT_PRICES = {
     // 채널문자 LED 위치 추가금액 (글자당) - 갈바/갈바오사이/스텐채널
     ch_led_pos_jeon: 0, ch_led_pos_hu: 0, ch_led_pos_jeonhu: 0,
     // 채널문자 기타
-    ch_ggachi_200: 2000, ch_ggachi_250: 2500, ch_ggachi_300: 3000, ch_ggachi_400: 3500,
     ch_complete: 100000,
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
@@ -111,7 +110,7 @@ var DEFAULT_PRICES = {
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
     cm_smps_60w: 0, cm_smps_100w: 0, cm_smps_150w: 0, cm_smps_200w: 0, cm_smps_300w: 0, cm_smps_400w: 0, cm_smps_500w: 0,
-    cm_fluorescent: 0,
+    cm_fluorescent_assembled: 0, cm_fluorescent_unassembled: 0,
     cm_led_ctrl_1ch: 0, cm_led_ctrl_2ch: 0, cm_led_ctrl_3ch: 0,
     cm_led_white: 450, cm_led_warm: 500, cm_led_rgb: 800, cm_led_panorama: 3500, cm_led_color: 500,
     // 스카시 아크릴 (글자당) [3T영문, 3T한글, 5T영문, 5T한글, 8T영문, 8T한글, 10T영문, 10T한글]
@@ -157,6 +156,8 @@ var DEFAULT_PRICES = {
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
 var _chItems = []; // 채널문자 담기 목록 [{label, details, price}]
+var _skasiItems = []; // 스카시 담기 목록 [{label, price, fieldState}]
+var _lastSkasiItemPrice = 0;
 
 // ── 단가 Firebase 연동 ──────────────────────────────────────
 var _pricesDoc = null;
@@ -455,10 +456,6 @@ function set_sign_top_option_select(){
 			append_html += "<th>프레임색상</th>";
 			append_html += "<td><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_white' checked='checked'>백색</label><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_custom'>지정색도장</label><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_stan' >스텐몰딩(뚜껑만)</label></td>";
 		append_html += "</tr>";	
-		append_html += "<tr class='frame_custom_row add_row'>";
-			append_html += "<th>색상</th>";
-			append_html += "<td><input type='text' id='frame_custom_text' placeholder='색상을 입력해주세요.'></td>";
-		append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>까치발</th>";
 			append_html += "<td><label><input type='radio' name='sigh_angle' id='sigh_angle_no' checked='checked'>없음</label><label><input type='radio' name='sigh_angle' id='sigh_angle_yes'>있음</label></td>";
@@ -550,10 +547,6 @@ function set_sign_top_option_select(){
 		append_html += "<tr>";
 			append_html += "<th>프레임색상</th>";
 			append_html += "<td><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_white' checked='checked'>백색</label><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_custom'>지정색도장</label><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_stan' >스텐몰딩(뚜껑만)</label></td>";
-		append_html += "</tr>";	
-		append_html += "<tr class='frame_custom_row add_row'>";
-			append_html += "<th>색상</th>";
-			append_html += "<td><input type='text' id='frame_custom_text' placeholder='색상을 입력해주세요.'></td>";
 		append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>까치발</th>";
@@ -666,10 +659,6 @@ function set_sign_top_option_select(){
 		append_html += "<tr>";
 			append_html += "<th>프레임색상</th>";
 			append_html += "<td><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_white' checked='checked'>백색</label><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_custom'>지정색도장</label><label><input type='radio' name='sigh_frame_color' id='sigh_frame_color_stan' >스텐몰딩(뚜껑만)</label></td>";
-		append_html += "</tr>";	
-		append_html += "<tr class='frame_custom_row add_row'>";
-			append_html += "<th>색상</th>";
-			append_html += "<td><input type='text' id='frame_custom_text' placeholder='색상을 입력해주세요.'></td>";
 		append_html += "</tr>";	
 		append_html += "<tr>";
 			append_html += "<th>시공발통</th>";
@@ -951,8 +940,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";	
@@ -999,7 +988,7 @@ function hoorex_type(){
 		append_html += "</tr>";
 		append_html += "<tr class='channel_led_count'>";
 			append_html += "<th>LED 예상 개수</th>";
-			append_html += "<td><span>0개</span></td>";
+			append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
 			append_html += "<th>수량</th>";
@@ -1034,8 +1023,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1138,8 +1127,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1169,7 +1158,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
+				append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
@@ -1204,8 +1193,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1235,7 +1224,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
+				append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 			append_html += "</tr>";
 			append_html += "<tr>";
 				append_html += "<th>수량</th>";
@@ -1270,8 +1259,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1365,8 +1354,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";	
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";	
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1461,8 +1450,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1527,7 +1516,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
+				append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 			append_html += "</tr>";
 	
 			append_html += "<tr>";
@@ -1563,8 +1552,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1621,7 +1610,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
+				append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 			append_html += "</tr>";
 	
 			append_html += "<tr>";
@@ -1664,8 +1653,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1709,7 +1698,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
+				append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 			append_html += "</tr>";
 	
 			append_html += "<tr>";
@@ -1735,8 +1724,8 @@ function hoorex_type(){
 			append_html += "<tr>";
 				append_html += "<th>문자형태</th>";
 				append_html += "<td>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng' checked='checked'>영문(숫자)</label>";
-					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor'>한글(고딕)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_eng'>영문(숫자)</label>";
+					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_kor' checked='checked'>한글(고딕)</label>";
 					append_html += "<label><input type='radio' name='channel_text_form' id='channel_text_got'>한글(흘림)</label>";
 				append_html += "</td>";
 			append_html += "</tr>";
@@ -1766,7 +1755,7 @@ function hoorex_type(){
 			append_html += "</tr>";
 			append_html += "<tr class='channel_led_count'>";
 				append_html += "<th>LED 예상 개수</th>";
-				append_html += "<td><span>0개</span></td>";
+				append_html += "<td><input type='number' id='channel_led_count_manual' min='0' placeholder='개수'> 개</td>";
 			append_html += "</tr>";
 	
 			append_html += "<tr>";
@@ -1959,7 +1948,7 @@ function hoorex_type(){
 	}
 	function _chLedCountBySize(){
 		var cnt = _chGetLedCount();
-		$(".channel_led_count td span").text(cnt > 0 ? cnt + "개" : "0개");
+		$("#channel_led_count_manual").val(cnt > 0 ? cnt : '');
 	}
 	function channel_led_count_set(){
 		var isNewLed = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked") || $("#channel_option07").is(":checked"));
@@ -1994,7 +1983,7 @@ function hoorex_type(){
 			_chLedCountBySize();
 		}else{	//LED색상 선택안했을때
 			$(".channel_led_pos_row").hide();
-			$(".channel_led_count td span").text("0개");
+			$("#channel_led_count_manual").val('');
 		}
 
 	}
@@ -2756,6 +2745,7 @@ function actual_punch(){
 	}
 
 	function set_skasi_top_option_select(){
+		_skasiItems = [];
 		var append_html = "";
 		if($("#skasi_option01").is(":checked")){ //고무
 			append_html += "<tr>";
@@ -3060,6 +3050,27 @@ function actual_punch(){
 		}
 
 		$("#option_table tbody").html(append_html);
+
+		// 담기 UI 삽입 (실사 아크릴 제외 - 미구현 유형)
+		if(!$("#skasi_option04").is(":checked")){
+			var $skasiExtraRow = $("#option_table tbody tr").filter(function(){
+				return $(this).find("th").first().text().trim() === "추가 금액";
+			}).first();
+			var _skasiAddHtml =
+				"<tr class='skasi-items-row' id='skasi_items_header_row'>" +
+				"<th>담긴 항목</th>" +
+				"<td>" +
+				"<div id='skasi_items_area'></div>" +
+				"<div class='ch-add-bar'>" +
+				"<button type='button' id='btn_add_skasi_item' class='btn-ch-add-item'>+ 담기</button>" +
+				"<span class='ch-item-preview-wrap'> 예상 금액: <em id='skasi_item_preview' class='ch-item-preview-val'>-</em></span>" +
+				"</div>" +
+				"</td></tr>";
+			$(_skasiAddHtml).insertBefore($skasiExtraRow);
+			$("#btn_add_skasi_item").click(addSkasiItem);
+			renderSkasiItems();
+		}
+
 		skasi_text_form03();
         skasi_screen_color_count();
       
@@ -3448,7 +3459,7 @@ function chnnel_taka(){ //채널 타카식
     setTimeout(function(){
         $(".woosung_wrap .contents_wrap #option_table td label input[name='channel_option']").click(function(){
             $("#frame_product_width,#frame_product_vertical,#more_order_price,#add_more_text,#actual_punch_count,#channel_trusbar_width").val("");
-            $("#channel_text_eng,#channel_size_30,#channel_trim_color_white,#channel_solid_color_white,#channel_led_color_none,#channel_more_order_no,#channel_led_display_work_no,#channel_trim_custom_color_red,#channel_solid_custom_color_red,#ch_ggachi_size_200,#channel_more_order_option02_type01,#channel_led_display_work_type01,#channel_trusbar_none").prop("checked",true);
+            $("#channel_text_kor,#channel_size_30,#channel_trim_color_white,#channel_solid_color_white,#channel_led_color_none,#channel_more_order_no,#channel_led_display_work_no,#channel_trim_custom_color_red,#channel_solid_custom_color_red,#ch_ggachi_size_200,#channel_more_order_option02_type01,#channel_led_display_work_type01,#channel_trusbar_none").prop("checked",true);
 
             //초기 리셋
             chnnel_taka_cal();
@@ -3463,12 +3474,16 @@ function chnnel_taka(){ //채널 타카식
             chnnel_taka_cal();
 
         });
-        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count,#ch_smps_qty").bind("change keyup paste", function(){
+        $("#channel_content,#more_order_price,#channel_trusbar_width,#channel_trusbar_custom_price,#channel_more_order_count,#ch_smps_qty,#channel_led_count_manual").bind("change keyup paste", function(){
             chnnel_taka_cal();
         });
         $("input[name='ch_smps_spec']").click(function(){
-            if($(this).attr("id") === "ch_smps_none") $(".ch_smps_qty_row").hide();
-            else $(".ch_smps_qty_row").css("display","table-row");
+            if($(this).attr("id") === "ch_smps_none") {
+                $(".ch_smps_qty_row").hide();
+            } else {
+                $(".ch_smps_qty_row").css("display","table-row");
+                if(!$("#ch_smps_qty").val() || Number($("#ch_smps_qty").val()) <= 0) $("#ch_smps_qty").val(1);
+            }
             chnnel_taka_cal();
         });
     },500);
@@ -3589,7 +3604,7 @@ function _getChCurrentItemPrice() {
         else if($("#channel_led_display_work_type06").is(":checked")) custom_order = 0.3;
     }
 
-    var _ledCnt = parseInt($(".channel_led_count td span").text()) || 0;
+    var _ledCnt = parseInt($("#channel_led_count_manual").val()) || 0;
     var led_price = 0;
     var qty = Number($("#channel_content").val()) || 0;
 
@@ -3651,6 +3666,42 @@ function _getChCurrentItemPrice() {
     return _basePrice;
 }
 
+// ── 담긴 항목 수정: 문자별 필드 상태 캡처/복원 ──────────────────
+var _CH_ITEM_FIELD_SELECTOR =
+    "input[name='channel_size'], #channel_content, input[name='channel_text_form'], " +
+    "input[name='channel_trim_color'], input[name='channel_trim_custom_color'], " +
+    "input[name='channel_solid_color'], input[name='channel_solid_custom_color'], " +
+    "input[name='channel_led_display_work'], input[name='channel_led_display_work_type'], " +
+    "input[name='channel_led_jeon'], input[name='channel_led_jeon_color'], #ch_led_jeon_count, " +
+    "input[name='channel_led_hu'], input[name='channel_led_hu_color'], #ch_led_hu_count, " +
+    "input[name='channel_led_color'], #channel_led_count_manual, #ch_item_detail";
+
+function _captureChItemFields(){
+    var fields = [];
+    $(_CH_ITEM_FIELD_SELECTOR).each(function(){
+        if(!this.id) return;
+        var type = (this.type || "").toLowerCase();
+        if(type === "radio" || type === "checkbox"){
+            if(this.checked) fields.push({ id: this.id, type: type });
+        } else {
+            fields.push({ id: this.id, type: type, value: $(this).val() });
+        }
+    });
+    return fields;
+}
+
+function _restoreChItemFields(fields){
+    (fields || []).forEach(function(f){
+        var $el = $("#" + f.id);
+        if(!$el.length) return;
+        if(f.type === "radio" || f.type === "checkbox"){
+            $el.prop("checked", true).trigger("click").trigger("change");
+        } else {
+            $el.val(f.value).trigger("change").trigger("keyup").trigger("input");
+        }
+    });
+}
+
 // ── 담기 버튼: 현재 폼 항목을 _chItems에 추가 ──────────────────
 function addChannelItem() {
     var qty = Number($("#channel_content").val()) || 0;
@@ -3672,7 +3723,7 @@ function addChannelItem() {
         _dispWorkName = $("input[name='channel_led_display_work_type']:checked").parent("label").text().trim();
     }
 
-    var _ledCntNum = parseInt($(".channel_led_count td span").text()) || 0;
+    var _ledCntNum = parseInt($("#channel_led_count_manual").val()) || 0;
     var _isNewLedOpt = ($("#channel_option02").is(":checked") || $("#channel_option06").is(":checked") || $("#channel_option07").is(":checked"));
     // 신형(갈바/스텐): 전광/후광 분리
     var _jeonColorText = '', _jeonLedPrice = 0, _jeonLedCntNum = 0;
@@ -3748,7 +3799,8 @@ function addChannelItem() {
         jeonLedPrice: _jeonLedPrice, huLedPrice: _huLedPrice,
         jeonLedCnt: _jeonLedCntNum, huLedCnt: _huLedCntNum,
         galvaStenSubText: _galvaStenSubText,
-        is13x: _lastCh13x, baseUnitOrig: _lastChBaseUnitOrig
+        is13x: _lastCh13x, baseUnitOrig: _lastChBaseUnitOrig,
+        fieldState: _captureChItemFields()
     });
     $("#ch_item_detail").val('');
     renderChItems();
@@ -3768,7 +3820,7 @@ function renderChItems() {
     var html = "<ul class='ch-items-list'>";
     $.each(_chItems, function(i, item) {
         var _detailHtml = item.detail ? "<span class='ch-items-detail'>" + item.detail + "</span>" : "";
-        html += "<li class='ch-items-item'>" +
+        html += "<li class='ch-items-item' data-idx='" + i + "'>" +
             "<span class='ch-items-idx'>" + (i+1) + "</span>" +
             "<span class='ch-items-label'>" + item.label + _detailHtml + "</span>" +
             "<span class='ch-items-price'>" + fmt(item.price) + "원</span>" +
@@ -3777,11 +3829,26 @@ function renderChItems() {
     });
     html += "</ul>";
     $area.html(html);
-    $area.find(".ch-items-remove").click(function(){
+    $area.find(".ch-items-remove").click(function(e){
+        e.stopPropagation();
         var idx = parseInt($(this).data("idx"));
         _chItems.splice(idx, 1);
         renderChItems();
         chnnel_taka_cal();
+    });
+    $area.find(".ch-items-item").click(function(){
+        var idx = parseInt($(this).data("idx"));
+        var item = _chItems[idx];
+        if(!item) return;
+        if(!item.fieldState){
+            alert("이 항목은 수정 정보가 없어 수정할 수 없습니다. (이전 버전에서 담긴 항목)");
+            return;
+        }
+        if(!confirm("이 항목을 수정하시겠습니까?\n목록에서 제거되고 값이 폼으로 복원됩니다.")) return;
+        _chItems.splice(idx, 1);
+        renderChItems();
+        _restoreChItemFields(item.fieldState);
+        setTimeout(function(){ chnnel_taka_cal(); }, 300);
     });
 }
 
@@ -3812,10 +3879,10 @@ function chnnel_taka_cal(){ //채널 타카 계산
     trusbar_price = _calcTrusbar().price;
 
     if($("#channel_more_order_option01").is(":checked")){ //까치발 - 트러스바 폭 기준 단가 연동
-        var _chGgUnit = PRICES.ch_ggachi_200; // 기본값
-        if($("#channel_trusbar02").is(":checked"))      _chGgUnit = PRICES.ch_ggachi_250;
-        else if($("#channel_trusbar03").is(":checked")) _chGgUnit = PRICES.ch_ggachi_300;
-        else if($("#channel_trusbar04").is(":checked")) _chGgUnit = PRICES.ch_ggachi_400;
+        var _chGgUnit = PRICES.angle_w200; // 기본값 (공통자재 까치발 단가표 참조)
+        if($("#channel_trusbar02").is(":checked"))      _chGgUnit = PRICES.angle_w250;
+        else if($("#channel_trusbar03").is(":checked")) _chGgUnit = PRICES.angle_w300;
+        else if($("#channel_trusbar04").is(":checked")) _chGgUnit = PRICES.angle_w400;
         ggachi_price = Number($("#channel_more_order_count").val()) * _chGgUnit;
     }
 
@@ -4165,7 +4232,9 @@ function skasi_gomoo_cal(){ //스카시 고무 계산
         price = price * (1 + _gomPct / 100);
     }
 
-    $("#order_price").text(String(_r10(total_count * price + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    _lastSkasiItemPrice = total_count * price;
+    $("#skasi_item_preview").text(_lastSkasiItemPrice > 0 ? fmtNum(_r10(_lastSkasiItemPrice)) + "원" : "-");
+    $("#order_price").text(String(_r10(_getSkasiItemsTotal() + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 }
 function skasi_acrylic(){ //스카시 아크릴 계산
 	setTimeout(function(){
@@ -4227,7 +4296,9 @@ function skasi_acrylic_cal(){ //스카시 아크릴 계산
  
     
     if (total_price > 0 && total_price < 15000) total_price = 15000;
-	$("#order_price").text(String(_r10((total_price)+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    _lastSkasiItemPrice = total_price;
+    $("#skasi_item_preview").text(_lastSkasiItemPrice > 0 ? fmtNum(_r10(_lastSkasiItemPrice)) + "원" : "-");
+	$("#order_price").text(String(_r10(_getSkasiItemsTotal()+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
 }
 
@@ -4622,7 +4693,141 @@ function skasi_pomex_cal(){ //스카시 포멕스 계산
         total_price = total_price ;
     }
 
-    $("#order_price").text(String(_r10((total_price * Number($("#pomex_count").val()))+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    _lastSkasiItemPrice = total_price * Number($("#pomex_count").val());
+    $("#skasi_item_preview").text(_lastSkasiItemPrice > 0 ? fmtNum(_r10(_lastSkasiItemPrice)) + "원" : "-");
+    $("#order_price").text(String(_r10(_getSkasiItemsTotal()+nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+}
+
+// ── 스카시 담기 목록 ─────────────────────────────────────────
+function _getSkasiItemsTotal(){
+    var total = 0;
+    _skasiItems.forEach(function(it){ total += it.price; });
+    return total;
+}
+
+function _recalcSkasiCal(){
+    if($("#skasi_option01").is(":checked")) skasi_gomoo_cal();
+    else if($("#skasi_option02").is(":checked")) skasi_acrylic_cal();
+    else if($("#skasi_option03").is(":checked")) skasi_pomex_cal();
+}
+
+function _captureSkasiItemFields(){
+    var fields = [];
+    $("#option_table input, #option_table select").each(function(){
+        if(!this.id || this.id === "more_order_price") return;
+        var type = (this.type || "").toLowerCase();
+        if(type === "radio" || type === "checkbox"){
+            if(this.checked) fields.push({ id: this.id, type: type });
+        } else {
+            fields.push({ id: this.id, type: type, value: $(this).val() });
+        }
+    });
+    return fields;
+}
+
+function _restoreSkasiItemFields(fields){
+    (fields || []).forEach(function(f){
+        var $el = $("#" + f.id);
+        if(!$el.length) return;
+        if(f.type === "radio" || f.type === "checkbox"){
+            $el.prop("checked", true).trigger("click").trigger("change");
+        } else {
+            $el.val(f.value).trigger("change").trigger("keyup").trigger("input");
+        }
+    });
+}
+
+function addSkasiItem(){
+    var typeLabel = "", detailParts = [];
+    if($("#skasi_option01").is(":checked")){ // 고무
+        var qty = Number($("#skasicolor_count").val()) || 0;
+        if(qty <= 0){ alert("수량(총 글자 수)을 입력해주세요."); return; }
+        if(!$.trim($("#skasi_width").val())){ alert("크기를 선택해주세요."); return; }
+        typeLabel = "고무";
+        detailParts.push("문자형태: " + $("input[name='skasi_text_form']:checked").parent("label").text());
+        detailParts.push("두께: " + $("input[name='skasi_thumb']:checked").parent("label").text());
+        detailParts.push("알루미늄색상: " + $("input[name='skasicolor_type']:checked").parent("label").text());
+        detailParts.push("크기: " + $("#skasi_width").val());
+        detailParts.push("화면색상: " + $("input[name='skasi_screen_color']:checked").parent("label").text());
+        detailParts.push("수량: " + qty + "개");
+    } else if($("#skasi_option02").is(":checked")){ // 아크릴
+        var qty = Number($("#skasi_acrylic_count").val()) || 0;
+        if(qty <= 0){ alert("수량(총 글자 수)을 입력해주세요."); return; }
+        if(!$.trim($("#skasi_width").val())){ alert("크기를 선택해주세요."); return; }
+        typeLabel = "아크릴";
+        detailParts.push("타입: " + $("input[name='skasi_acrylic']:checked").parent("label").text());
+        detailParts.push("문자형태: " + $("input[name='skasi_text_form']:checked").parent("label").text());
+        detailParts.push("두께: " + $("input[name='skasi_thumb']:checked").parent("label").text());
+        detailParts.push("크기: " + $("#skasi_width").val() + "mm");
+        detailParts.push("화면색상: " + $("input[name='skasi_screen_color']:checked").parent("label").text());
+        if($("#skasi_screen_color04").is(":checked")) detailParts.push("도색 가지수: " + ($("#skasi_screen_color_count").val()||0) + "개");
+        detailParts.push("수량: " + qty + "개");
+    } else if($("#skasi_option03").is(":checked")){ // 포멕스
+        var w = Number($("#skasi_product_width").val()) || 0;
+        var h = Number($("#skasi_product_vertical").val()) || 0;
+        var qty = Number($("#pomex_count").val()) || 0;
+        if(w <= 0){ alert("가로 크기를 입력해주세요."); return; }
+        if(h <= 0){ alert("세로 크기를 입력해주세요."); return; }
+        if(qty <= 0){ alert("수량을 입력해주세요."); return; }
+        typeLabel = "포멕스";
+        detailParts.push("문자형태: " + $("input[name='skasi_text_form']:checked").parent("label").text());
+        detailParts.push("두께: " + $("input[name='skasi_thumb']:checked").parent("label").text());
+        detailParts.push("색상: " + $("input[name='pomex_color']:checked").parent("label").text());
+        detailParts.push("가로: " + w + "mm");
+        detailParts.push("세로: " + h + "mm");
+        detailParts.push("화면색상: " + $("input[name='skasi_screen_color']:checked").parent("label").text());
+        detailParts.push("양면테이프: " + $("input[name='both_size_tape']:checked").parent("label").text());
+        detailParts.push("수량: " + qty + "개");
+    } else {
+        alert("스카시 유형을 선택해주세요.");
+        return;
+    }
+
+    var price = _lastSkasiItemPrice;
+    if(price <= 0){ alert("옵션을 다시 확인해주세요. (예상 금액이 0원입니다)"); return; }
+
+    _skasiItems.push({ label: typeLabel + " " + detailParts.join(" / "), price: price, fieldState: _captureSkasiItemFields() });
+    renderSkasiItems();
+    _recalcSkasiCal();
+}
+
+function renderSkasiItems(){
+    var $area = $("#skasi_items_area");
+    if(!$area.length) return;
+    var fmt = function(n){ return String(_r10(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); };
+
+    if(_skasiItems.length === 0){
+        $area.html("<p class='ch-items-empty'>담긴 항목이 없습니다. 옵션 선택 후 담기 버튼을 눌러주세요.</p>");
+        return;
+    }
+    var html = "<ul class='ch-items-list'>";
+    $.each(_skasiItems, function(i, item){
+        html += "<li class='ch-items-item' data-idx='" + i + "'>" +
+            "<span class='ch-items-idx'>" + (i+1) + "</span>" +
+            "<span class='ch-items-label'>" + item.label + "</span>" +
+            "<span class='ch-items-price'>" + fmt(item.price) + "원</span>" +
+            "<button type='button' class='ch-items-remove' data-idx='" + i + "'>×</button>" +
+            "</li>";
+    });
+    html += "</ul>";
+    $area.html(html);
+    $area.find(".ch-items-remove").click(function(e){
+        e.stopPropagation();
+        var idx = parseInt($(this).data("idx"));
+        _skasiItems.splice(idx, 1);
+        renderSkasiItems();
+        _recalcSkasiCal();
+    });
+    $area.find(".ch-items-item").click(function(){
+        var idx = parseInt($(this).data("idx"));
+        var item = _skasiItems[idx];
+        if(!item) return;
+        if(!confirm("이 항목을 수정하시겠습니까?\n목록에서 제거되고 값이 폼으로 복원됩니다.")) return;
+        _skasiItems.splice(idx, 1);
+        renderSkasiItems();
+        _restoreSkasiItemFields(item.fieldState);
+        setTimeout(function(){ _recalcSkasiCal(); }, 300);
+    });
 }
 
 // ── 공통자재 ─────────────────────────────────────────────────
@@ -4662,9 +4867,12 @@ function set_common_material_top(){
     append_html += "<tr class='cm_smps_qty_row add_row'><th>SMPS 수량</th><td class='cm-row'>";
     append_html += "<input type='number' class='cm-spec-qty' id='cm_smps_qty' placeholder='수량' min='0' value='0'> 개</td></tr>";
 
-    // 형광등
-    append_html += "<tr><th>형광등</th><td class='cm-row'>";
-    append_html += "<input type='number' class='cm-qty' id='cm_qty_cm_fluorescent' placeholder='수량' min='0' value='0' data-key='cm_fluorescent'> 개";
+    // 형광등 (조립 / 비조립)
+    append_html += "<tr><th>조립 형광등</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-qty' id='cm_qty_cm_fluorescent_assembled' placeholder='수량' min='0' value='0' data-key='cm_fluorescent_assembled'> 개";
+    append_html += "</td></tr>";
+    append_html += "<tr><th>비조립 형광등</th><td class='cm-row'>";
+    append_html += "<input type='number' class='cm-qty' id='cm_qty_cm_fluorescent_unassembled' placeholder='수량' min='0' value='0' data-key='cm_fluorescent_unassembled'> 개";
     append_html += "</td></tr>";
 
     // LED 컨트롤러
@@ -4707,8 +4915,12 @@ function set_common_material_top(){
         _calc_cm_total();
     });
     $("input[name='cm_smps_spec']").on("click", function(){
-        if($(this).attr("id") === "cm_smps_none") $(".cm_smps_qty_row").hide();
-        else $(".cm_smps_qty_row").css("display","table-row");
+        if($(this).attr("id") === "cm_smps_none") {
+            $(".cm_smps_qty_row").hide();
+        } else {
+            $(".cm_smps_qty_row").css("display","table-row");
+            if(!$("#cm_smps_qty").val() || Number($("#cm_smps_qty").val()) <= 0) $("#cm_smps_qty").val(1);
+        }
         _calc_cm_total();
     });
     $("input[name='cm_ctrl_spec']").on("click", function(){
@@ -4785,6 +4997,102 @@ function common_material_calc(){
     $(".cm-qty").on("input", function(){ _calc_cm_total(); });
 }
 
+// ── 추가된 견적 항목 수정: 폼 상태 캡처/복원 ──────────────────
+var _FORM_PRIMARY_NAMES = ['sigh_option', 'channel_option', 'actual_option'];
+
+function _captureFormState(){
+    var tabClass = ($(".woosung_wrap .tab_area ul li.active").attr("class") || "").split(/\s+/).filter(function(c){
+        return /^child0[1-6]$/.test(c);
+    })[0] || '';
+    var fields = [];
+    $("#option_table input, #option_table select").each(function(){
+        if(!this.id) return;
+        var type = (this.type || "").toLowerCase();
+        if(type === "radio" || type === "checkbox"){
+            if(this.checked) fields.push({ id: this.id, type: type });
+        } else {
+            fields.push({ id: this.id, type: type, value: $(this).val() });
+        }
+    });
+    var extraCosts = [];
+    $(".extra-cost-row").each(function(){
+        extraCosts.push({
+            name: $(this).find(".extra-cost-name").val() || '',
+            amount: $(this).find(".extra-cost-amount").val() || ''
+        });
+    });
+    var state = { tab: tabClass, fields: fields, extraCosts: extraCosts };
+    if(tabClass === 'child02') state.chItems = JSON.parse(JSON.stringify(_chItems));
+    if(tabClass === 'child05') state.skasiItems = JSON.parse(JSON.stringify(_skasiItems));
+    return state;
+}
+
+function _encodeFormState(state){
+    try { return btoa(unescape(encodeURIComponent(JSON.stringify(state)))); } catch(e){ return ''; }
+}
+function _decodeFormState(str){
+    try { return JSON.parse(decodeURIComponent(escape(atob(str)))); } catch(e){ return null; }
+}
+
+function _restoreFormState(state){
+    if(!state || !state.tab) return;
+    $(".woosung_wrap .tab_area ul li." + state.tab).trigger("click");
+    setTimeout(function(){
+        // 1단계: 품목 유형 라디오(하위 항목을 새로 그리는 트리거) 먼저 복원
+        state.fields.forEach(function(f){
+            var $el = $("#" + f.id);
+            if(!$el.length || f.type !== "radio") return;
+            if(_FORM_PRIMARY_NAMES.indexOf($el.attr("name") || '') === -1) return;
+            $el.prop("checked", true).trigger("click").trigger("change");
+        });
+        setTimeout(function(){
+            // 2단계: 나머지 필드 복원 (캡처 순서 = 렌더링 순서와 대체로 일치)
+            state.fields.forEach(function(f){
+                var $el = $("#" + f.id);
+                if(!$el.length) return;
+                if(f.type === "radio" || f.type === "checkbox"){
+                    if(!$el.is(":checked")) $el.prop("checked", true).trigger("click").trigger("change");
+                } else {
+                    $el.val(f.value).trigger("change").trigger("keyup").trigger("input");
+                }
+            });
+            // 추가금액 행 복원
+            $("#extra_cost_list").empty();
+            (state.extraCosts || []).forEach(function(ec){
+                if(!ec.name && !ec.amount) return;
+                addExtraCostRow();
+                var $row = $("#extra_cost_list .extra-cost-row").last();
+                $row.find(".extra-cost-name").val(ec.name);
+                $row.find(".extra-cost-amount").val(ec.amount);
+            });
+            syncExtraCosts();
+            // 채널문자 담긴 항목 복원
+            if(state.tab === 'child02' && state.chItems){
+                _chItems = state.chItems;
+                renderChItems();
+            }
+            // 스카시 담긴 항목 복원
+            if(state.tab === 'child05' && state.skasiItems){
+                _skasiItems = state.skasiItems;
+                renderSkasiItems();
+            }
+            setTimeout(function(){ recalcCurrent(); }, 250);
+        }, 550);
+    }, 550);
+}
+
+$(document).on("click", ".total_list ul li", function(e){
+    if($(e.target).closest(".remove_btn").length) return;
+    var encoded = $(this).attr("data-form-state");
+    if(!encoded) { alert("이 항목은 수정 정보가 없어 수정할 수 없습니다. (이전 버전에서 추가된 항목)"); return; }
+    var state = _decodeFormState(encoded);
+    if(!state){ alert("저장된 항목 정보를 불러올 수 없습니다."); return; }
+    if(!confirm("이 항목을 수정하시겠습니까?\n목록에서 제거되고 입력했던 값이 폼으로 복원됩니다.")) return;
+    $(this).remove();
+    list_sum_price();
+    _restoreFormState(state);
+});
+
 //견적 저장
 
 $(".save_btn").click(function(){
@@ -4834,25 +5142,8 @@ $(".save_btn").click(function(){
     } else if(_tab.hasClass("child05")) { // 스카시
         if(!$("#skasi_option01,#skasi_option02,#skasi_option03").is(":checked")) {
             _errs.push("스카시 유형을 선택해주세요.");
-        } else {
-            if($("#skasi_option01").is(":checked")) {
-                if(!$.trim($("#skasicolor_count").val()) || Number($("#skasicolor_count").val()) <= 0)
-                    _errs.push("수량(총 글자 수)을 입력해주세요.");
-                if(!$.trim($("#skasi_width").val()))
-                    _errs.push("크기를 입력해주세요.");
-            } else if($("#skasi_option02").is(":checked")) {
-                if(!$.trim($("#skasi_acrylic_count").val()) || Number($("#skasi_acrylic_count").val()) <= 0)
-                    _errs.push("수량(총 글자 수)을 입력해주세요.");
-                if(!$.trim($("#skasi_width").val()))
-                    _errs.push("크기를 입력해주세요.");
-            } else if($("#skasi_option03").is(":checked")) {
-                if(!$.trim($("#skasi_product_width").val()) || Number($("#skasi_product_width").val()) <= 0)
-                    _errs.push("가로 크기를 입력해주세요.");
-                if(!$.trim($("#skasi_product_vertical").val()) || Number($("#skasi_product_vertical").val()) <= 0)
-                    _errs.push("세로 크기를 입력해주세요.");
-                if(!$.trim($("#pomex_count").val()) || Number($("#pomex_count").val()) <= 0)
-                    _errs.push("수량을 입력해주세요.");
-            }
+        } else if(_skasiItems.length === 0) {
+            _errs.push("항목을 1개 이상 담아주세요. (옵션 선택 후 담기 버튼)");
         }
     } else if(_tab.hasClass("child06")) { // 공통자재
         var _hasCmQty = false;
@@ -4884,9 +5175,6 @@ $(".save_btn").click(function(){
             	total_html +=" / 세로 : "+_dimRoundText(nv("#sigh_vertical"));
             	total_html +=" / 화면 작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_display']:checked").parent("label").text();
             	total_html +=" / 프레임 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_frame_color']:checked").parent("label").text();
-           		if($("#sigh_frame_color_custom").is(":checked")){
-                    total_html +=" / 지정색 도장 : "+$("#frame_custom_text").val();
-                }
             	total_html +="/ 까치발 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_angle']:checked").parent("label").text();
            		 if($("#sigh_angle_yes").is(":checked")){
                    total_html +=" / 크기 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_angle_width']:checked").parent("label").text();
@@ -4945,9 +5233,6 @@ $(".save_btn").click(function(){
             		total_html +=" / LED 수량 : "+$("#sigh_light_led_count").val();
                 }
             	total_html +=" / 프레임 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_frame_color']:checked").parent("label").text();
-           		if($("#sigh_frame_color_custom").is(":checked")){
-                    total_html +=" / 지정색 도장 : "+$("#frame_custom_text").val();
-                }
             	total_html +="/ 까치발 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_angle']:checked").parent("label").text();
            		 if($("#sigh_angle_yes").is(":checked")){
                    total_html +=" / 크기 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_angle_width']:checked").parent("label").text();
@@ -5011,9 +5296,6 @@ $(".save_btn").click(function(){
             		total_html +=" / LED 수량 : "+$("#sigh_light_led_count").val();
                 }
             	total_html +=" / 프레임 색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_frame_color']:checked").parent("label").text();
-           		if($("#sigh_frame_color_custom").is(":checked")){
-                    total_html +=" / 지정색 도장 : "+$("#frame_custom_text").val();
-                }
             	total_html +="/ 시공발통 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='sigh_baltong']:checked").parent("label").text();
             	if($("#sigh_backdrop_yes").is(":checked")){
             		(function(){ var _bd=getSignDimensions(), _f=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}; total_html+=" / 뒷판작업 : "+_f(Math.round(_bd.w*1000))+"×"+_f(Math.round(_bd.h*1000))+"mm"; })();
@@ -5138,10 +5420,10 @@ $(".save_btn").click(function(){
                 }
                 // 까치발
                 var _ggCnt=Number($("#channel_more_order_count").val())||0, _ggUnit=0;
-                _ggUnit = PRICES.ch_ggachi_200; // 트러스바 폭 기준 연동
-                if($("#channel_trusbar02").is(":checked"))      _ggUnit=PRICES.ch_ggachi_250;
-                else if($("#channel_trusbar03").is(":checked")) _ggUnit=PRICES.ch_ggachi_300;
-                else if($("#channel_trusbar04").is(":checked")) _ggUnit=PRICES.ch_ggachi_400;
+                _ggUnit = PRICES.angle_w200; // 트러스바 폭 기준 연동 (공통자재 까치발 단가표 참조)
+                if($("#channel_trusbar02").is(":checked"))      _ggUnit=PRICES.angle_w250;
+                else if($("#channel_trusbar03").is(":checked")) _ggUnit=PRICES.angle_w300;
+                else if($("#channel_trusbar04").is(":checked")) _ggUnit=PRICES.angle_w400;
                 var _ggP=($("#channel_more_order_option01").is(":checked"))?_ggCnt*_ggUnit:0;
                 if(_ggP>0) bd += "<span class='bd_item'>까치발 <em>"+_ggCnt+"개 × "+_fmtCh(_ggUnit)+"원 = "+_fmtCh(_ggP)+"원</em></span>";
                 // 완조립
@@ -5270,15 +5552,36 @@ $(".save_btn").click(function(){
             total_html += $(".order_info .right_area #order_price").text()+"</span> 원</lI>";
         }
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child05")){ //스카시
-    	if($("#skasi_option01").is(":checked")){ //고무
-     		total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 알루미늄 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasicolor_type']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasicolor_count").val()+" 개 / 크기 : "+$("#skasi_width").val()+" / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
-        }else if($("#skasi_option02").is(":checked")){ //아크릴
-           total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 아크릴 타입 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_acrylic']:checked").parent("label").text()+" / 문자 형태 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 수량(총 글자 수) : "+$("#skasi_acrylic_count").val()+" 개 / 색상 : "+$("#skasi_color01").val()+" / 크기 (mm): "+$("#skasi_width").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / ※ 도색시※ 도색 가지수 : "+$("#skasi_screen_color_count").val()+"개 / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
-        }else if($("#skasi_option03").is(":checked")){ //포멕스
-            total_html = "<li><span class='number'></span>"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text()+" / 문자 형태 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_text_form']:checked").parent("label").text()+" / 두께 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_thumb']:checked").parent("label").text()+" / 색상 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='pomex_color']:checked").parent("label").text()+" / 가로 : "+$("#skasi_product_width").val()+" mm / 세로 : "+$("#skasi_product_vertical").val()+" mm / 화면색상 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='skasi_screen_color']:checked").parent("label").text()+" / 양면 테이프 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='both_size_tape']:checked").parent("label").text()+" / 수량 : "+$("#pomex_count").val()+"개 / "+getExtraCostText()+" / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>"; 
-        }else if($("#skasi_option04").is(":checked")){ //실사 아크릴
-
+        var _skasiTypeLabel = $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text();
+        total_html = "<li><span class='number'></span>";
+        total_html += "<strong class='li-cat-name'>스카시 (" + _skasiTypeLabel + ")</strong>";
+        total_html += "<div class='li-ch-block'>";
+        total_html += "<div class='li-ch-block-hd'>[담긴 항목 " + _skasiItems.length + "개]</div>";
+        var _skasiBd = "<span class='price_breakdown'>";
+        var _skasiItemsTotal = 0;
+        $.each(_skasiItems, function(i, item){
+            _skasiItemsTotal += item.price;
+            var safeLabel = item.label.replace(/\s*\/\s*/g, ' · ');
+            total_html += "<div class='li-ch-row'>";
+            total_html += "<span class='li-ch-row-sep'> / </span>";
+            total_html += "<span class='li-ch-row-num'>(" + (i+1) + ")</span>";
+            total_html += "<span class='li-ch-row-label'>" + safeLabel + "</span>";
+            total_html += "<em class='li-ch-price'>" + fmtNum(_r10(item.price)) + "원</em>";
+            total_html += "</div>";
+            _skasiBd += "<span class='bd_item'>#스카시항목# (" + (i+1) + "). " + safeLabel + " = <em>" + fmtNum(_r10(item.price)) + "원</em></span>";
+        });
+        total_html += "</div>";
+        if(_skasiItemsTotal > 0) _skasiBd += "<span class='bd_item'>담긴 항목 합계 <em>" + fmtNum(_r10(_skasiItemsTotal)) + "원</em></span>";
+        if(nv("#more_order_price") !== 0){
+            total_html += "<span class='li-fixed-opts'> / " + getExtraCostText() + "</span>";
         }
+        if($.trim($("#add_more_text").val()).length !== 0){
+            total_html += "<span class='li-fixed-opts'> / 추가입력 사항 : " + $("#add_more_text").val() + "</span>";
+        }
+        _skasiBd += extraCostBdItems();
+        _skasiBd += "</span>";
+        total_html += _skasiBd;
+        total_html += "<br> / 견적 비용 : <span class='list_price'>" + $(".order_info .right_area #order_price").text() + "</span> 원</li>";
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child06")){ //공통자재
         var _cmParts = [];
         var _cmBd = "<span class='price_breakdown'>";
@@ -5325,13 +5628,16 @@ $(".save_btn").click(function(){
         total_html += " / 견적 비용 : <span class='list_price'>" + $(".order_info .right_area #order_price").text() + "</span> 원</li>";
     }
 
-    $("#total_price_wrap .total_list ul").append(total_html);
+    var _capturedState = _captureFormState();
+    var $addedLi = $(total_html).filter("li").appendTo("#total_price_wrap .total_list ul");
+    $addedLi.attr("data-form-state", _encodeFormState(_capturedState));
 
     list_sum_price();
     list_delete_func();
 
     // 추가 후 폼 전체 초기화 (현재 탭 재실행)
     _chItems = [];
+    _skasiItems = [];
     $(".woosung_wrap .tab_area ul li.active").trigger("click");
     $(".order_info .right_area #order_price").text('0');
 });
@@ -5920,6 +6226,30 @@ function closePrintModal() {
     $("#print_modal").fadeOut(200);
 }
 
+// ── 인쇄 전용: 같은 색상(같은 이름)의 LED 행 합산 ─────────────
+function _mergeLedRows(rows, fmtFn){
+    var ledMap = {};
+    var merged = [];
+    rows.forEach(function(r){
+        var isLed = !r.separator && !r.itemHeader && r.name && /^└?\s*(전광 LED|후광 LED|LED)\(/.test(r.name);
+        if (isLed) {
+            var key = r.name.replace(/^└\s*/, '');
+            if (ledMap[key]) {
+                var target = ledMap[key];
+                var newQty = (parseInt(String(target.qty).replace(/[^0-9]/g,'')) || 0) + (parseInt(String(r.qty).replace(/[^0-9]/g,'')) || 0);
+                var newTotal = (parseInt(String(target.total).replace(/[^0-9]/g,'')) || 0) + (parseInt(String(r.total).replace(/[^0-9]/g,'')) || 0);
+                target.qty = String(newQty);
+                target.total = fmtFn(newTotal);
+                if (newQty > 0) target.unit = fmtFn(Math.round(newTotal / newQty));
+                return;
+            }
+            ledMap[key] = r;
+        }
+        merged.push(r);
+    });
+    return merged;
+}
+
 // ── 견적서 HTML 생성 (공통) ──────────────────────────────────
 function parseBdRow(t) {
     t = (t || '').trim();
@@ -6014,6 +6344,15 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
                     added = true;
                     return;
                 }
+                // 신형 LED v2 상세: "#채널LEDv2# 전광/후광/LED(color) × cnt개 = price원"
+                var ledV2M = p.match(/^#채널LEDv2#\s+(.+?)\s+×\s+(\d+)개\s+=\s+([\d,]+)원/);
+                if (ledV2M) {
+                    var _lc2 = parseInt(ledV2M[2]), _lt2 = Number(ledV2M[3].replace(/,/g,''));
+                    var _lu2 = _lc2 > 0 ? Math.round(_lt2 / _lc2) : 0;
+                    chItemLines.push({ name: '└ ' + ledV2M[1], qty: String(_lc2), unit: _f(_lu2), total: ledV2M[3] });
+                    added = true;
+                    return;
+                }
                 if (chItemLines.length > 0 && p.indexOf('담긴 항목 합계') > -1) return;
                 var r = parseBdRow(p);
                 if (r) {
@@ -6042,6 +6381,8 @@ function buildPrintDoc(items, totalNum, customer, manager, notes) {
             tableRows.push({ name: item.category, qty: '1', unit: _f(item.priceNum), total: _f(item.priceNum) });
         }
     });
+
+    tableRows = _mergeLedRows(tableRows, _f);
 
     var rowsHtml = '';
     var dataRowCount = 0;
