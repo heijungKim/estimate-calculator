@@ -190,6 +190,83 @@ function _paintPrices(src) {
     });
 }
 
+// ── 채널문자 자동 1.3배 파생 ──────────────────────────────────
+// 영문 → 한글 → 흘림체 순으로 연쇄된다.
+// 알루미늄/일체형/에폭시는 한글 칸이 있고, 나머지 재질은 영문 → 흘림체 직결.
+var CH_AUTO_RATE = 1.3;
+
+// 재질명을 하드코딩하지 않는다. 재질에 밑줄이 들어가는 항목
+// (sten_laser, sten_gosa, galva_laser)까지 자동으로 포함되도록
+// 파생 관계를 필드 구성에서 직접 도출한다.
+//   한글 칸이 있는 재질 : 영문 → 한글 → 흘림체
+//   한글 칸이 없는 재질 : 영문 → 흘림체
+function _chKeyParts(key) {
+    var m = String(key).match(/^ch_(.+)_(eng|kor|got)_([a-z0-9]+)$/);
+    return m ? { mat: m[1], type: m[2], size: m[3] } : null;
+}
+
+function _chHas(key) {
+    return Object.prototype.hasOwnProperty.call(DEFAULT_PRICES, key);
+}
+
+// 파생 칸(to)이 어느 칸을 원본으로 삼는지
+function _chSourceType(mat, size, to) {
+    if (to === 'kor') return 'eng';
+    return _chHas('ch_' + mat + '_kor_' + size) ? 'kor' : 'eng';
+}
+
+// 입력칸에서 파생 칸으로 연쇄 반영 (영문 입력 → 한글 → 흘림체까지)
+function _chCascadeFrom(el) {
+    if (!el || !el.id) return;
+    var p = _chKeyParts(el.id.replace(/^p_/, ''));
+    if (!p) return;
+    var val = parseInt(String(el.value).replace(/[^0-9]/g, '')) || 0;
+
+    // 원본이 비었으면 아무것도 하지 않는다.
+    // (예전엔 파생 칸을 ''로 지워서, 영문 칸을 비우면 한글·흘림체까지 날아갔다)
+    if (val <= 0) return;
+
+    ['kor', 'got'].forEach(function(to) {
+        var key = 'ch_' + p.mat + '_' + to + '_' + p.size;
+        if (!_chHas(key)) return;                                  // 없는 칸(예: 한글 없는 재질)
+        if (_chSourceType(p.mat, p.size, to) !== p.type) return;   // 이 칸의 원본이 아니면 건너뜀
+        var $t = $("#p_" + key);
+        if (!$t.length) return;
+        $t.val(Math.round(val * CH_AUTO_RATE).toLocaleString('ko-KR'));
+        _chCascadeFrom($t[0]);  // 흘림체는 나가는 규칙이 없어 여기서 멈춘다
+    });
+}
+
+// 비어있는 파생 항목을 원본 × 1.3 으로 채운다.
+// 이미 값이 있으면 건드리지 않는다(수동 조정분 보존).
+function chFillDerived(prices) {
+    var filled = [];
+    // 한글을 먼저 채운 뒤 흘림체를 채워야 영문 → 한글 → 흘림체가 이어진다
+    ['kor', 'got'].forEach(function(to) {
+        Object.keys(DEFAULT_PRICES).forEach(function(key) {
+            var p = _chKeyParts(key);
+            if (!p || p.type !== to) return;
+            var from = _chSourceType(p.mat, p.size, to);
+            var src = Number(prices['ch_' + p.mat + '_' + from + '_' + p.size]) || 0;
+            if (src > 0 && (Number(prices[key]) || 0) === 0) {
+                prices[key] = Math.round(src * CH_AUTO_RATE);
+                filled.push(key);
+            }
+        });
+    });
+    return filled;
+}
+
+// 저장값 + 기본값을 합치고 빈 파생 항목까지 채운 최종 단가
+function _resolvePrices(src) {
+    var out = {};
+    Object.keys(DEFAULT_PRICES).forEach(function(key) {
+        out[key] = (src && src[key] !== undefined) ? src[key] : DEFAULT_PRICES[key];
+    });
+    chFillDerived(out);
+    return out;
+}
+
 // ── Firebase 연동 ─────────────────────────────────────────────
 var _pricesDoc = null;
 function _initPricesDoc() {
@@ -361,7 +438,7 @@ function resetPrices() {
 $(function() {
     // 첫 화면부터 마지막 저장값으로 그린다.
     // (캐시가 없을 때만 기본값 → 기본값이 잠깐 보였다 바뀌는 깜빡임 방지)
-    _paintPrices(_readPriceCache());
+    _paintPrices(_resolvePrices(_readPriceCache()));
 
     // Firebase에 저장된 단가 로드 (최종 확정값)
     _initPricesDoc();
@@ -369,40 +446,19 @@ $(function() {
         _pricesDoc.get()
             .then(function(doc) {
                 if (!doc.exists) return;
-                var saved = doc.data();
-                _paintPrices(saved);
-                _writePriceCache(saved);
+                // 저장값에 빈 파생 항목이 있으면 1.3배로 채워서 표시
+                var resolved = _resolvePrices(doc.data());
+                _paintPrices(resolved);
+                _writePriceCache(resolved);
             })
             .catch(function(err){ _priceError('저장된 단가를 불러오는 데', err); });
     }
 
-    // 입력 콤마 포맷
+    // 입력 콤마 포맷 + 자동 1.3배 연쇄 반영
+    // (예전엔 영문→한글만 대입해서 input 이벤트가 안 나 흘림체가 비어 있었다)
     $(document).on('input', '.price_panel_body input[type="text"]', function() {
         formatCommaInput(this);
-    });
-
-    // 자동 1.3배: 영문 → 한글 (알루미늄/일체형/에폭시)
-    $(document).on('input', '[id^="p_ch_taka_eng_"],[id^="p_ch_ilche_eng_"],[id^="p_ch_epox_eng_"]', function() {
-        var raw = this.value.replace(/[^0-9]/g, '');
-        var val = parseInt(raw) || 0;
-        var korEl = document.getElementById(this.id.replace('_eng_', '_kor_'));
-        if (korEl) korEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
-    });
-
-    // 자동 1.3배: 한글 → 흘림체 (알루미늄/일체형/에폭시)
-    $(document).on('input', '[id^="p_ch_taka_kor_"],[id^="p_ch_ilche_kor_"],[id^="p_ch_epox_kor_"]', function() {
-        var raw = this.value.replace(/[^0-9]/g, '');
-        var val = parseInt(raw) || 0;
-        var gotEl = document.getElementById(this.id.replace('_kor_', '_got_'));
-        if (gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
-    });
-
-    // 자동 1.3배: 영문/한글 → 흘림체 (티타늄/스텐/갈바/갈바오사이)
-    $(document).on('input', '[id^="p_ch_titan_eng_"],[id^="p_ch_sten_eng_"],[id^="p_ch_galva_eng_"],[id^="p_ch_gosa_eng_"]', function() {
-        var raw = this.value.replace(/[^0-9]/g, '');
-        var val = parseInt(raw) || 0;
-        var gotEl = document.getElementById(this.id.replace('_eng_', '_got_'));
-        if (gotEl) gotEl.value = val > 0 ? Math.round(val * 1.3).toLocaleString('ko-KR') : '';
+        _chCascadeFrom(this);
     });
 
     // 적용하기

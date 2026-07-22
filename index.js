@@ -152,12 +152,120 @@ var DEFAULT_PRICES = {
     skasi_acr_3t_eng_380: 5700, skasi_acr_3t_kor_380: 8600, skasi_acr_5t_eng_380: 8800, skasi_acr_5t_kor_380: 12200, skasi_acr_8t_eng_380: 14200, skasi_acr_8t_kor_380: 18800, skasi_acr_10t_eng_380: 20700, skasi_acr_10t_kor_380: 28500,
     skasi_acr_3t_eng_390: 5800, skasi_acr_3t_kor_390: 9000, skasi_acr_5t_eng_390: 9100, skasi_acr_5t_kor_390: 12700, skasi_acr_8t_eng_390: 14600, skasi_acr_8t_kor_390: 19400, skasi_acr_10t_eng_390: 22000, skasi_acr_10t_kor_390: 29700,
     skasi_acr_3t_eng_400: 5900, skasi_acr_3t_kor_400: 9500, skasi_acr_5t_eng_400: 9600, skasi_acr_5t_kor_400: 13000, skasi_acr_8t_eng_400: 15000, skasi_acr_8t_kor_400: 20000, skasi_acr_10t_eng_400: 22600, skasi_acr_10t_kor_400: 31000,
+
+
+    // ── 레이저타공/오사이 채널 (price.js와 동기화) ──
+    // ch_galva_laser
+    ch_galva_laser_eng_30: 0,
+    ch_galva_laser_eng_35: 0,
+    ch_galva_laser_eng_40: 0,
+    ch_galva_laser_eng_45: 0,
+    ch_galva_laser_eng_50: 0,
+    ch_galva_laser_eng_60: 0,
+    ch_galva_laser_eng_70: 0,
+    ch_galva_laser_eng_80: 0,
+    ch_galva_laser_eng_90: 0,
+    ch_galva_laser_eng_100: 0,
+    ch_galva_laser_got_30: 0,
+    ch_galva_laser_got_35: 0,
+    ch_galva_laser_got_40: 0,
+    ch_galva_laser_got_45: 0,
+    ch_galva_laser_got_50: 0,
+    ch_galva_laser_got_60: 0,
+    ch_galva_laser_got_70: 0,
+    ch_galva_laser_got_80: 0,
+    ch_galva_laser_got_90: 0,
+    ch_galva_laser_got_100: 0,
+    // ch_sten_gosa
+    ch_sten_gosa_eng_20: 0,
+    ch_sten_gosa_eng_25: 0,
+    ch_sten_gosa_eng_30: 0,
+    ch_sten_gosa_eng_35: 0,
+    ch_sten_gosa_eng_40: 0,
+    ch_sten_gosa_eng_45: 0,
+    ch_sten_gosa_eng_50: 0,
+    ch_sten_gosa_eng_60: 0,
+    ch_sten_gosa_eng_70: 0,
+    ch_sten_gosa_eng_80: 0,
+    ch_sten_gosa_eng_90: 0,
+    ch_sten_gosa_eng_100: 0,
+    ch_sten_gosa_got_20: 0,
+    ch_sten_gosa_got_25: 0,
+    ch_sten_gosa_got_30: 0,
+    ch_sten_gosa_got_35: 0,
+    ch_sten_gosa_got_40: 0,
+    ch_sten_gosa_got_45: 0,
+    ch_sten_gosa_got_50: 0,
+    ch_sten_gosa_got_60: 0,
+    ch_sten_gosa_got_70: 0,
+    ch_sten_gosa_got_80: 0,
+    ch_sten_gosa_got_90: 0,
+    ch_sten_gosa_got_100: 0,
+    // ch_sten_laser
+    ch_sten_laser_eng_20: 0,
+    ch_sten_laser_eng_25: 0,
+    ch_sten_laser_eng_30: 0,
+    ch_sten_laser_eng_35: 0,
+    ch_sten_laser_eng_40: 0,
+    ch_sten_laser_eng_45: 0,
+    ch_sten_laser_eng_50: 0,
+    ch_sten_laser_eng_60: 0,
+    ch_sten_laser_eng_70: 0,
+    ch_sten_laser_eng_80: 0,
+    ch_sten_laser_eng_90: 0,
+    ch_sten_laser_eng_100: 0,
+    ch_sten_laser_got_20: 0,
+    ch_sten_laser_got_25: 0,
+    ch_sten_laser_got_30: 0,
+    ch_sten_laser_got_35: 0,
+    ch_sten_laser_got_40: 0,
+    ch_sten_laser_got_45: 0,
+    ch_sten_laser_got_50: 0,
+    ch_sten_laser_got_60: 0,
+    ch_sten_laser_got_70: 0,
+    ch_sten_laser_got_80: 0,
+    ch_sten_laser_got_90: 0,
+    ch_sten_laser_got_100: 0
 };
 
 var PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
 var _chItems = []; // 채널문자 담기 목록 [{label, details, price}]
 var _skasiItems = []; // 스카시 담기 목록 [{label, price, fieldState}]
 var _lastSkasiItemPrice = 0;
+
+// ── 채널문자 자동 1.3배 파생 (price.js와 동일 규칙 유지) ──────
+var CH_AUTO_RATE = 1.3;
+
+// 재질명 하드코딩 없이 필드 구성에서 파생 관계를 도출 (price.js와 동일 규칙)
+function _chKeyParts(key) {
+    var m = String(key).match(/^ch_(.+)_(eng|kor|got)_([a-z0-9]+)$/);
+    return m ? { mat: m[1], type: m[2], size: m[3] } : null;
+}
+
+function _chHas(key) {
+    return Object.prototype.hasOwnProperty.call(DEFAULT_PRICES, key);
+}
+
+function _chSourceType(mat, size, to) {
+    if (to === 'kor') return 'eng';
+    return _chHas('ch_' + mat + '_kor_' + size) ? 'kor' : 'eng';
+}
+
+// 비어있는 파생 단가를 원본 × 1.3 으로 보정 (이미 값이 있으면 그대로 둔다)
+function chFillDerived(prices) {
+    ['kor', 'got'].forEach(function(to) {
+        Object.keys(DEFAULT_PRICES).forEach(function(key) {
+            var p = _chKeyParts(key);
+            if (!p || p.type !== to) return;
+            var from = _chSourceType(p.mat, p.size, to);
+            var src = Number(prices['ch_' + p.mat + '_' + from + '_' + p.size]) || 0;
+            if (src > 0 && (Number(prices[key]) || 0) === 0) {
+                prices[key] = Math.round(src * CH_AUTO_RATE);
+            }
+        });
+    });
+    return prices;
+}
 
 // ── 단가 Firebase 연동 ──────────────────────────────────────
 var _pricesDoc = null;
@@ -6005,6 +6113,8 @@ $(function(){
                         if (saved[key] !== undefined) PRICES[key] = saved[key];
                     });
                 }
+                // 한글/흘림체 단가가 비어 있으면 영문 × 1.3 으로 보정 (단가표와 동일 규칙)
+                chFillDerived(PRICES);
                 recalcCurrent();
             })
             .catch(function(){});
