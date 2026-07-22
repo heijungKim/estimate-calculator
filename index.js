@@ -307,15 +307,29 @@ function formatCommaInput(el) {
     el.setSelectionRange(newPos, newPos);
 }
 
+// 행의 수량 (미입력/0 이하는 1로 간주)
+function _extraCostQty($row) {
+    var q = parseInt(String($row.find(".extra-cost-qty").val()).replace(/[^0-9]/g, ''));
+    return (q > 0) ? q : 1;
+}
+
 function addExtraCostRow() {
     var $row = $("<div class='extra-cost-row'>" +
         "<input type='text' class='extra-cost-name' placeholder='항목명' />" +
         "<input type='text' inputmode='numeric' class='extra-cost-amount comma-fmt' placeholder='금액' />" +
         "<span class='extra-cost-won'>원</span>" +
+        "<span class='extra-cost-x'>×</span>" +
+        "<input type='text' inputmode='numeric' class='extra-cost-qty' placeholder='수량' value='1' />" +
+        "<span class='extra-cost-won'>개</span>" +
+        "<span class='extra-cost-sum'></span>" +
         "<button type='button' class='btn-remove-extra' title='삭제'>&#10005;</button>" +
     "</div>");
     $("#extra_cost_list").append($row);
     $row.find(".extra-cost-amount").on("input", function(){ formatCommaInput(this); syncExtraCosts(); });
+    $row.find(".extra-cost-qty").on("input", function(){
+        this.value = this.value.replace(/[^0-9]/g, '');
+        syncExtraCosts();
+    });
     $row.find(".btn-remove-extra").on("click", function(){ $(this).closest(".extra-cost-row").remove(); syncExtraCosts(); });
 }
 
@@ -324,14 +338,21 @@ function extraCostBdItems() {
     $(".extra-cost-row").each(function(){
         var _n = $.trim($(this).find(".extra-cost-name").val()) || '추가금액';
         var _a = parseInt(String($(this).find(".extra-cost-amount").val()).replace(/[^0-9]/g,'')) || 0;
-        if(_a > 0) out += "<span class='bd_item'>" + _n + " × 1개 = " + String(_a).replace(/\B(?=(\d{3})+(?!\d))/g,',') + "원</span>";
+        var _q = _extraCostQty($(this));
+        if(_a > 0) out += "<span class='bd_item'>" + _n + " × " + _q + "개 = " + String(_a * _q).replace(/\B(?=(\d{3})+(?!\d))/g,',') + "원</span>";
     });
     return out;
 }
 function syncExtraCosts() {
     var total = 0;
-    $(".extra-cost-amount").each(function(){
-        total += parseInt(String(this.value).replace(/[^0-9]/g,'')) || 0;
+    $(".extra-cost-row").each(function(){
+        var $r  = $(this);
+        var amt = parseInt(String($r.find(".extra-cost-amount").val()).replace(/[^0-9]/g,'')) || 0;
+        var qty = _extraCostQty($r);
+        var sum = amt * qty;
+        total += sum;
+        // 행 소계는 수량이 2개 이상일 때만 표기
+        $r.find(".extra-cost-sum").text((amt > 0 && qty > 1) ? ("= " + fmtNum(sum) + "원") : "");
     });
     $("#more_order_price").val(total).trigger("change");
 }
@@ -339,10 +360,15 @@ function syncExtraCosts() {
 function getExtraCostText() {
     var parts = [];
     $(".extra-cost-row").each(function(){
-        var name = $.trim($(this).find(".extra-cost-name").val()) || '추가';
+        var name = $.trim($(this).find(".extra-cost-name").val());
         var raw  = $(this).find(".extra-cost-amount").val() || '0';
         var amt  = parseInt(String(raw).replace(/[^0-9]/g,'')) || 0;
-        if (amt > 0) parts.push(name + " " + fmtNum(amt) + "원");
+        var qty  = _extraCostQty($(this));
+        // 견적 목록 표기: 추가 항목 (항목명) : 30,000원 (10,000원 × 3개)
+        if (amt > 0) {
+            parts.push("추가 항목" + (name ? (" (" + name + ")") : "") + " : " + fmtNum(amt * qty) + "원"
+                + (qty > 1 ? (" (" + fmtNum(amt) + "원 × " + qty + "개)") : ""));
+        }
     });
     return parts.join(" / ");
 }
@@ -5018,7 +5044,8 @@ function _captureFormState(){
     $(".extra-cost-row").each(function(){
         extraCosts.push({
             name: $(this).find(".extra-cost-name").val() || '',
-            amount: $(this).find(".extra-cost-amount").val() || ''
+            amount: $(this).find(".extra-cost-amount").val() || '',
+            qty: $(this).find(".extra-cost-qty").val() || ''
         });
     });
     var state = { tab: tabClass, fields: fields, extraCosts: extraCosts };
@@ -5064,6 +5091,8 @@ function _restoreFormState(state){
                 var $row = $("#extra_cost_list .extra-cost-row").last();
                 $row.find(".extra-cost-name").val(ec.name);
                 $row.find(".extra-cost-amount").val(ec.amount);
+                // qty 없는 구버전 저장분은 1로
+                $row.find(".extra-cost-qty").val(ec.qty || '1');
             });
             syncExtraCosts();
             // 채널문자 담긴 항목 복원

@@ -154,6 +154,42 @@ function formatCommaInput(el) {
     el.setSelectionRange(newPos, newPos);
 }
 
+// ── 마지막 저장값 로컬 캐시 ───────────────────────────────────
+// Firestore 응답을 기다리는 동안 기본값이 잠깐 보이는 것을 막는다.
+// 화면 표시용 캐시일 뿐이고, 최종 확정값은 항상 Firestore 응답이다.
+var PRICE_CACHE_KEY = 'ws_prices_cache_v1';
+
+function _readPriceCache() {
+    try {
+        var raw = localStorage.getItem(PRICE_CACHE_KEY);
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        // 기본단가 구조가 바뀌었으면(버전 상향) 캐시는 버린다
+        if (!obj || obj._priceVersion !== PRICE_VERSION) return null;
+        return obj;
+    } catch (e) { return null; }
+}
+
+function _writePriceCache(data) {
+    try {
+        var out = { _priceVersion: PRICE_VERSION };
+        Object.keys(DEFAULT_PRICES).forEach(function(key) {
+            if (data[key] !== undefined) out[key] = data[key];
+        });
+        localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(out));
+    } catch (e) {}
+}
+
+// src에 있으면 그 값, 없으면 기본값으로 PRICES와 입력칸을 함께 채운다
+function _paintPrices(src) {
+    Object.keys(DEFAULT_PRICES).forEach(function(key) {
+        var val = (src && src[key] !== undefined) ? src[key] : DEFAULT_PRICES[key];
+        PRICES[key] = val;
+        var $el = $("#p_" + key);
+        if ($el.length) $el.val(fmtNum(val));
+    });
+}
+
 // ── Firebase 연동 ─────────────────────────────────────────────
 var _pricesDoc = null;
 function _initPricesDoc() {
@@ -166,11 +202,35 @@ function _initPricesDoc() {
     } catch(e) {}
 }
 
-function savePricesToFirebase(data) {
+// 저장/불러오기 실패는 반드시 사용자에게 알린다.
+// (예전엔 .catch(function(){}) 로 삼켜서, 실패해도 "적용됨"으로 보였다)
+function _priceError(what, err) {
+    var code = (err && err.code) || '';
+    var msg = what + ' 실패했습니다.\n\n';
+    if (code === 'permission-denied') {
+        msg += '접근 권한이 없습니다. 로그아웃 후 다시 로그인해주세요.';
+    } else if (code === 'unavailable') {
+        msg += '네트워크 연결을 확인해주세요.';
+    } else {
+        msg += '오류: ' + (code || (err && err.message) || '알 수 없음');
+    }
+    alert(msg);
+}
+
+function savePricesToFirebase(data, onDone) {
     _initPricesDoc();
-    if (!_pricesDoc) return;
+    if (!_pricesDoc) {
+        _priceError('단가 저장에', { code: 'unavailable' });
+        return;
+    }
     data._priceVersion = PRICE_VERSION;
-    _pricesDoc.set(data).catch(function(){});
+    _pricesDoc.set(data)
+        .then(function(){
+            // 저장 성공분을 즉시 캐시 → 다음 새로고침부터 바로 이 값이 보인다
+            _writePriceCache(data);
+            if (onDone) onDone();
+        })
+        .catch(function(err){ _priceError('단가 저장에', err); });
 }
 
 function _snapshotsCol() {
@@ -181,7 +241,8 @@ function _snapshotsCol() {
 function savePriceSnapshot(name, prices) {
     var col = _snapshotsCol();
     if (!col) return;
-    col.add({ name: name, savedAt: new Date(), prices: prices }).catch(function(){});
+    col.add({ name: name, savedAt: new Date(), prices: prices })
+        .catch(function(err){ _priceError('단가표 저장에', err); });
 }
 
 function loadPriceSnapshots(callback) {
@@ -298,28 +359,21 @@ function resetPrices() {
 }
 
 $(function() {
-    // 기본값으로 입력 필드 초기화
-    Object.keys(DEFAULT_PRICES).forEach(function(key) {
-        var $el = $("#p_" + key);
-        if ($el.length) $el.val(fmtNum(DEFAULT_PRICES[key]));
-    });
+    // 첫 화면부터 마지막 저장값으로 그린다.
+    // (캐시가 없을 때만 기본값 → 기본값이 잠깐 보였다 바뀌는 깜빡임 방지)
+    _paintPrices(_readPriceCache());
 
-    // Firebase에 저장된 단가 로드
+    // Firebase에 저장된 단가 로드 (최종 확정값)
     _initPricesDoc();
     if (_pricesDoc) {
         _pricesDoc.get()
             .then(function(doc) {
                 if (!doc.exists) return;
                 var saved = doc.data();
-                Object.keys(DEFAULT_PRICES).forEach(function(key) {
-                    if (saved[key] !== undefined) {
-                        PRICES[key] = saved[key];
-                        var $el = $("#p_" + key);
-                        if ($el.length) $el.val(fmtNum(saved[key]));
-                    }
-                });
+                _paintPrices(saved);
+                _writePriceCache(saved);
             })
-            .catch(function(){});
+            .catch(function(err){ _priceError('저장된 단가를 불러오는 데', err); });
     }
 
     // 입력 콤마 포맷
@@ -356,11 +410,13 @@ $(function() {
         if (_previewActive) {
             // 미리보기 중: 바로 적용 (입력값 기준)
             applyPrices();
-            savePricesToFirebase(PRICES);
             clearDiffPreview(false);
             var $b = $(this);
-            $b.text("✓ 적용됨").addClass("applied");
-            setTimeout(function() { $b.text("적용하기").removeClass("applied"); }, 1500);
+            // 저장이 실제로 성공한 뒤에만 "적용됨" 표시
+            savePricesToFirebase(PRICES, function() {
+                $b.text("✓ 적용됨").addClass("applied");
+                setTimeout(function() { $b.text("적용하기").removeClass("applied"); }, 1500);
+            });
         } else {
             // 일반 저장: 이름 팝업
             $("#price_save_name").val('');
@@ -380,12 +436,13 @@ $(function() {
         var name = $.trim($("#price_save_name").val());
         if (!name) { $("#price_save_name").focus(); return; }
         applyPrices();
-        savePricesToFirebase(PRICES);
         savePriceSnapshot(name, JSON.parse(JSON.stringify(PRICES)));
         $("#price_save_modal").fadeOut(150);
         var $btn = $("#btn_apply_prices");
-        $btn.text("✓ 적용됨").addClass("applied");
-        setTimeout(function() { $btn.text("적용하기").removeClass("applied"); }, 1500);
+        savePricesToFirebase(PRICES, function() {
+            $btn.text("✓ 적용됨").addClass("applied");
+            setTimeout(function() { $btn.text("적용하기").removeClass("applied"); }, 1500);
+        });
     });
     $("#price_save_name").keydown(function(e) {
         if (e.key === 'Enter') $("#price_save_confirm").click();
