@@ -4,9 +4,10 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
-  schedule:
-    # GitHub Pages 게시 큐 지연 대비 자동 재시도 (30분마다). 정상 배포 후 제거 가능.
-    - cron: '*/30 * * * *'
+  # 30분 cron 자동 재시도는 제거함.
+  # 대기 중인 실행이 있을 때 새 cron 실행이 그 실행을 취소해버려
+  # 배포가 영영 시작되지 못하는 문제가 있었음(2026-08-06 ~ 08-12).
+  # 배포가 막히면 workflow_dispatch 로 수동 재시도할 것.
 
 permissions:
   contents: read
