@@ -1317,6 +1317,68 @@ input::placeholder {
     text-align: right;
 }
 
+/* ── 계산식 (수식) ── */
+#calc_formula {
+    display: none;
+    padding: 0 0 16px;
+}
+#calc_formula .calc_toggle {
+    background: none;
+    border: none;
+    padding: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8892a4;
+    cursor: pointer;
+}
+#calc_formula .calc_toggle:hover { color: #e94560; }
+#calc_formula .calc_body {
+    background: #fff;
+    border: 1px solid #edf0f5;
+    border-radius: 10px;
+    padding: 10px 14px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+#calc_formula .calc_lines { list-style: none; margin: 0; padding: 0; }
+#calc_formula .calc_lines li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 13px;
+    color: #4a5568;
+    border-bottom: 1px dashed #edf0f5;
+}
+#calc_formula .calc_lines li:last-child { border-bottom: none; }
+#calc_formula .cf_label { flex: 0 0 130px; font-weight: 600; color: #2d3748; }
+#calc_formula .cf_expr {
+    flex: 1 1 auto;
+    font-family: Consolas, Menlo, monospace;
+    font-size: 12.5px;
+    color: #718096;
+    word-break: break-all;
+}
+#calc_formula .cf_amt { flex: 0 0 auto; font-weight: 600; text-align: right; }
+#calc_formula .cf_total {
+    border-top: 1.5px solid #e2e8f0;
+    margin-top: 4px;
+    padding-top: 8px;
+    color: #e94560;
+}
+#calc_formula .cf_total .cf_label,
+#calc_formula .cf_total .cf_amt { color: #e94560; }
+#calc_formula .calc_notes {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 8px 0 0;
+    border-top: 1px dashed #edf0f5;
+    font-size: 11.5px;
+    color: #8892a4;
+}
+#calc_formula .calc_notes li { padding: 2px 0; }
+#calc_formula .calc_notes li:before { content: "※ "; }
+
 /* ── Button ── */
 .btn_area {
     padding: 20px 28px;

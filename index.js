@@ -71,9 +71,9 @@ var DEFAULT_PRICES = {
     ch_complete: 100000,
     ch_trusbar_150: 25000, ch_trusbar_200: 30000, ch_trusbar_250: 40000, ch_trusbar_300: 40000, ch_trusbar_400: 60000,
     // 후렉스 출력 (m²)
-    flex_uv_double: 8000, flex_uv_single: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_punch: 5000, flex_freq: 8000,
-    // 후렉스 후가공 (m²)
-    flex_post_cut: 2000, flex_post_punch: 3000,
+    flex_uv_double: 8000, flex_uv_single: 8000, flex_sol: 7000, flex_high_bright: 11000, flex_freq: 8000,
+    // 후렉스 후가공 (둘레 m당) — 재단+펀치는 두 단가의 합
+    flex_post_cut_m: 2000, flex_post_punch_m: 2000,
     // UV/솔벤 실사 공통 소재 자재단가 (m²)
     uv_white: 10000, uv_white_grey: 10000, uv_clear: 10000,
     uv_clear_mirror: 15000, uv_clear_black: 25000,
@@ -379,6 +379,59 @@ function getAnglePrice(count) {
 
 // ── 최종 가격 10원 단위 반올림 ────────────────────────────
 function _r10(v){ return Math.round(v/10)*10; }
+
+// ── 계산식(수식) 표시 ─────────────────────────────────────
+// calcReset() → calcAdd(항목, 수식, 금액) … → calcRender(합계)
+var _calcRows = [];
+var _calcNotes = [];
+function calcReset(){ _calcRows = []; _calcNotes = []; }
+function calcAdd(label, expr, amount){ _calcRows.push({ label: label, expr: expr, amount: amount }); }
+function calcNote(text){ _calcNotes.push(text); }
+// 금액 표기 (콤마)
+function calcWon(n){ return Math.round(Number(n) || 0).toLocaleString('ko-KR'); }
+// 치수/배수 표기 (m 단위, 소수점 불필요한 0 제거)
+function calcNum(n){
+    return String(Math.round((Number(n) || 0) * 1000) / 1000);
+}
+function calcClear(){ calcReset(); calcRender(null); }
+function calcRender(total){
+    var $box = $("#calc_formula");
+    if (!$box.length) return;
+    if (!_calcRows.length) { $box.hide().empty(); return; }
+
+    var open = localStorage.getItem("calc_formula_open") !== "0";
+    var html = "";
+    html += "<button type='button' class='calc_toggle'>계산식 " + (open ? "숨기기 ▲" : "보기 ▼") + "</button>";
+    html += "<div class='calc_body'" + (open ? "" : " style='display:none'") + ">";
+    html += "<ul class='calc_lines'>";
+    _calcRows.forEach(function(r){
+        html += "<li>";
+        html += "<span class='cf_label'>" + r.label + "</span>";
+        html += "<span class='cf_expr'>" + (r.expr || "") + "</span>";
+        html += "<span class='cf_amt'>" + calcWon(r.amount) + "원</span>";
+        html += "</li>";
+    });
+    if (total !== null && total !== undefined) {
+        html += "<li class='cf_total'><span class='cf_label'>합계</span>";
+        html += "<span class='cf_expr'>10원 단위 반올림</span>";
+        html += "<span class='cf_amt'>" + calcWon(total) + "원</span></li>";
+    }
+    html += "</ul>";
+    if (_calcNotes.length) {
+        html += "<ul class='calc_notes'>";
+        _calcNotes.forEach(function(n){ html += "<li>" + n + "</li>"; });
+        html += "</ul>";
+    }
+    html += "</div>";
+    $box.html(html).show();
+}
+$(document).on("click", "#calc_formula .calc_toggle", function(){
+    var $body = $(this).next(".calc_body");
+    var willOpen = !$body.is(":visible");
+    $body.toggle(willOpen);
+    $(this).text("계산식 " + (willOpen ? "숨기기 ▲" : "보기 ▼"));
+    localStorage.setItem("calc_formula_open", willOpen ? "1" : "0");
+});
 
 // ── 콤마 제거 후 숫자 반환 헬퍼 ────────────────────────────
 function nv(sel) {
@@ -2635,6 +2688,7 @@ function set_actual_top(){ //실사출력 초기설정
 }
 function set_actual_top_option_select(){
 
+	calcClear();
 	var append_html = "";
 	if($("#actual_option01").is(":checked")){ //현수막/텐트천
 		append_html += "<tr>";
@@ -3286,6 +3340,7 @@ $(".woosung_wrap .tab_area ul li").click(function(){
     }
 
     $(".order_info .right_area #order_price").text(0);
+    calcClear();
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////계산식
@@ -4069,50 +4124,80 @@ function whoorex_cal(){ //후렉스 계산
     var target_width = nv("#frame_product_width")/1000;
     var target_vertical = nv("#frame_product_vertical")/1000;
 	var frequency_price = 0;
-    var hole_price = 0;
-    
+
    	var total_price = 0;
-    
+
+    calcReset();
+
     if(target_vertical > 2.2){ //2.2 이상일때
     	 total_price = (target_width * target_vertical) * PRICES.flex_high_bright;
+         calcAdd("출력 (고휘도)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.flex_high_bright) + "원", total_price);
     }else{
         var flex_unit;
+        var flex_unit_name;
         if($("#actual_type02").is(":checked")){ //UV 단면
             flex_unit = PRICES.flex_uv_single;
+            flex_unit_name = "UV 단면";
         }else if($("#actual_type03").is(":checked")){ //강솔벤
             flex_unit = PRICES.flex_sol;
+            flex_unit_name = "강솔벤";
         }else{ //UV 양면 (기본)
             flex_unit = PRICES.flex_uv_double;
+            flex_unit_name = "UV 양면";
         }
         if(target_vertical <= 1){
             total_price = (target_width * 1) * flex_unit;
+            calcAdd("출력 (" + flex_unit_name + ")", calcNum(target_width) + "m × 1m × " + calcWon(flex_unit) + "원", total_price);
+            if(target_width > 0) calcNote("세로 " + calcNum(target_vertical) + "m 는 1m 미만이라 출력비는 세로 1m 로 계산합니다.");
         }else{
             total_price = (target_width * target_vertical) * flex_unit;
+            calcAdd("출력 (" + flex_unit_name + ")", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(flex_unit) + "원", total_price);
         }
     }
     if($("#actual_punch02").is(":checked")){
-        hole_price = (target_width * target_vertical) * PRICES.flex_punch;
+        // 타공 금액은 후가공(펀치) 단가에 포함 — 유무/개수는 기록용
+        calcNote("타공 금액은 후가공(펀치)에 포함되어 있어 타공 개수는 견적 금액에 반영되지 않습니다.");
     }
 
     if($("#actual_more_order02").is(":checked")){
     	frequency_price = target_width * PRICES.flex_freq;
+        calcAdd("고주파 (중간연결)", calcNum(target_width) + "m × " + calcWon(PRICES.flex_freq) + "원", frequency_price);
     }else if($("#actual_more_order03").is(":checked")){
         frequency_price = ((target_width * 3) + (target_vertical * 2)) * PRICES.flex_freq;
+        calcAdd("고주파 (사방연결)", "(" + calcNum(target_width) + "m × 3 + " + calcNum(target_vertical) + "m × 2) × " + calcWon(PRICES.flex_freq) + "원", frequency_price);
     }
 
-    // 후가공: 재단 / 재단+펀치 (면적 비례)
+    // 후가공: 재단 / 재단+펀치 (둘레 비례, 세로 1m 미만은 1m로 올림)
     var post_price = 0;
-    var flex_area = target_width * target_vertical;
+    var post_vertical = (target_vertical <= 1 ? 1 : target_vertical);
+    var flex_perimeter = (target_width + post_vertical) * 2;
+    var perimeter_expr = "(" + calcNum(target_width) + "m + " + calcNum(post_vertical) + "m) × 2";
     if($("#actual_flex_post02").is(":checked")){        //재단
-        post_price = flex_area * (PRICES.flex_post_cut || 0);
+        post_price = flex_perimeter * (PRICES.flex_post_cut_m || 0);
+        calcAdd("후가공 (재단)", perimeter_expr + " × " + calcWon(PRICES.flex_post_cut_m || 0) + "원", post_price);
     }else if($("#actual_flex_post03").is(":checked")){  //재단+펀치
-        post_price = flex_area * ((PRICES.flex_post_cut || 0) + (PRICES.flex_post_punch || 0));
+        post_price = flex_perimeter * ((PRICES.flex_post_cut_m || 0) + (PRICES.flex_post_punch_m || 0));
+        calcAdd("후가공 (재단+펀치)", perimeter_expr + " × (" + calcWon(PRICES.flex_post_cut_m || 0) + "원 + " + calcWon(PRICES.flex_post_punch_m || 0) + "원)", post_price);
+    }
+    if(post_price > 0 && target_vertical > 0 && target_vertical <= 1){
+        calcNote("후가공은 둘레(가로+세로) × 2 로 계산하며, 세로 " + calcNum(target_vertical) + "m 는 1m 로 올림 적용합니다.");
+    }else if(post_price > 0){
+        calcNote("후가공은 둘레(가로+세로) × 2 기준으로 계산합니다.");
     }
 
     var flex_qty = parseInt($("#actual_quantity").val()) || 1;
-    var subtotal = (total_price + frequency_price + hole_price + post_price) * flex_qty;
+    var unit_sum = total_price + frequency_price + post_price;
+    var subtotal = unit_sum * flex_qty;
+    if(flex_qty > 1){
+        calcAdd("수량", calcWon(unit_sum) + "원 × " + flex_qty + "개", subtotal);
+    }
+    var extra = nv("#more_order_price");
+    if(extra){
+        calcAdd("추가 금액", "직접 입력", extra);
+    }
 
     $(".order_info .right_area #order_price").text(String(_r10(subtotal + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    if(target_width > 0){ calcRender(_r10(subtotal + extra)); } else { calcClear(); }
 }
 function uv_sol_silsa(){ //UV / 솔벤 실사 (통합)
 	setTimeout(function(){
@@ -4172,12 +4257,16 @@ function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
 
     // 후가공: 재단/시트돔보/코팅 (소재별 단가). 자재단가에 합산 후 면적 곱
     var post_unit = 0;
+    var post_name = "";
     if($("#actual_more_order02").is(":checked")){        //재단
         post_unit = keys.cut || 0;
+        post_name = "재단";
     }else if($("#actual_more_order04").is(":checked")){  //시트돔보
         post_unit = keys.dombo || 0;
+        post_name = "시트돔보";
     }else if($("#actual_more_order03").is(":checked")){  //코팅
         post_unit = keys.coat || 0;
+        post_name = "코팅";
     }
     // 재단/코팅 금액 표시용 (면적 × 후가공 단가)
     $("#actual_more_order_price").val(fmtNum(Math.floor(area * post_unit)));
@@ -4187,6 +4276,19 @@ function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
 
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
     $("#order_price").text(String(_r10(total_price * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+
+    // ── 계산식 표시
+    calcReset();
+    var _uvUnitExpr = calcWon(mat_unit) + "원" + (post_unit ? " + " + calcWon(post_unit) + "원(" + post_name + ")" : "");
+    calcAdd("출력" + (post_name ? " + " + post_name : ""),
+            calcNum(target_width) + "m × " + calcNum(target_height) + "m × (" + _uvUnitExpr + ")", total_price);
+    if(_rawW > 0 && _ceil100(_rawW) !== _rawW) calcNote("가로 " + fmtNum(_rawW) + "mm → 100mm 단위 올림 " + fmtNum(_ceil100(_rawW)) + "mm");
+    if(_rawH > 0 && _ceil100(_rawH) !== _rawH) calcNote("세로 " + fmtNum(_rawH) + "mm → 100mm 단위 올림 " + fmtNum(_ceil100(_rawH)) + "mm");
+    if(!(_rawH > 0)) calcNote("세로 미입력 시 1m 로 계산합니다.");
+    if(_aqty > 1) calcAdd("수량", calcWon(total_price) + "원 × " + _aqty + "개", total_price * _aqty);
+    var _uvExtra = nv("#more_order_price");
+    if(_uvExtra) calcAdd("추가 금액", "직접 입력", _uvExtra);
+    if(target_width > 0){ calcRender(_r10(total_price * _aqty + _uvExtra)); } else { calcClear(); }
 }
 
 function soosung_silsa(){ //수성실사
@@ -4224,44 +4326,36 @@ function soosung_silsa_cal(){ //수성실사 계산
    	var total_price = 0;
     
   
+    // 계산식 표시용 (항목명 / 수식)
+    calcReset();
+    var _ssLabel = "", _ssExpr = "";
+    function _ssSet(label, expr){ _ssLabel = label; _ssExpr = expr; }
+    // 현수막 세로 구간별: 가로 3~4m는 정액, 그 외는 가로 m당 단가
+    function _ssBanner(tier, unitKey, flatKey){
+        if(target_width >= 3 && target_width <= 4){
+            _ssSet("현수막 (" + tier + ")", "가로 3~4m 정액 " + calcWon(PRICES[flatKey]) + "원");
+            return PRICES[flatKey];
+        }
+        _ssSet("현수막 (" + tier + ")", calcNum(target_width) + "m × " + calcWon(PRICES[unitKey]) + "원/m");
+        return target_width * PRICES[unitKey];
+    }
+
 	if(target_width != 0 && target_vertical != 0){
         if($("#actual_material01").is(":checked")){ //현수막
             if(target_vertical <= 0.9){
-                if(target_width < 3){
-                    total_price = target_width * PRICES.soosung_banner_h9_unit;
-                }else if(target_width <= 4){
-                    total_price = PRICES.soosung_banner_h9_flat;
-                }else{
-                    total_price = target_width * PRICES.soosung_banner_h9_unit;
-                }
+                total_price = _ssBanner("세로 0.9m 이하", "soosung_banner_h9_unit", "soosung_banner_h9_flat");
             }else if(target_vertical <= 1.1){
-                if(target_width < 3){
-                    total_price = target_width * PRICES.soosung_banner_h11_unit;
-                }else if(target_width <= 4){
-                    total_price = PRICES.soosung_banner_h11_flat;
-                }else{
-                    total_price = target_width * PRICES.soosung_banner_h11_unit;
-                }
+                total_price = _ssBanner("세로 1.1m 이하", "soosung_banner_h11_unit", "soosung_banner_h11_flat");
             }else if(target_vertical <= 1.27){
-                if(target_width < 3){
-                    total_price = target_width * PRICES.soosung_banner_h127_unit;
-                }else if(target_width <= 4){
-                    total_price = PRICES.soosung_banner_h127_flat;
-                }else{
-                    total_price = target_width * PRICES.soosung_banner_h127_unit;
-                }
+                total_price = _ssBanner("세로 1.27m 이하", "soosung_banner_h127_unit", "soosung_banner_h127_flat");
             }else if(target_vertical <= 1.5){
-                if(target_width < 3){
-                    total_price = target_width * PRICES.soosung_banner_h150_unit;
-                }else if(target_width <= 4){
-                    total_price = PRICES.soosung_banner_h150_flat;
-                }else{
-                    total_price = target_width * PRICES.soosung_banner_h150_unit;
-                }
+                total_price = _ssBanner("세로 1.5m 이하", "soosung_banner_h150_unit", "soosung_banner_h150_flat");
             }else if(target_vertical <= 1.8){
                 total_price = target_width * target_vertical * PRICES.soosung_banner_h180_sqm;
+                _ssSet("현수막 (세로 1.8m 이하)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_banner_h180_sqm) + "원");
             }else{
                 total_price = target_width * target_vertical * PRICES.soosung_banner_over_sqm;
+                _ssSet("현수막 (세로 1.8m 초과)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_banner_over_sqm) + "원");
             }
         }else if($("#actual_material02").is(":checked") || $("#actual_material03").is(":checked")){ //켈(백색/그레이)
             var kel_vertical_mm = nv("#frame_product_vertical");
@@ -4275,20 +4369,27 @@ function soosung_silsa_cal(){ //수성실사 계산
             var kel_unit = $("#actual_material02").is(":checked") ? PRICES.soosung_kel_white : PRICES.soosung_kel_grey;
             var kel_cut = $("#actual_more_order02").is(":checked") ? (PRICES.silsa_cut || 2000) : 0;
             total_price = target_width * kel_height_mult * (kel_unit + kel_cut);
+            _ssSet("켈 (" + ($("#actual_material02").is(":checked") ? "백색" : "그레이") + ")",
+                   calcNum(target_width) + "m × " + kel_height_mult + "(세로 " + fmtNum(kel_vertical_mm) + "mm 배수) × (" + calcWon(kel_unit) + "원" + (kel_cut ? " + " + calcWon(kel_cut) + "원(재단)" : "") + ")");
         }else if($("#actual_material04").is(":checked")){ //유포(백색)
             total_price = (target_width * target_vertical) * PRICES.soosung_yupo_white;
+            _ssSet("유포 (백색)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_yupo_white) + "원");
         }else if($("#actual_material05").is(":checked")){ //유포(그레이)
             total_price = (target_width * target_vertical) * PRICES.soosung_yupo_grey;
+            _ssSet("유포 (그레이)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_yupo_grey) + "원");
         }else if($("#actual_material06").is(":checked")){ //페트
 
             if(target_width <= 0.6 && target_vertical <= 1.8){
                 total_price = PRICES.soosung_pet_min;
+                _ssSet("페트", "최소금액 " + calcWon(PRICES.soosung_pet_min) + "원 (가로 0.6m·세로 1.8m 이하)");
             }else{
                 total_price = (target_width * target_vertical) * PRICES.soosung_pet;
+                _ssSet("페트", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_pet) + "원");
             }
 
         }else if($("#actual_material07").is(":checked")){ //백릿
             total_price = (target_width * target_vertical) * PRICES.soosung_baklit;
+            _ssSet("백릿", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_baklit) + "원");
         }
  	}
     	console.log(total_price);
@@ -4325,6 +4426,15 @@ function soosung_silsa_cal(){ //수성실사 계산
   
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
     $("#order_price").text(String(_r10((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+
+    // ── 계산식 표시
+    if(_ssLabel) calcAdd(_ssLabel, _ssExpr, total_price);
+    var _ssPost = nv("#actual_more_order_price");
+    if(_ssPost) calcAdd("후가공", "면적 기준 자동 계산", _ssPost);
+    if(_aqty > 1) calcAdd("수량", calcWon(total_price + _ssPost) + "원 × " + _aqty + "개", (total_price + _ssPost) * _aqty);
+    var _ssExtra = nv("#more_order_price");
+    if(_ssExtra) calcAdd("추가 금액", "직접 입력", _ssExtra);
+    calcRender(_r10((total_price + _ssPost) * _aqty + _ssExtra));
 }
 
 function skasi_gomoo(){ //스카시 고무 계산
@@ -5606,11 +5716,21 @@ $(".save_btn").click(function(){
     
     }else if($(".woosung_wrap .tab_area ul li.active").hasClass("child04")){ //실사출력
     	if($("#actual_option01").is(":checked")){ //후렉스
+            total_html += "<li><span class='number'></span>";
+            total_html += $("#actual_option01").parent("label").text();
+            total_html += " / " + $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_type']:checked").parent("label").text();
+            total_html += " / 가로값 : " + $("#frame_product_width").val() + "mm";
+            total_html += " / 세로값 : " + $("#frame_product_vertical").val() + "mm";
+            total_html += " / 타공(유무) : " + $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch']:checked").parent("label").text();
             if($("#actual_punch02").is(":checked")){
-            	total_html = "<li><span class='number'></span>"+$("#actual_option01").parent("label").text()+" / "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_type']:checked").parent("label").text()+" / 가로값 :"+$("#frame_product_width").val()+"mm / 세로값 :"+$("#frame_product_vertical").val()+" / 타공(유무 ):"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch']:checked").parent("label").text()+" / 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_flex_post']:checked").parent("label").text()+" / 추가작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text()+" / 추가금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
-        	}else{
-                total_html = "<li><span class='number'></span>"+$("#actual_option01").parent("label").text()+" / "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_type']:checked").parent("label").text()+" / 가로값 :"+$("#frame_product_width").val()+"mm / 세로값 :"+$("#frame_product_vertical").val()+" / 타공(유무 ):"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch']:checked").parent("label").text()+"/ 타공 개수 : " +$("#actual_punch_count").val()+ "개 / 추가작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text()+" / 추가금액 : "+$("#more_order_price").val()+"원 / 추가입력 사항 : "+$("#add_more_text").val()+"/ 견적 비용 : <span class='list_price'>"+$(".order_info .right_area #order_price").text()+"</span> 원</lI>";
+                total_html += " / 타공 개수 : " + (parseInt($("#actual_punch_count").val()) || 0) + "개";
             }
+            total_html += " / 후가공 : " + $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_flex_post']:checked").parent("label").text();
+            total_html += " / 추가작업 : " + $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
+            total_html += " / 수량 : " + (parseInt($("#actual_quantity").val()) || 1) + "개";
+            total_html += " / 추가금액 : " + fmtNum(nv("#more_order_price")) + "원";
+            total_html += " / 추가입력 사항 : " + $("#add_more_text").val();
+            total_html += " / 견적 비용 : <span class='list_price'>" + $(".order_info .right_area #order_price").text() + "</span> 원</li>";
         }else if($("#actual_option02").is(":checked")){ //UV / 솔벤 실사 (통합)
             total_html += "<li><span class='number'></span>";
             total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text();
@@ -5777,6 +5897,7 @@ $(".save_btn").click(function(){
     _skasiItems = [];
     $(".woosung_wrap .tab_area ul li.active").trigger("click");
     $(".order_info .right_area #order_price").text('0');
+    calcClear();
 });
 function list_delete_func(){
 	$(".total_list ul li .remove_btn").click(function(){
@@ -6208,6 +6329,7 @@ $(function(){
                     on = true;
                 }
             } else {
+                $sp.height($bar.outerHeight());   // 계산식 패널 등으로 바 높이가 변한 경우 보정
                 var spTop = $sp.offset().top;
                 var spH   = $sp.height();
                 // 스크롤로 원래 위치가 뷰포트 안에 들어오면 안착
@@ -6230,6 +6352,9 @@ $(function(){
             });
             var tbl = document.getElementById("option_table");
             if (tbl) mo.observe(tbl, { childList: true, subtree: true, attributes: true });
+            // 계산식 패널 접기/펼치기로 바 높이가 변하는 것도 감지
+            var cf = document.getElementById("calc_formula");
+            if (cf) mo.observe(cf, { childList: true, subtree: true, attributes: true });
         }
 
         check();
