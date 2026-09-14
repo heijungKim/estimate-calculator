@@ -2,13 +2,15 @@
 // 웹 워커(imageconvert-worker.js)와 메인 스레드(워커를 못 쓰는 환경) 양쪽에서 함께 쓰므로
 // DOM·jQuery 에 의존하지 않는다. lib/vtracer/vtracer.js 가 먼저 로드되어야 한다.
 //
-// 변환 엔진은 VTracer(visioncortex). 색상별로 영역을 나눈 뒤 스플라인 곡선으로 따고,
-// 큰 영역 위에 작은 영역을 쌓는 방식이라 색 사이 틈이 생기지 않는다.
+// 확대해도 깨지지 않는 깔끔한 벡터를 위해 두 단계로 처리한다.
+//   1) 단색화: 대표 색을 자동으로 뽑아 모든 픽셀을 그중 하나로 칠하고,
+//      경계의 중간색(안티앨리어싱·JPG 번짐)과 점 잡티를 없앤다.
+//      (이 단계 없이 벡터화하면 중간색이 가는 조각으로 따로 떨어져 확대 시 너덜너덜해진다)
+//   2) VTracer(visioncortex)로 색 영역을 스플라인 곡선으로 따고, 큰 영역 위에 작은 영역을 쌓는다.
 //
 // wsTraceImage(imgd, p) → Promise<{ body, paths, width, height }>
 //   imgd : { width, height, data(Uint8ClampedArray RGBA) }  (흰 배경에 합성된 상태)
-//   p    : { mode:'illust'|'vector'|'mono', detail(1~10), pathomit, smooth(0~5),
-//            removeBg, threshold, invert }
+//   p    : { mode:'illust'|'vector'|'mono', maxColors, mergeDistance, removeBg, threshold, invert }
 //   body : <svg> 안쪽 내용 (viewBox 0 0 width height 기준). 출력 크기(mm)는 페이지에서 감싼다.
 
 (function(root) {
@@ -31,17 +33,8 @@
         return initPromise;
     }
 
-    // 흑백 모드: 명암 기준값으로 이진화
-    function binarize(d, threshold, invert) {
-        for (var i = 0; i < d.length; i += 4) {
-            var dark = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114 < threshold;
-            if (invert) dark = !dark;
-            d[i] = d[i + 1] = d[i + 2] = dark ? 0 : 255;
-            d[i + 3] = 255;
-        }
-    }
-
-    // 배경 제거: 테두리에서 가장 많은 색과 비슷한 픽셀을 테두리부터 이어서 투명하게 만든다.
+    // ── 배경 제거 ──
+    // 테두리에서 가장 많은 색과 비슷한 픽셀을 테두리부터 이어서 투명하게 만든다.
     // (VTracer 는 투명 픽셀을 도형으로 만들지 않는다. 가운데 떨어진 같은 색 영역은 남는다)
     function removeBackground(d, w, h) {
         var bins = {}, best = null, x, y;
@@ -71,34 +64,366 @@
         }
     }
 
-    // 디테일(1~10) → 색 단계 차이. 작을수록 그라데이션·사진을 촘촘한 색 단계로 나눈다.
-    // 24 이상으로 거칠게 하면 불꽃 같은 그라데이션 영역이 배경에 합쳐져 통째로 사라진다.
-    var LAYER_DIFFERENCE = [40, 34, 28, 24, 20, 18, 16, 13, 11, 8];
+    // ── 1) 단색화 ──────────────────────────────────────────────
 
-    function buildOptions(p) {
-        var detail = Math.max(1, Math.min(10, Math.round(p.detail)));
-        var opts = {
+    function makeRandom(seed) {
+        var s = seed >>> 0;
+        return function() { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    }
+
+    function dist2(a, c) {
+        var dr = a[0] - c[0], dg = a[1] - c[1], db = a[2] - c[2];
+        return dr * dr + dg * dg + db * db;
+    }
+
+    // 대표 색 추출: 색상 히스토그램(5비트 칸)에 면적의 제곱근만큼 가중치를 준 k-means++.
+    // 픽셀 수 그대로 가중하면 넓은 배경이 비슷한 색으로 팔레트를 다 차지해 작은 글자색이 빠진다.
+    // 끝으로 mergeDistance 보다 가까운 색끼리 합친다.
+    function buildPalette(d, n, k, mergeDistance) {
+        var bins = new Map(), p, i;
+        for (p = 0; p < n; p++) {
+            i = p * 4;
+            if (d[i + 3] < 128) continue;
+            var key = (d[i] >> 3) << 10 | (d[i + 1] >> 3) << 5 | (d[i + 2] >> 3);
+            var bin = bins.get(key);
+            if (!bin) { bin = [0, 0, 0, 0]; bins.set(key, bin); }
+            bin[0] += d[i]; bin[1] += d[i + 1]; bin[2] += d[i + 2]; bin[3]++;
+        }
+        var minCount = Math.max(2, Math.floor(n * 0.00005)), samples = [], weights = [];
+        bins.forEach(function(b) {
+            if (b[3] < minCount) return;
+            samples.push([b[0] / b[3], b[1] / b[3], b[2] / b[3]]);
+            weights.push(Math.sqrt(b[3]));
+        });
+        var m = samples.length, rnd = makeRandom(20260914), s;
+        if (!m) return [[255, 255, 255]];
+        k = Math.max(1, Math.min(k, m));
+
+        var first = 0;
+        for (s = 1; s < m; s++) if (weights[s] > weights[first]) first = s;
+        var centers = [samples[first].slice()], best = new Float64Array(m);
+        for (s = 0; s < m; s++) best[s] = dist2(samples[s], centers[0]);
+        while (centers.length < k) {
+            var sum = 0;
+            for (s = 0; s < m; s++) sum += best[s] * weights[s];
+            if (sum === 0) break;
+            var target = rnd() * sum, idx = 0;
+            for (s = 0; s < m; s++) { target -= best[s] * weights[s]; if (target <= 0) { idx = s; break; } }
+            var c = samples[idx].slice();
+            centers.push(c);
+            for (s = 0; s < m; s++) { var dd = dist2(samples[s], c); if (dd < best[s]) best[s] = dd; }
+        }
+
+        var acc = [];
+        for (var iter = 0; iter < 12; iter++) {
+            acc = centers.map(function() { return [0, 0, 0, 0]; });
+            for (s = 0; s < m; s++) {
+                var bi = 0, bd = Infinity;
+                for (var ci = 0; ci < centers.length; ci++) {
+                    var dc = dist2(samples[s], centers[ci]);
+                    if (dc < bd) { bd = dc; bi = ci; }
+                }
+                var wt = weights[s];
+                acc[bi][0] += samples[s][0] * wt; acc[bi][1] += samples[s][1] * wt; acc[bi][2] += samples[s][2] * wt; acc[bi][3] += wt;
+            }
+            for (ci = 0; ci < centers.length; ci++) {
+                if (acc[ci][3]) centers[ci] = [acc[ci][0] / acc[ci][3], acc[ci][1] / acc[ci][3], acc[ci][2] / acc[ci][3]];
+            }
+        }
+
+        var items = [];
+        for (i = 0; i < centers.length; i++) if (acc[i][3] > 0) items.push({ c: centers[i], w: acc[i][3] });
+        var limit = mergeDistance * mergeDistance, merged = true;
+        while (merged && items.length > 1) {
+            merged = false;
+            for (var a = 0; a < items.length && !merged; a++) {
+                for (var b2 = a + 1; b2 < items.length && !merged; b2++) {
+                    if (dist2(items[a].c, items[b2].c) >= limit) continue;
+                    var W = items[a].w + items[b2].w, A = items[a], B = items[b2];
+                    A.c = [0, 1, 2].map(function(j) { return (A.c[j] * A.w + B.c[j] * B.w) / W; });
+                    A.w = W;
+                    items.splice(b2, 1);
+                    merged = true;
+                }
+            }
+        }
+        return items.map(function(it) { return it.c.map(Math.round); });
+    }
+
+    // 사람 눈에 가까운 색 거리 (밝기 차이를 크게, 색조 차이도 반영)
+    function nearestColor(r, g, b, pal) {
+        var bi = 0, bd = Infinity;
+        for (var j = 0; j < pal.length; j++) {
+            var dr = r - pal[j][0], dg = g - pal[j][1], db = b - pal[j][2];
+            var dd = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11 + (dr - dg) * (dr - dg) * 0.2 + (dg - db) * (dg - db) * 0.2;
+            if (dd < bd) { bd = dd; bi = j; }
+        }
+        return bi;
+    }
+
+    function quantize(d, n, pal) {
+        var index = new Uint8Array(n);
+        for (var p = 0; p < n; p++) {
+            var i = p * 4;
+            index[p] = nearestColor(d[i], d[i + 1], d[i + 2], pal);
+        }
+        return index;
+    }
+
+    // c 가 a 와 b 를 잇는 선분의 중간쯤(15~85%)에 가까이 있는 색인가
+    function liesBetween(c, a, b) {
+        var abr = b[0] - a[0], abg = b[1] - a[1], abb = b[2] - a[2], len2 = abr * abr + abg * abg + abb * abb;
+        if (len2 < 900) return false;
+        var t = ((c[0] - a[0]) * abr + (c[1] - a[1]) * abg + (c[2] - a[2]) * abb) / len2;
+        if (t < 0.15 || t > 0.85) return false;
+        var dr = a[0] + abr * t - c[0], dg = a[1] + abg * t - c[1], db = a[2] + abb * t - c[2];
+        return dr * dr + dg * dg + db * db < 32 * 32;
+    }
+
+    // 경계의 중간색 흡수.
+    // - 5×5 창 전체가 같은 색인 "꽉 찬 면"이 거의 없는 색 = 경계에만 가는 띠로 있는 색
+    //   (빨강→진빨강→암적색→검정처럼 여러 단계로 이어진 안티앨리어싱도 한 번에 걸러진다)
+    // - 꽉 찬 면이 있어도 면적이 작고 더 큰 두 주요 색 사이 색이면 JPG 번짐으로 본다
+    // 흡수된 픽셀은 원래 픽셀 색과 가장 가까운 주요 색으로 칠한다.
+    function absorbThinColors(d, index, pal, w, h, r) {
+        var k = pal.length, n = w * h, x, y, q, p;
+        var tmin = new Uint8Array(n), tmax = new Uint8Array(n);
+        for (y = 0; y < h; y++) {
+            var base = y * w;
+            for (x = 0; x < w; x++) {
+                var lo = 255, hi = 0, x0 = x - r < 0 ? 0 : x - r, x1 = x + r >= w ? w - 1 : x + r;
+                for (q = x0; q <= x1; q++) { var v = index[base + q]; if (v < lo) lo = v; if (v > hi) hi = v; }
+                tmin[base + x] = lo; tmax[base + x] = hi;
+            }
+        }
+        var solid = new Array(k).fill(0), counts = new Array(k).fill(0);
+        for (x = 0; x < w; x++) {
+            for (y = 0; y < h; y++) {
+                var lo2 = 255, hi2 = 0, y0 = y - r < 0 ? 0 : y - r, y1 = y + r >= h ? h - 1 : y + r;
+                for (q = y0; q <= y1; q++) {
+                    var qi = q * w + x;
+                    if (tmin[qi] < lo2) lo2 = tmin[qi];
+                    if (tmax[qi] > hi2) hi2 = tmax[qi];
+                }
+                if (lo2 === hi2) solid[lo2]++;
+            }
+        }
+        for (p = 0; p < n; p++) counts[index[p]]++;
+
+        var minSolid = Math.max(16, Math.round(n * 0.0002)), major = [];
+        for (var c = 0; c < k; c++) if (solid[c] >= minSolid) major.push(c);
+        major.sort(function(a, b) { return counts[b] - counts[a]; });
+        for (var mi = major.length - 1; mi >= 2; mi--) {
+            var cc = major[mi];
+            if (counts[cc] / n >= 0.015) continue;
+            var between = false;
+            for (var ai = 0; ai < mi && !between; ai++) {
+                for (var bi = ai + 1; bi < mi && !between; bi++) between = liesBetween(pal[cc], pal[major[ai]], pal[major[bi]]);
+            }
+            if (between) major.splice(mi, 1);
+        }
+        if (!major.length || major.length === k) return { index: index, pal: pal };
+
+        var remap = new Int16Array(k).fill(-1);
+        var newPal = major.map(function(ci, i) { remap[ci] = i; return pal[ci]; });
+        var out = new Uint8Array(n);
+        for (p = 0; p < n; p++) {
+            var cur = index[p];
+            if (remap[cur] >= 0) { out[p] = remap[cur]; continue; }
+            var i4 = p * 4;
+            out[p] = nearestColor(d[i4], d[i4 + 1], d[i4 + 2], newPal);
+        }
+        return { index: out, pal: newPal };
+    }
+
+    // 5×5 창 전체가 같은 색인 픽셀 표시 (꽉 찬 면의 안쪽)
+    function solidMask(index, w, h, r) {
+        var n = w * h, tmin = new Uint8Array(n), tmax = new Uint8Array(n), mask = new Uint8Array(n), x, y, q;
+        for (y = 0; y < h; y++) {
+            var base = y * w;
+            for (x = 0; x < w; x++) {
+                var lo = 255, hi = 0, x0 = x - r < 0 ? 0 : x - r, x1 = x + r >= w ? w - 1 : x + r;
+                for (q = x0; q <= x1; q++) { var v = index[base + q]; if (v < lo) lo = v; if (v > hi) hi = v; }
+                tmin[base + x] = lo; tmax[base + x] = hi;
+            }
+        }
+        for (x = 0; x < w; x++) {
+            for (y = 0; y < h; y++) {
+                var lo2 = 255, hi2 = 0, y0 = y - r < 0 ? 0 : y - r, y1 = y + r >= h ? h - 1 : y + r;
+                for (q = y0; q <= y1; q++) {
+                    var qi = q * w + x;
+                    if (tmin[qi] < lo2) lo2 = tmin[qi];
+                    if (tmax[qi] > hi2) hi2 = tmax[qi];
+                }
+                mask[y * w + x] = lo2 === hi2 ? 1 : 0;
+            }
+        }
+        return mask;
+    }
+
+    // 경계 띠 정리 (주변 기준).
+    // 사진 부분에 실제로 있는 회갈색 같은 색이 글자 가장자리의 중간 밝기 픽셀을 차지해 글자에 테두리가 생기는 것을 막는다.
+    // 꽉 찬 면이 아닌 픽셀마다 주변(9×9)에 꽉 찬 면으로 있는 색들을 모아,
+    // 자기 색이 그중에 없고 그 색들 중 두 색 사이의 중간색이면 원래 픽셀 색과 가장 가까운 주변 색으로 붙인다.
+    // (주변과 다른 고유한 색의 가는 선은 중간색이 아니므로 그대로 남는다)
+    function cleanEdgeBands(d, index, pal, w, h) {
+        var k = pal.length, n = w * h, solid = solidMask(index, w, h, 2), out = new Uint8Array(index);
+        var seen = new Uint8Array(k), cand = new Uint8Array(k), R = 4;
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var p = y * w + x;
+                if (solid[p]) continue;
+                var own = index[p], nc = 0, hasOwn = false;
+                for (var dy = -R; dy <= R; dy += 2) {
+                    var yy = y + dy;
+                    if (yy < 0 || yy >= h) continue;
+                    for (var dx = -R; dx <= R; dx += 2) {
+                        var xx = x + dx;
+                        if (xx < 0 || xx >= w) continue;
+                        var q = yy * w + xx;
+                        if (!solid[q]) continue;
+                        var c = index[q];
+                        if (c === own) { hasOwn = true; break; }
+                        if (!seen[c]) { seen[c] = 1; cand[nc++] = c; }
+                    }
+                    if (hasOwn) break;
+                }
+                var replace = false;
+                if (!hasOwn && nc >= 2) {
+                    for (var a = 0; a < nc && !replace; a++) {
+                        for (var b = a + 1; b < nc && !replace; b++) replace = liesBetween(pal[own], pal[cand[a]], pal[cand[b]]);
+                    }
+                }
+                if (replace) {
+                    var i4 = p * 4, sub = [];
+                    for (a = 0; a < nc; a++) sub.push(pal[cand[a]]);
+                    out[p] = cand[nearestColor(d[i4], d[i4 + 1], d[i4 + 2], sub)];
+                }
+                for (a = 0; a < nc; a++) seen[cand[a]] = 0;
+            }
+        }
+        return out;
+    }
+
+    // 다수결 필터: (2r+1)² 창에서 need 칸 이상 차지한 색으로 바꾼다 (동률·미달이면 그대로).
+    // 점 잡티와 경계의 계단을 없애되, 창의 절반 이상 굵기인 가는 획은 보존한다.
+    function modeFilter(index, w, h, k, r, need) {
+        var out = new Uint8Array(index.length), counts = new Uint16Array(k), touched = new Uint8Array((2 * r + 1) * (2 * r + 1));
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var p = y * w + x, cur = index[p], nt = 0;
+                for (var dy = -r; dy <= r; dy++) {
+                    var yy = y + dy < 0 ? 0 : (y + dy >= h ? h - 1 : y + dy), row = yy * w;
+                    for (var dx = -r; dx <= r; dx++) {
+                        var xx = x + dx < 0 ? 0 : (x + dx >= w ? w - 1 : x + dx);
+                        var c = index[row + xx];
+                        if (counts[c]++ === 0) touched[nt++] = c;
+                    }
+                }
+                var best = cur;
+                for (var t = 0; t < nt; t++) if (counts[touched[t]] >= need && counts[touched[t]] > counts[best]) best = touched[t];
+                for (t = 0; t < nt; t++) counts[touched[t]] = 0;
+                out[p] = best;
+            }
+        }
+        return out;
+    }
+
+    // 비슷한 색 묶음 다수결.
+    // 가는 글자 획 안이 남색·짙은 회색·회갈색처럼 비슷한 어두운 색 여러 개로 얼룩덜룩하게 칠해진 경우,
+    // 5×5 창에서 서로 비슷한 색(거리 similar 미만)끼리 개수를 합쳐 가장 큰 묶음을 고르고,
+    // 그 묶음 안에서 가장 많은 색으로 통일한다. 서로 다른 색(글자와 바탕)의 경계는 기존대로 유지된다.
+    function groupModeFilter(index, pal, w, h, similar) {
+        var k = pal.length, limit = similar * similar, same = new Uint8Array(k * k), i, j;
+        for (i = 0; i < k; i++) for (j = 0; j < k; j++) same[i * k + j] = dist2(pal[i], pal[j]) < limit ? 1 : 0;
+        var out = new Uint8Array(index.length), counts = new Uint16Array(k), touched = new Uint8Array(25);
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var p = y * w + x, nt = 0;
+                for (var dy = -2; dy <= 2; dy++) {
+                    var yy = y + dy < 0 ? 0 : (y + dy >= h ? h - 1 : y + dy), row = yy * w;
+                    for (var dx = -2; dx <= 2; dx++) {
+                        var xx = x + dx < 0 ? 0 : (x + dx >= w ? w - 1 : x + dx);
+                        var c = index[row + xx];
+                        if (counts[c]++ === 0) touched[nt++] = c;
+                    }
+                }
+                if (nt === 1) { out[p] = touched[0]; counts[touched[0]] = 0; continue; }
+                var bestGroup = -1, bestColor = index[p];
+                for (i = 0; i < nt; i++) {
+                    var ci = touched[i], group = 0, top = ci;
+                    for (j = 0; j < nt; j++) {
+                        var cj = touched[j];
+                        if (!same[ci * k + cj]) continue;
+                        group += counts[cj];
+                        if (counts[cj] > counts[top]) top = cj;
+                    }
+                    if (group > bestGroup) { bestGroup = group; bestColor = top; }
+                }
+                // 자기 색이 속한 묶음이 창의 절반 이상이면 그 묶음 안에서만 통일 (경계가 밀리지 않도록)
+                var own = index[p], ownGroup = 0, ownTop = own;
+                for (j = 0; j < nt; j++) {
+                    var cj2 = touched[j];
+                    if (!same[own * k + cj2]) continue;
+                    ownGroup += counts[cj2];
+                    if (counts[cj2] > counts[ownTop]) ownTop = cj2;
+                }
+                out[p] = ownGroup >= 13 ? ownTop : bestColor;
+                for (i = 0; i < nt; i++) counts[touched[i]] = 0;
+            }
+        }
+        return out;
+    }
+
+    function cleanIndex(index, w, h, k) {
+        index = modeFilter(index, w, h, k, 1, 5);
+        index = modeFilter(index, w, h, k, 2, 13);
+        return modeFilter(index, w, h, k, 1, 5);
+    }
+
+    function paint(d, index, pal) {
+        for (var p = 0; p < index.length; p++) {
+            var c = pal[index[p]], i = p * 4;
+            d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2];
+        }
+    }
+
+    function flattenColors(d, w, h, maxColors, mergeDistance) {
+        var n = w * h;
+        var pal = buildPalette(d, n, maxColors, mergeDistance);
+        var q = absorbThinColors(d, quantize(d, n, pal), pal, w, h, 2);
+        var index = cleanEdgeBands(d, q.index, q.pal, w, h);
+        index = groupModeFilter(index, q.pal, w, h, 64);
+        paint(d, cleanIndex(index, w, h, q.pal.length), q.pal);
+    }
+
+    // 흑백: 명암 기준으로 이진화한 뒤 같은 다수결 필터로 윤곽의 잡티·계단을 정리
+    function flattenMono(d, w, h, threshold, invert) {
+        var n = w * h, index = new Uint8Array(n);
+        for (var p = 0; p < n; p++) {
+            var i = p * 4, dark = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114 < threshold;
+            index[p] = (invert ? !dark : dark) ? 0 : 1;
+            d[i + 3] = 255;
+        }
+        paint(d, cleanIndex(index, w, h, 2), [[0, 0, 0], [255, 255, 255]]);
+    }
+
+    // ── 2) VTracer ────────────────────────────────────────────
+
+    function traceOptions(p, w, h) {
+        return {
+            clustering: p.mode === 'mono' ? 'bw' : 'color-cluster',
+            hierarchical: 'stacked',
             mode: 'spline',
-            filterSpeckle: p.pathomit,
+            filterSpeckle: Math.max(4, Math.round(Math.max(w, h) / 600)),
+            colorPrecision: 8,
+            layerDifference: 16,
             cornerThreshold: 60,
             lengthThreshold: 4,
             spliceThreshold: 45,
             maxIterations: 10,
             pathPrecision: 2
         };
-        if (p.smooth > 0) opts.simplify = p.smooth * 0.5;
-
-        if (p.mode === 'mono') {
-            opts.clustering = 'bw';
-        } else {
-            opts.clustering = 'color-cluster';
-            opts.hierarchical = 'stacked';
-            // 색 정밀도(비트): 일러스트는 비슷한 색을 조금 더 합친다.
-            // (maxColors 로 색 수를 강제로 줄이면 남색 글자가 갈색이 되는 등 색이 틀어져 쓰지 않는다)
-            opts.colorPrecision = p.mode === 'illust' ? 7 : 8;
-            opts.layerDifference = LAYER_DIFFERENCE[detail - 1];
-        }
-        return opts;
     }
 
     function wsTraceImage(imgd, p) {
@@ -106,16 +431,24 @@
             var w = imgd.width, h = imgd.height;
             var d = new Uint8Array(imgd.data.buffer.slice(0));
 
-            if (p.mode === 'mono') binarize(d, p.threshold, p.invert);
-            else if (p.removeBg) removeBackground(d, w, h);
+            if (p.mode === 'mono') {
+                flattenMono(d, w, h, p.threshold, p.invert);
+            } else {
+                if (p.removeBg) removeBackground(d, w, h);
+                flattenColors(d, w, h, p.maxColors, p.mergeDistance);
+            }
 
-            var raw = root.vtracerWasm.vectorize_rgba(d, w, h, buildOptions(p));
+            var raw = root.vtracerWasm.vectorize_rgba(d, w, h, traceOptions(p, w, h));
             var open = raw.indexOf('<svg'), start = raw.indexOf('>', open) + 1, end = raw.lastIndexOf('</svg>');
             var body = raw.slice(start, end).trim();
 
             if (p.mode === 'mono') {
                 body = body.replace(/fill="#[0-9A-Fa-f]{6}"/g, 'fill="#000000"');
                 if (!p.removeBg) body = '<rect width="' + w + '" height="' + h + '" fill="#FFFFFF"/>' + body;
+            } else {
+                // 이웃한 색 도형 경계가 딱 맞물리지 않아 확대 시 머리카락 같은 틈이 비치지 않도록 같은 색 테두리를 얇게 두른다
+                body = body.replace(/<path d="([^"]*)" fill="(#[0-9A-Fa-f]{6})"\/>/g,
+                    '<path d="$1" fill="$2" stroke="$2" stroke-width="1" stroke-linejoin="round"/>');
             }
 
             return {

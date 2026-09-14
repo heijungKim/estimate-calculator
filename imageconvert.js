@@ -9,18 +9,18 @@ $(function() {
     var MAX_OUTPUT_SIDE = 6000;         // 해상도 개선 결과 긴 변 한도
     var MAX_OUTPUT_PIXELS = 12000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
     var ENHANCE_TARGET_SIDE = 3000;     // 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배)
-    var TRACE_MAX_SIDE = 2400;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (더 키워도 시간만 늘고 차이가 거의 없다)
+    var TRACE_MAX_SIDE = 4000;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (클수록 곡선이 매끈하다)
 
     // 해상도 개선 최적값
     var ENHANCE_OPTIONS = { denoise: 1, crisp: 0.6, sharpen: 0.4, contrast: 0 };
 
     // 변환 방식별 최적값 (imageconvert-trace.js 의 옵션)
     var MODES = {
-        illust: { label: '일러스트', detail: 7, pathomit: 8, smooth: 2,
-                  hint: '색은 살리고 사진·질감은 단순하게 다듬어 일러스트 느낌으로 만듭니다.' },
-        vector: { label: '벡터', detail: 9, pathomit: 4, smooth: 1,
-                  hint: '원본 형태와 색을 최대한 살려 정밀한 벡터로 만듭니다. 파일이 크고 시간이 조금 더 걸려요.' },
-        mono:   { label: '흑백', detail: 7, pathomit: 8, smooth: 1,
+        illust: { label: '일러스트', maxColors: 16, mergeDistance: 40,
+                  hint: '비슷한 색을 합쳐 단순하고 깔끔한 단색 면으로 만듭니다. 확대해도 경계가 깨지지 않아요.' },
+        vector: { label: '벡터', maxColors: 24, mergeDistance: 32,
+                  hint: '대표 색을 더 많이 남겨 원본에 가깝게 만듭니다. 확대해도 경계가 깨지지 않아요.' },
+        mono:   { label: '흑백', maxColors: 2, mergeDistance: 0,
                   hint: '검정 한 가지 색으로 만들어 채널문자·스카시·시트 커팅용 파일에 적합합니다.' }
     };
 
@@ -395,9 +395,8 @@ $(function() {
 
         var params = {
             mode: mode,
-            detail: preset.detail,
-            pathomit: preset.pathomit,
-            smooth: preset.smooth,
+            maxColors: preset.maxColors,
+            mergeDistance: preset.mergeDistance,
             // 흑백은 커팅용이라 배경 없이 검은 도형만, 컬러는 원본이 투명 배경일 때만 배경 제거
             removeBg: mode === 'mono' ? true : state.hasAlpha,
             threshold: 128,
