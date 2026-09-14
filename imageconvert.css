@@ -207,6 +207,15 @@
 }
 .ic-mm-row input:focus { outline: none; border-color: #0f3460; }
 
+.ic-auto-note {
+    background: #f3f6fb;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #0f3460;
+}
+.ic-auto-note p { margin: 4px 0 0; }
+
 .ic-result-size {
     font-size: 13px;
     color: #4a5568;
@@ -290,14 +299,6 @@
     color: #6b7a92;
 }
 .ic-stats strong { color: #1a1a2e; }
-.ic-stale {
-    margin: 0;
-    font-size: 13px;
-    color: #d97706;
-    background: #fff8e6;
-    border-radius: 8px;
-    padding: 8px 12px;
-}
 
 @media (max-width: 900px) {
     .ic-wrap { padding: 0 16px; margin-top: 20px; }

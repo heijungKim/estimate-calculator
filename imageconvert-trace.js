@@ -5,10 +5,11 @@
 // 변환 엔진은 VTracer(visioncortex). 색상별로 영역을 나눈 뒤 스플라인 곡선으로 따고,
 // 큰 영역 위에 작은 영역을 쌓는 방식이라 색 사이 틈이 생기지 않는다.
 //
-// wsTraceImage(imgd, p) → Promise<{ svg, paths, width, height }>
+// wsTraceImage(imgd, p) → Promise<{ body, paths, width, height }>
 //   imgd : { width, height, data(Uint8ClampedArray RGBA) }  (흰 배경에 합성된 상태)
 //   p    : { mode:'illust'|'vector'|'mono', detail(1~10), pathomit, smooth(0~5),
-//            removeBg, threshold, invert, widthMm }
+//            removeBg, threshold, invert }
+//   body : <svg> 안쪽 내용 (viewBox 0 0 width height 기준). 출력 크기(mm)는 페이지에서 감싼다.
 
 (function(root) {
     'use strict';
@@ -100,8 +101,6 @@
         return opts;
     }
 
-    function num(v) { return Math.round(v * 10) / 10; }
-
     function wsTraceImage(imgd, p) {
         return ensureVTracer().then(function() {
             var w = imgd.width, h = imgd.height;
@@ -119,14 +118,8 @@
                 if (!p.removeBg) body = '<rect width="' + w + '" height="' + h + '" fill="#FFFFFF"/>' + body;
             }
 
-            var sizeAttr = p.widthMm > 0
-                ? 'width="' + num(p.widthMm) + 'mm" height="' + num(p.widthMm * h / w) + 'mm"'
-                : 'width="' + w + '" height="' + h + '"';
-            var svg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' + sizeAttr +
-                ' viewBox="0 0 ' + w + ' ' + h + '">' + body + '</svg>';
-
             return {
-                svg: svg,
+                body: body,
                 paths: (body.match(/<path/g) || []).length,
                 width: w,
                 height: h

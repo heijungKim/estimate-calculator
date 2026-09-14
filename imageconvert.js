@@ -1,5 +1,6 @@
 // ── 이미지 변환: 1) 업로드 → 2) 해상도 개선 → 3) 일러스트·벡터 변환 ──
 // 모든 처리는 브라우저 안에서만 이뤄지며 이미지를 서버로 보내지 않는다.
+// 사용자가 품질을 조절하지 않도록, 간판·로고·사진이 섞인 이미지로 비교해 정한 최적값으로 자동 처리한다.
 
 $(function() {
     'use strict';
@@ -7,13 +8,19 @@ $(function() {
     var MAX_SOURCE_PIXELS = 24000000;   // 원본 허용 한도 (약 4900×4900)
     var MAX_OUTPUT_SIDE = 6000;         // 해상도 개선 결과 긴 변 한도
     var MAX_OUTPUT_PIXELS = 12000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
+    var ENHANCE_TARGET_SIDE = 3000;     // 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배)
+    var TRACE_MAX_SIDE = 2400;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (더 키워도 시간만 늘고 차이가 거의 없다)
 
-    var MODE_PRESETS = {
-        illust: { detail: 7, pathomit: 8, smooth: 2,
-                  hint: '색을 단순화하고 곡선을 매끈하게 다듬어 일러스트 느낌으로 만듭니다.' },
-        vector: { detail: 9, pathomit: 4, smooth: 1,
-                  hint: '원본 형태와 색을 최대한 살려 정밀한 벡터로 만듭니다.' },
-        mono:   { detail: 7, pathomit: 8, smooth: 2,
+    // 해상도 개선 최적값
+    var ENHANCE_OPTIONS = { denoise: 1, crisp: 0.6, sharpen: 0.4, contrast: 0 };
+
+    // 변환 방식별 최적값 (imageconvert-trace.js 의 옵션)
+    var MODES = {
+        illust: { label: '일러스트', detail: 7, pathomit: 8, smooth: 2,
+                  hint: '색은 살리고 사진·질감은 단순하게 다듬어 일러스트 느낌으로 만듭니다.' },
+        vector: { label: '벡터', detail: 9, pathomit: 4, smooth: 1,
+                  hint: '원본 형태와 색을 최대한 살려 정밀한 벡터로 만듭니다. 파일이 크고 시간이 조금 더 걸려요.' },
+        mono:   { label: '흑백', detail: 7, pathomit: 8, smooth: 1,
                   hint: '검정 한 가지 색으로 만들어 채널문자·스카시·시트 커팅용 파일에 적합합니다.' }
     };
 
@@ -26,11 +33,10 @@ $(function() {
         step: 1,
         enhCanvas: document.getElementById('ic_enh_canvas'),
         enhDirty: true,
-        enhNote: '',
-        traceResTouched: false,
-        thresholdTouched: false,
-        result: null,       // { svg, paths, width, height, ms, params }
+        mode: 'illust',
+        results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode }
         resultUrl: null,
+        resultSvg: null,
         previewUrl: null,
         worker: null,
         jobId: 0,
@@ -49,13 +55,8 @@ $(function() {
         });
         for (var i = 1; i <= 3; i++) $('#ic_panel_' + i).prop('hidden', i !== n);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (n >= 2) {
-            ensureEnhanced().then(function() {
-                if (state.step !== n) return;
-                if (n === 2) layoutCompare();
-                if (n === 3) enterStep3();
-            });
-        }
+        if (n === 2) ensureEnhanced().then(function() { if (state.step === 2) layoutPreview(); });
+        if (n === 3) enterStep3();
     }
 
     $('#ic_stepper').on('click', '.ic-step.done', function() { gotoStep(+$(this).data('step')); });
@@ -116,9 +117,7 @@ $(function() {
             state.hasAlpha = detectAlpha(img);
             state.enhDirty = true;
             state.enhCanvas.width = 0; // 이전 이미지의 개선 결과가 잠깐 보이지 않도록
-            state.traceResTouched = false;
-            state.thresholdTouched = false;
-            clearResult();
+            clearResults();
             state.maxStep = 1;
 
             $('#ic_thumb').attr('src', url);
@@ -127,7 +126,6 @@ $(function() {
             $('#ic_meta_bytes').text(formatBytes(file.size));
             $('#ic_upload_info, #ic_reset').prop('hidden', false);
             $('#ic_to_step2').prop('disabled', false);
-            $('#ic_remove_bg').prop('checked', state.hasAlpha);
             gotoStep(1);
         };
         img.onerror = function() {
@@ -150,39 +148,16 @@ $(function() {
     }
 
     // ────────────────────────────────────────────────────────
-    //  2단계: 해상도 개선
+    //  2단계: 해상도 개선 (자동)
     // ────────────────────────────────────────────────────────
-    var enhParams = { scale: 2 };
+    // 큰 이미지에서 수 초가 걸리므로 웹 워커에서 돌린다. 이미지가 바뀌면 끝난 결과는 버리고 다시 돌린다.
+    var enh = { running: false, waiters: [], worker: null, noWorker: false, jobId: 0 };
 
-    $('#ic_scale').on('click', 'button', function() {
-        if (+$(this).data('v') === enhParams.scale) return;
-        $(this).addClass('on').siblings().removeClass('on');
-        enhParams.scale = +$(this).data('v');
-        scheduleEnhance();
-    });
-    bindRange('#ic_sharpen', scheduleEnhance);
-    bindRange('#ic_crisp', scheduleEnhance);
-    bindRange('#ic_denoise', scheduleEnhance);
-    bindRange('#ic_contrast', scheduleEnhance);
-
-    // 해상도 개선은 큰 이미지에서 수 초가 걸리므로 웹 워커에서 돌린다.
-    // 처리 중에 설정이 또 바뀌면 끝난 결과는 버리고 최신 설정으로 한 번 더 돌린다.
-    var enh = { timer: null, running: false, waiters: [], worker: null, noWorker: false, jobId: 0 };
-
-    function scheduleEnhance() {
-        state.enhDirty = true;
-        markStale();
-        clearTimeout(enh.timer);
-        $('#ic_enh_busy').prop('hidden', false);
-        enh.timer = setTimeout(kickEnhance, 250);
-    }
-
-    // 최신 설정의 개선 결과가 캔버스에 준비되면 resolve
+    // 현재 이미지의 개선 결과가 캔버스에 준비되면 resolve
     function ensureEnhanced() {
         if (!state.srcImg || (!state.enhDirty && !enh.running)) return Promise.resolve();
         return new Promise(function(resolve) {
             enh.waiters.push(resolve);
-            clearTimeout(enh.timer);
             kickEnhance();
         });
     }
@@ -203,7 +178,7 @@ $(function() {
 
         var job = buildEnhanceJob();
         runEnhanceJob(job).then(function(pixels) {
-            if (state.enhDirty) return; // 처리 중에 설정·이미지가 바뀜 → 결과 폐기
+            if (state.enhDirty) return; // 처리 중에 이미지가 바뀜 → 결과 폐기
             var out = state.enhCanvas;
             out.width = job.tw; out.height = job.th;
             var octx = out.getContext('2d', { willReadFrequently: true });
@@ -213,7 +188,7 @@ $(function() {
             $('#ic_enh_size').text(job.sw + '×' + job.sh + ' → ' + job.tw + '×' + job.th + ' px');
             $('#ic_enh_note').text(job.note);
             updateHeightMm();
-            if (state.step === 2) layoutCompare();
+            if (state.step === 2) layoutPreview();
         }).catch(function(err) {
             $('#ic_enh_note').text('해상도 개선 중 오류가 발생했습니다: ' + (err && err.message || err));
         }).then(function() {
@@ -223,11 +198,12 @@ $(function() {
     }
 
     function buildEnhanceJob() {
-        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight, scale = enhParams.scale;
+        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
 
-        // 결과 크기 한도 적용
+        // 긴 변이 목표 크기에 닿는 정수 배율(1~4배), 메모리 한도 안에서
+        var want = Math.min(4, Math.max(1, Math.ceil(ENHANCE_TARGET_SIDE / Math.max(sw, sh))));
         var maxScale = Math.min(MAX_OUTPUT_SIDE / Math.max(sw, sh), Math.sqrt(MAX_OUTPUT_PIXELS / (sw * sh)));
-        var eff = Math.min(scale, Math.max(1, maxScale));
+        var eff = Math.min(want, Math.max(1, maxScale));
 
         var src = document.createElement('canvas');
         src.width = sw; src.height = sh;
@@ -237,14 +213,11 @@ $(function() {
         return {
             sw: sw, sh: sh,
             tw: Math.round(sw * eff), th: Math.round(sh * eff),
-            note: eff < scale ? '원본이 커서 ' + scale + '배 대신 약 ' + (Math.floor(eff * 10) / 10) + '배로 처리했어요.' : '',
+            note: eff > 1
+                ? '약 ' + (Math.round(eff * 10) / 10) + '배로 자동 확대하고 선명하게 다듬었어요.'
+                : '원본이 충분히 커서 크기는 그대로 두고 선명하게만 다듬었어요.',
             pixels: sctx.getImageData(0, 0, sw, sh).data,
-            options: {
-                denoise: +$('#ic_denoise').val(),
-                crisp: +$('#ic_crisp').val() / 100,
-                sharpen: +$('#ic_sharpen').val() / 100,
-                contrast: +$('#ic_contrast').val() / 100
-            }
+            options: ENHANCE_OPTIONS
         };
     }
 
@@ -287,16 +260,16 @@ $(function() {
     }
 
     // 해상도 개선 결과 미리보기 (화면 맞춤 / 실제 크기)
-    var $compare = $('#ic_compare'), $stage = $('#ic_compare_stage');
+    var $preview = $('#ic_compare'), $stage = $('#ic_compare_stage');
 
-    function layoutCompare() {
+    function layoutPreview() {
         var cv = state.enhCanvas;
         if (!cv.width) return;
         var w, h;
         if ($('#ic_zoom').is(':checked')) {
             w = cv.width; h = cv.height;
         } else {
-            var bw = $compare.innerWidth() - 16, bh = $compare.innerHeight() - 16;
+            var bw = $preview.innerWidth() - 16, bh = $preview.innerHeight() - 16;
             var k = Math.min(bw / cv.width, bh / cv.height);
             w = Math.max(1, Math.floor(cv.width * k));
             h = Math.max(1, Math.floor(cv.height * k));
@@ -305,10 +278,10 @@ $(function() {
     }
 
     $('#ic_zoom').on('change', function() {
-        $compare.toggleClass('zoom', this.checked);
-        layoutCompare();
+        $preview.toggleClass('zoom', this.checked);
+        layoutPreview();
     });
-    $(window).on('resize', function() { if (state.step === 2) layoutCompare(); });
+    $(window).on('resize', function() { if (state.step === 2) layoutPreview(); });
 
     $('#ic_dl_png_enh').on('click', function() {
         ensureEnhanced().then(function() {
@@ -319,86 +292,73 @@ $(function() {
     });
 
     // ────────────────────────────────────────────────────────
-    //  3단계: 일러스트 · 벡터 변환
+    //  3단계: 일러스트 · 벡터 변환 (자동)
     // ────────────────────────────────────────────────────────
-    var mode = 'illust';
-
     $('#ic_mode').on('click', 'button', function() {
+        var m = $(this).data('v');
+        if (m === state.mode) return;
         $(this).addClass('on').siblings().removeClass('on');
-        applyMode($(this).data('v'));
-        markStale();
+        state.mode = m;
+        $('#ic_mode_hint').text(MODES[m].hint);
+        convertCurrent();
     });
 
-    function applyMode(m) {
-        mode = m;
-        var p = MODE_PRESETS[m];
-        setRange('#ic_detail', p.detail);
-        setRange('#ic_pathomit', p.pathomit);
-        setRange('#ic_smooth', p.smooth);
-        $('#ic_mode_hint').text(p.hint);
-        $('#ic_field_threshold').prop('hidden', m !== 'mono');
-        if (m === 'mono') $('#ic_remove_bg').prop('checked', true);
-        else $('#ic_remove_bg').prop('checked', state.hasAlpha);
-        if (m === 'mono' && !state.thresholdTouched) setRange('#ic_threshold', autoThreshold());
-    }
-
-    // Otsu 방식: 밝은 영역과 어두운 영역이 가장 잘 갈리는 명암값을 찾는다.
-    // 128 고정이면 연한 색 글자가 흰색으로 분류돼 사라지는 경우가 많다.
-    function autoThreshold() {
-        var src = state.enhCanvas;
-        if (!src.width) return 128;
-        var k = Math.min(1, 400 / Math.max(src.width, src.height));
-        var w = Math.max(1, Math.round(src.width * k)), h = Math.max(1, Math.round(src.height * k));
-        var c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        var ctx = c.getContext('2d');
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(src, 0, 0, w, h);
-        var d = ctx.getImageData(0, 0, w, h).data, hist = new Array(256).fill(0), n = w * h;
-        for (var i = 0; i < d.length; i += 4) hist[Math.round(d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114)]++;
-        var sumAll = 0;
-        for (i = 0; i < 256; i++) sumAll += i * hist[i];
-        var sumB = 0, wB = 0, best = 128, bestVar = -1;
-        for (i = 0; i < 256; i++) {
-            wB += hist[i];
-            if (!wB) continue;
-            var wF = n - wB;
-            if (!wF) break;
-            sumB += i * hist[i];
-            var mB = sumB / wB, mF = (sumAll - sumB) / wF, between = wB * wF * (mB - mF) * (mB - mF);
-            if (between > bestVar) { bestVar = between; best = i; }
-        }
-        return Math.max(10, Math.min(245, best + 1));
-    }
-
-    bindRange('#ic_threshold', function() { state.thresholdTouched = true; markStale(); });
-    ['#ic_detail', '#ic_pathomit', '#ic_smooth'].forEach(function(sel) {
-        bindRange(sel, markStale);
+    // 출력 크기는 SVG 겉 크기만 바뀌므로 다시 변환하지 않는다
+    $('#ic_width_mm').on('input', function() {
+        updateHeightMm();
+        var r = state.results[state.mode];
+        if (r) showResult(r);
     });
-    bindRange('#ic_trace_res', function() { state.traceResTouched = true; markStale(); });
-    $('#ic_invert, #ic_remove_bg').on('change', markStale);
-    $('#ic_width_mm').on('input', function() { updateHeightMm(); markStale(); });
     $('#ic_dark_bg').on('change', function() { $('#ic_result_box').toggleClass('dark', this.checked); });
+    $('#ic_retry').on('click', convertCurrent);
+    $('#ic_cancel').on('click', function() {
+        stopJob();
+        $('#ic_trace_error').text('변환을 취소했습니다.');
+        $('#ic_retry').prop('hidden', false);
+    });
 
     function enterStep3() {
-        var cv = state.enhCanvas;
-        if (!state.traceResTouched && cv.width) {
-            var longSide = Math.max(cv.width, cv.height);
-            setRange('#ic_trace_res', Math.round(Math.max(800, Math.min(2000, longSide)) / 100) * 100);
-        }
-        if (!$('#ic_mode_hint').text()) applyMode(mode);
-        else if (mode === 'mono' && !state.thresholdTouched) setRange('#ic_threshold', autoThreshold());
+        $('#ic_mode_hint').text(MODES[state.mode].hint);
         updateHeightMm();
-        if (!state.result) showEnhancedPreview();
+        convertCurrent();
+    }
+
+    function convertCurrent() {
+        $('#ic_trace_error').text('');
+        $('#ic_retry').prop('hidden', true);
+        var cached = state.results[state.mode];
+        if (cached) {
+            stopJob();
+            showResult(cached);
+            return;
+        }
+        stopJob();
+        showBusy();
+        var id = state.jobId;
+        ensureEnhanced().then(function() {
+            if (id === state.jobId) beginConvert();
+        });
+    }
+
+    function showBusy() {
+        var started = Date.now();
+        $('#ic_trace_busy').prop('hidden', false);
+        $('#ic_trace_elapsed').text('0');
+        clearInterval(state.timer);
+        state.timer = setInterval(function() {
+            $('#ic_trace_elapsed').text(Math.floor((Date.now() - started) / 1000));
+        }, 500);
+        $('#ic_stats').prop('hidden', true);
+        $('#ic_dl_svg, #ic_dl_png').prop('disabled', true);
+        $('#ic_result_title').text(MODES[state.mode].label + ' 변환 중… (해상도 개선 이미지)');
+        showEnhancedPreview();
     }
 
     function showEnhancedPreview() {
         var cv = state.enhCanvas;
-        $('#ic_result_title').text('변환 전 미리보기 (해상도 개선 이미지)');
-        $('#ic_stats').prop('hidden', true);
+        if (!cv.width) { $('#ic_result_img').removeAttr('src'); return; }
         cv.toBlob(function(blob) {
-            if (!blob || state.result) return;
+            if (!blob || !$('#ic_trace_busy').is(':visible')) return;
             if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
             state.previewUrl = URL.createObjectURL(blob);
             $('#ic_result_img').attr('src', state.previewUrl);
@@ -414,39 +374,12 @@ $(function() {
         }
     }
 
-    function collectParams() {
-        return {
-            mode: mode,
-            detail: +$('#ic_detail').val(),
-            pathomit: +$('#ic_pathomit').val(),
-            smooth: +$('#ic_smooth').val(),
-            threshold: +$('#ic_threshold').val(),
-            invert: $('#ic_invert').is(':checked'),
-            removeBg: $('#ic_remove_bg').is(':checked'),
-            widthMm: parseFloat($('#ic_width_mm').val()) || 0,
-            traceRes: +$('#ic_trace_res').val()
-        };
-    }
-
-    $('#ic_convert').on('click', startConvert);
-    $('#ic_cancel').on('click', function() { stopJob(); $('#ic_trace_error').text('변환을 취소했습니다.'); });
-
-    function startConvert() {
-        $('#ic_convert').prop('disabled', true);
-        ensureEnhanced().then(function() {
-            $('#ic_convert').prop('disabled', false);
-            beginConvert();
-        });
-    }
-
     function beginConvert() {
         var cv = state.enhCanvas;
-        if (!cv.width) return;
-        stopJob();
-        $('#ic_trace_error').text('');
+        if (!cv.width) { finishJob(); return; }
 
-        var params = collectParams();
-        var k = params.traceRes / Math.max(cv.width, cv.height);
+        var mode = state.mode, preset = MODES[mode];
+        var k = Math.min(1, TRACE_MAX_SIDE / Math.max(cv.width, cv.height));
         var w = Math.max(1, Math.round(cv.width * k)), h = Math.max(1, Math.round(cv.height * k));
 
         // 흰 배경에 합성한 변환용 이미지
@@ -460,25 +393,38 @@ $(function() {
         ctx.drawImage(cv, 0, 0, w, h);
         var imgd = ctx.getImageData(0, 0, w, h);
 
-        var id = ++state.jobId, started = Date.now();
-        $('#ic_trace_busy').prop('hidden', false);
-        $('#ic_convert').prop('disabled', true);
-        $('#ic_trace_elapsed').text('0');
-        state.timer = setInterval(function() {
-            $('#ic_trace_elapsed').text(Math.floor((Date.now() - started) / 1000));
-        }, 500);
+        var params = {
+            mode: mode,
+            detail: preset.detail,
+            pathomit: preset.pathomit,
+            smooth: preset.smooth,
+            // 흑백은 커팅용이라 배경 없이 검은 도형만, 컬러는 원본이 투명 배경일 때만 배경 제거
+            removeBg: mode === 'mono' ? true : state.hasAlpha,
+            threshold: 128,
+            invert: false
+        };
+        if (mode === 'mono') {
+            var mono = autoMono(imgd);
+            params.threshold = mono.threshold;
+            params.invert = mono.invert;
+        }
+
+        var id = state.jobId, started = Date.now();
 
         function done(result) {
             if (id !== state.jobId) return;
             finishJob();
             result.ms = Date.now() - started;
-            result.params = params;
-            showResult(result);
+            result.mode = mode;
+            result.aspect = cv.height / cv.width; // mm 세로 크기는 반올림 전 원래 비율로 계산
+            state.results[mode] = result;
+            if (state.mode === mode) showResult(result);
         }
         function fail(message) {
             if (id !== state.jobId) return;
             finishJob();
             $('#ic_trace_error').text('변환에 실패했습니다: ' + message);
+            $('#ic_retry').prop('hidden', false);
         }
         function runOnMainThread() {
             // 워커를 못 쓰는 환경(파일을 직접 연 경우 등): 화면이 잠시 멈출 수 있음
@@ -507,6 +453,36 @@ $(function() {
         worker.postMessage({ id: id, width: w, height: h, buffer: copy.buffer, params: params }, [copy.buffer]);
     }
 
+    // 흑백 모드 자동 설정
+    // - 명암 기준: Otsu 방식으로 밝은 영역과 어두운 영역이 가장 잘 갈리는 값 (고정 128 이면 연한 글자가 사라진다)
+    // - 반전: 테두리가 대부분 어두우면(어두운 바탕에 밝은 글자) 반전해 글자를 검정 도형으로 만든다
+    function autoMono(imgd) {
+        var d = imgd.data, w = imgd.width, h = imgd.height, n = w * h;
+        var step = Math.max(1, Math.floor(n / 200000)), hist = new Array(256).fill(0), count = 0;
+        function lum(p) { var i = p * 4; return Math.round(d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114); }
+        for (var p = 0; p < n; p += step) { hist[lum(p)]++; count++; }
+
+        var sumAll = 0, i;
+        for (i = 0; i < 256; i++) sumAll += i * hist[i];
+        var sumB = 0, wB = 0, best = 128, bestVar = -1;
+        for (i = 0; i < 256; i++) {
+            wB += hist[i];
+            if (!wB) continue;
+            var wF = count - wB;
+            if (!wF) break;
+            sumB += i * hist[i];
+            var mB = sumB / wB, mF = (sumAll - sumB) / wF, between = wB * wF * (mB - mF) * (mB - mF);
+            if (between > bestVar) { bestVar = between; best = i; }
+        }
+        var threshold = Math.max(10, Math.min(245, best + 1));
+
+        var dark = 0, edge = 0, x, y;
+        for (x = 0; x < w; x += 2) { dark += lum(x) < threshold; dark += lum((h - 1) * w + x) < threshold; edge += 2; }
+        for (y = 0; y < h; y += 2) { dark += lum(y * w) < threshold; dark += lum(y * w + w - 1) < threshold; edge += 2; }
+
+        return { threshold: threshold, invert: dark > edge * 0.6 };
+    }
+
     function getWorker() {
         if (state.worker) return state.worker;
         try {
@@ -520,7 +496,6 @@ $(function() {
     function finishJob() {
         clearInterval(state.timer);
         $('#ic_trace_busy').prop('hidden', true);
-        $('#ic_convert').prop('disabled', false);
     }
 
     function stopJob() {
@@ -532,50 +507,59 @@ $(function() {
         finishJob();
     }
 
-    function showResult(r) {
-        state.result = r;
-        if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
-        state.resultUrl = URL.createObjectURL(new Blob([r.svg], { type: 'image/svg+xml' }));
-        $('#ic_result_img').attr('src', state.resultUrl);
-        $('#ic_result_title').text('변환 결과 (' + { illust: '일러스트', vector: '벡터', mono: '흑백' }[r.params.mode] + ')');
+    function buildSvg(r) {
+        var mm = parseFloat($('#ic_width_mm').val()) || 0;
+        var size = mm > 0
+            ? 'width="' + fmtNum(mm) + 'mm" height="' + fmtNum(mm * r.aspect) + 'mm"'
+            : 'width="' + r.width + '" height="' + r.height + '"';
+        return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' + size +
+            ' viewBox="0 0 ' + r.width + ' ' + r.height + '">' + r.body + '</svg>';
+    }
 
-        var size = r.params.widthMm > 0
-            ? fmtNum(r.params.widthMm) + ' × ' + fmtNum(r.params.widthMm * r.height / r.width) + ' mm'
-            : r.width + ' × ' + r.height + ' px';
-        $('#ic_st_size').text(size);
+    function showResult(r) {
+        var svg = buildSvg(r);
+        state.resultSvg = svg;
+        if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+        state.resultUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+        $('#ic_result_img').attr('src', state.resultUrl);
+        $('#ic_result_title').text('변환 결과 (' + MODES[r.mode].label + ')');
+
+        var mm = parseFloat($('#ic_width_mm').val()) || 0;
+        $('#ic_st_size').text(mm > 0
+            ? fmtNum(mm) + ' × ' + fmtNum(mm * r.aspect) + ' mm'
+            : r.width + ' × ' + r.height + ' px');
         $('#ic_st_paths').text(r.paths.toLocaleString() + '개');
-        $('#ic_st_bytes').text(formatBytes(new Blob([r.svg]).size));
+        $('#ic_st_bytes').text(formatBytes(new Blob([svg]).size));
         $('#ic_st_time').text((r.ms / 1000).toFixed(1) + '초');
         $('#ic_stats').prop('hidden', false);
-        $('#ic_stale').prop('hidden', true);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', false);
-        if (r.paths === 0) {
-            $('#ic_trace_error').text('남은 도형이 없습니다. 작은 조각 제거 값을 낮추거나 배경 제거를 끄고 다시 변환해 보세요.');
-        }
+        if (r.paths === 0) $('#ic_trace_error').text('변환할 도형을 찾지 못했습니다. 다른 변환 방식을 선택해 보세요.');
     }
 
-    function markStale() {
-        if (state.result) $('#ic_stale').prop('hidden', false);
-    }
-
-    function clearResult() {
+    function clearResults() {
         stopJob();
-        state.result = null;
+        state.results = {};
+        state.resultSvg = null;
         if (state.resultUrl) { URL.revokeObjectURL(state.resultUrl); state.resultUrl = null; }
         $('#ic_result_img').removeAttr('src');
-        $('#ic_stats, #ic_stale').prop('hidden', true);
+        $('#ic_stats, #ic_retry').prop('hidden', true);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', true);
         $('#ic_trace_error').text('');
     }
 
+    function currentResult() {
+        return state.resultSvg ? state.results[state.mode] : null;
+    }
+
     $('#ic_dl_svg').on('click', function() {
-        if (!state.result) return;
-        var svg = '<?xml version="1.0" encoding="UTF-8"?>\n' + state.result.svg;
-        downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), baseName() + '_' + modeName() + '.svg');
+        var r = currentResult();
+        if (!r) return;
+        var svg = '<?xml version="1.0" encoding="UTF-8"?>\n' + state.resultSvg;
+        downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), baseName() + '_' + MODES[r.mode].label + '.svg');
     });
 
     $('#ic_dl_png').on('click', function() {
-        var r = state.result;
+        var r = currentResult();
         if (!r) return;
         var img = new Image();
         img.onload = function() {
@@ -583,7 +567,7 @@ $(function() {
             c.width = r.width; c.height = r.height;
             c.getContext('2d').drawImage(img, 0, 0, r.width, r.height);
             c.toBlob(function(blob) {
-                if (blob) downloadBlob(blob, baseName() + '_' + modeName() + '.png');
+                if (blob) downloadBlob(blob, baseName() + '_' + MODES[r.mode].label + '.png');
             }, 'image/png');
         };
         img.src = state.resultUrl;
@@ -592,22 +576,6 @@ $(function() {
     // ────────────────────────────────────────────────────────
     //  공통 유틸
     // ────────────────────────────────────────────────────────
-    function bindRange(sel, onChange) {
-        $(sel).on('input', function() {
-            $(sel + '_v').text(this.value);
-            onChange();
-        });
-    }
-
-    function setRange(sel, v) {
-        $(sel).val(v);
-        $(sel + '_v').text($(sel).val());
-    }
-
-    function modeName() {
-        return { illust: '일러스트', vector: '벡터', mono: '흑백' }[state.result ? state.result.params.mode : mode];
-    }
-
     function baseName() {
         var n = (state.file && state.file.name) || '이미지';
         return n.replace(/\.[^.]+$/, '');

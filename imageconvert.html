@@ -167,33 +167,9 @@
 
         <div class="ic-layout">
             <div class="ic-controls">
-                <div class="ic-field">
-                    <label>확대 배율</label>
-                    <div class="ic-seg" id="ic_scale">
-                        <button type="button" data-v="1">1배</button>
-                        <button type="button" data-v="2" class="on">2배</button>
-                        <button type="button" data-v="3">3배</button>
-                        <button type="button" data-v="4">4배</button>
-                    </div>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_crisp">글자·경계 선명화 <output id="ic_crisp_v">60</output></label>
-                    <input type="range" id="ic_crisp" min="0" max="100" step="5" value="60" />
-                    <span class="ic-hint">글자와 도형 경계의 번짐을 걷어냅니다. 로고·간판 이미지는 높게, 사진은 낮게 쓰세요.</span>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_sharpen">선명도 <output id="ic_sharpen_v">40</output></label>
-                    <input type="range" id="ic_sharpen" min="0" max="150" step="5" value="40" />
-                    <span class="ic-hint">세부 질감을 또렷하게 합니다. 테두리에 흰 띠가 생기지 않게 자동 제한돼요.</span>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_denoise">노이즈 제거 <output id="ic_denoise_v">1</output></label>
-                    <input type="range" id="ic_denoise" min="0" max="3" step="1" value="1" />
-                    <span class="ic-hint">JPG 압축 얼룩·글자 주변 색 번짐을 정리합니다.</span>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_contrast">대비 <output id="ic_contrast_v">0</output></label>
-                    <input type="range" id="ic_contrast" min="-30" max="50" step="5" value="0" />
+                <div class="ic-auto-note">
+                    <strong>&#10024; 자동 최적화</strong>
+                    <p class="ic-hint">이미지 크기에 맞춰 확대 배율을 고르고, JPG 얼룩 제거 · 글자 경계 선명화 · 선명도 보정을 최적값으로 적용해요.</p>
                 </div>
                 <div class="ic-result-size">
                     결과 크기 <strong id="ic_enh_size">-</strong>
@@ -237,36 +213,6 @@
                     </div>
                     <span class="ic-hint" id="ic_mode_hint"></span>
                 </div>
-
-                <div class="ic-field" id="ic_field_threshold" hidden>
-                    <label for="ic_threshold">명암 기준 <output id="ic_threshold_v">128</output></label>
-                    <input type="range" id="ic_threshold" min="10" max="245" step="1" value="128" />
-                    <span class="ic-hint">이미지에 맞춰 자동으로 정해져요. 연한 부분이 사라지면 값을 높이세요.</span>
-                    <label class="ic-check"><input type="checkbox" id="ic_invert" /> 흑백 반전 (어두운 바탕에 밝은 글자)</label>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_detail">디테일 <output id="ic_detail_v">7</output></label>
-                    <input type="range" id="ic_detail" min="1" max="10" step="1" value="7" />
-                    <span class="ic-hint">높을수록 그라데이션·사진의 색 단계를 촘촘하게 나눠 원본에 가까워집니다.</span>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_pathomit">작은 조각 제거 <output id="ic_pathomit_v">8</output></label>
-                    <input type="range" id="ic_pathomit" min="0" max="64" step="1" value="8" />
-                    <span class="ic-hint">이 크기(px)보다 작은 점·잡티는 버립니다.</span>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_smooth">곡선 단순화 <output id="ic_smooth_v">2</output></label>
-                    <input type="range" id="ic_smooth" min="0" max="5" step="1" value="2" />
-                    <span class="ic-hint">높을수록 곡선의 점이 줄어 매끈하고 파일이 가벼워집니다. 0이면 원본 윤곽을 그대로 따릅니다.</span>
-                </div>
-                <div class="ic-field">
-                    <label for="ic_trace_res">변환 해상도(긴 변) <span><output id="ic_trace_res_v">1600</output> px</span></label>
-                    <input type="range" id="ic_trace_res" min="400" max="4000" step="100" value="1600" />
-                    <span class="ic-hint">높을수록 정밀하지만 변환 시간이 늘어납니다.</span>
-                </div>
-                <div class="ic-field ic-field-row">
-                    <label class="ic-check"><input type="checkbox" id="ic_remove_bg" /> 배경 제거 (테두리 색을 투명 처리)</label>
-                </div>
                 <div class="ic-field">
                     <label for="ic_width_mm">출력 가로 크기 (mm)</label>
                     <div class="ic-mm-row">
@@ -274,10 +220,13 @@
                         <span class="ic-hint" id="ic_height_mm">세로는 비율에 맞춰 자동</span>
                     </div>
                 </div>
+                <div class="ic-auto-note">
+                    <strong>&#10024; 자동 변환</strong>
+                    <p class="ic-hint">이미지에 맞춰 최고 품질 설정으로 바로 변환해요. 변환 방식을 바꾸면 자동으로 다시 변환합니다.</p>
+                </div>
 
                 <p class="ic-error" id="ic_trace_error"></p>
-
-                <button type="button" class="ic-btn primary block" id="ic_convert">&#10024; 변환하기</button>
+                <button type="button" class="ic-btn ghost block" id="ic_retry" hidden>다시 변환</button>
             </div>
 
             <div class="ic-preview-col">
@@ -299,7 +248,6 @@
                     <span>파일 <strong id="ic_st_bytes">-</strong></span>
                     <span>소요 <strong id="ic_st_time">-</strong></span>
                 </div>
-                <p class="ic-stale" id="ic_stale" hidden>설정이 바뀌었어요. 다시 <strong>변환하기</strong>를 눌러 반영하세요.</p>
             </div>
         </div>
 
