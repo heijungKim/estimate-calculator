@@ -263,18 +263,41 @@ $(function() {
     var $preview = $('#ic_compare'), $stage = $('#ic_compare_stage');
 
     function layoutPreview() {
-        var cv = state.enhCanvas;
+        var cv = state.enhCanvas, view = document.getElementById('ic_view_canvas');
         if (!cv.width) return;
-        var w, h;
-        if ($('#ic_zoom').is(':checked')) {
+        var zoom = $('#ic_zoom').is(':checked'), w, h;
+        if (zoom) {
             w = cv.width; h = cv.height;
         } else {
             var bw = $preview.innerWidth() - 16, bh = $preview.innerHeight() - 16;
-            var k = Math.min(bw / cv.width, bh / cv.height);
+            var k = Math.min(1, bw / cv.width, bh / cv.height);
             w = Math.max(1, Math.floor(cv.width * k));
             h = Math.max(1, Math.floor(cv.height * k));
         }
         $stage.css({ width: w + 'px', height: h + 'px' });
+
+        // 실제 크기면 개선 캔버스를 그대로, 화면 맞춤이면 고품질로 줄인 화면용 캔버스를 보여준다.
+        // (큰 캔버스를 CSS 로 크게 줄이면 브라우저가 거칠게 축소해 글자가 흐리고 지글지글해 보인다)
+        cv.hidden = !zoom;
+        view.hidden = zoom;
+        if (!zoom) drawScaled(cv, view, Math.round(w * (window.devicePixelRatio || 1)), Math.round(h * (window.devicePixelRatio || 1)));
+    }
+
+    // 절반씩 단계적으로 줄여 그리기 (한 번에 많이 줄이면 픽셀을 건너뛰어 가는 획이 끊겨 보인다)
+    function drawScaled(src, dst, w, h) {
+        var cur = src;
+        while (cur.width / 2 > w) {
+            var half = document.createElement('canvas');
+            half.width = Math.ceil(cur.width / 2); half.height = Math.ceil(cur.height / 2);
+            var hctx = half.getContext('2d');
+            hctx.imageSmoothingQuality = 'high';
+            hctx.drawImage(cur, 0, 0, half.width, half.height);
+            cur = half;
+        }
+        dst.width = w; dst.height = h;
+        var ctx = dst.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(cur, 0, 0, w, h);
     }
 
     $('#ic_zoom').on('change', function() {
@@ -310,6 +333,14 @@ $(function() {
         if (r) showResult(r);
     });
     $('#ic_dark_bg').on('change', function() { $('#ic_result_box').toggleClass('dark', this.checked); });
+    $('#ic_result_zoom').on('change', layoutResult);
+
+    // 변환 결과 보기: 기본은 칸에 맞춤, "실제 크기로 보기"면 변환 픽셀 크기 그대로 스크롤해서 확인
+    function layoutResult() {
+        var zoom = $('#ic_result_zoom').is(':checked'), r = state.results[state.mode];
+        $('#ic_result_box').toggleClass('zoom', zoom);
+        $('#ic_result_img').css(zoom && r && state.resultSvg ? { width: r.width + 'px', height: r.height + 'px' } : { width: '', height: '' });
+    }
     $('#ic_retry').on('click', convertCurrent);
     $('#ic_cancel').on('click', function() {
         stopJob();
@@ -361,7 +392,7 @@ $(function() {
             if (!blob || !$('#ic_trace_busy').is(':visible')) return;
             if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
             state.previewUrl = URL.createObjectURL(blob);
-            $('#ic_result_img').attr('src', state.previewUrl);
+            $('#ic_result_img').css({ width: '', height: '' }).attr('src', state.previewUrl);
         }, 'image/png');
     }
 
@@ -401,7 +432,8 @@ $(function() {
             // 흑백은 커팅용이라 배경 없이 검은 도형만, 컬러는 원본이 투명 배경일 때만 배경 제거
             removeBg: mode === 'mono' ? true : state.hasAlpha,
             threshold: 128,
-            invert: false
+            invert: false,
+            srcScale: w / state.srcImg.naturalWidth // 정리 필터 강도를 원본 대비 배율에 맞춘다
         };
         if (mode === 'mono') {
             var mono = autoMono(imgd);
@@ -522,6 +554,7 @@ $(function() {
         if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
         state.resultUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
         $('#ic_result_img').attr('src', state.resultUrl);
+        layoutResult();
         $('#ic_result_title').text('변환 결과 (' + MODES[r.mode].label + ')');
 
         var mm = parseFloat($('#ic_width_mm').val()) || 0;

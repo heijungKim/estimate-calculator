@@ -10,7 +10,8 @@
 //
 // wsTraceImage(imgd, p) → Promise<{ body, paths, width, height }>
 //   imgd : { width, height, data(Uint8ClampedArray RGBA) }  (흰 배경에 합성된 상태)
-//   p    : { mode:'illust'|'vector'|'mono', maxColors, mergeDistance(RGB), mergeDeltaE(Lab), removeBg, threshold, invert }
+//   p    : { mode:'illust'|'vector'|'mono', maxColors, mergeDistance(RGB), mergeDeltaE(Lab), removeBg, threshold, invert,
+//            srcScale(변환용 이미지 가로 / 원본 가로) }
 //   body : <svg> 안쪽 내용 (viewBox 0 0 width height 기준). 출력 크기(mm)는 페이지에서 감싼다.
 
 (function(root) {
@@ -166,22 +167,39 @@
         return items.map(function(it) { return it.c.map(Math.round); });
     }
 
-    // 사람 눈에 가까운 색 거리 (밝기 차이를 크게, 색조 차이도 반영)
-    function nearestColor(r, g, b, pal) {
+    // 픽셀 색 → 가장 가까운 팔레트 색 번호.
+    // 사람 눈 기준 색 공간(Lab)에서 비교하되 색기(a·b) 차이에 가중치를 더 준다.
+    // RGB 로 비교하면 글자 획 사이의 연한 회색이 흰 바탕 대신 사진 부분의 살구색으로 칠해지는 일이 생긴다.
+    // 같은 팔레트로 수백만 픽셀을 비교하므로 RGB 6비트 단위로 결과를 캐시한다.
+    function nearestLab(lab, labs) {
         var bi = 0, bd = Infinity;
-        for (var j = 0; j < pal.length; j++) {
-            var dr = r - pal[j][0], dg = g - pal[j][1], db = b - pal[j][2];
-            var dd = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11 + (dr - dg) * (dr - dg) * 0.2 + (dg - db) * (dg - db) * 0.2;
+        for (var j = 0; j < labs.length; j++) {
+            var dL = lab[0] - labs[j][0], da = lab[1] - labs[j][1], db = lab[2] - labs[j][2];
+            var dd = dL * dL + 1.6 * (da * da + db * db);
             if (dd < bd) { bd = dd; bi = j; }
         }
         return bi;
     }
 
+    function makeMatcher(pal) {
+        var labs = pal.map(toLab), cache = new Int16Array(1 << 18).fill(-1);
+        return function(r, g, b) {
+            var key = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2), v = cache[key];
+            if (v < 0) v = cache[key] = nearestLab(toLab([(r >> 2) * 4 + 2, (g >> 2) * 4 + 2, (b >> 2) * 4 + 2]), labs);
+            return v;
+        };
+    }
+
+    // 캐시 없이 한 픽셀만 비교 (주변 몇 색 중에서 고를 때)
+    function nearestColor(r, g, b, pal) {
+        return nearestLab(toLab([r, g, b]), pal.map(toLab));
+    }
+
     function quantize(d, n, pal) {
-        var index = new Uint8Array(n);
+        var index = new Uint8Array(n), match = makeMatcher(pal);
         for (var p = 0; p < n; p++) {
             var i = p * 4;
-            index[p] = nearestColor(d[i], d[i + 1], d[i + 2], pal);
+            index[p] = match(d[i], d[i + 1], d[i + 2]);
         }
         return index;
     }
@@ -242,12 +260,12 @@
 
         var remap = new Int16Array(k).fill(-1);
         var newPal = major.map(function(ci, i) { remap[ci] = i; return pal[ci]; });
-        var out = new Uint8Array(n);
+        var out = new Uint8Array(n), matchNew = makeMatcher(newPal);
         for (p = 0; p < n; p++) {
             var cur = index[p];
             if (remap[cur] >= 0) { out[p] = remap[cur]; continue; }
             var i4 = p * 4;
-            out[p] = nearestColor(d[i4], d[i4 + 1], d[i4 + 2], newPal);
+            out[p] = matchNew(d[i4], d[i4 + 1], d[i4 + 2]);
         }
         return { index: out, pal: newPal };
     }
@@ -283,9 +301,9 @@
     // 자기 색이 그중에 없고, 그 색들 중 두 색 사이의 중간색이거나 어느 한 주변 색과 눈으로 봐도 비슷하면(ΔE < 45)
     // 원래 픽셀 색과 가장 가까운 주변 색으로 붙인다. (예: 갈색 외곽선 안쪽이 JPG 번짐으로 더 어두워져 생긴 검정 조각)
     // 주변과 뚜렷하게 다른 고유한 색의 가는 선(노랑 바탕 위 검정 선 등)은 그대로 남는다.
-    function cleanEdgeBands(d, index, pal, w, h) {
+    function cleanEdgeBands(d, index, pal, w, h, R) {
         var k = pal.length, n = w * h, solid = solidMask(index, w, h, 2), out = new Uint8Array(index);
-        var seen = new Uint8Array(k), cand = new Uint8Array(k), R = 4;
+        var seen = new Uint8Array(k), cand = new Uint8Array(k);
         var labs = pal.map(toLab), near = new Uint8Array(k * k);
         for (var i = 0; i < k; i++) for (var j = 0; j < k; j++) near[i * k + j] = dist2(labs[i], labs[j]) < 45 * 45 ? 1 : 0;
         for (var y = 0; y < h; y++) {
@@ -353,16 +371,16 @@
     // 가는 글자 획 안이 남색·짙은 회색·회갈색처럼 비슷한 어두운 색 여러 개로 얼룩덜룩하게 칠해진 경우,
     // 5×5 창에서 서로 비슷한 색(거리 similar 미만)끼리 개수를 합쳐 가장 큰 묶음을 고르고,
     // 그 묶음 안에서 가장 많은 색으로 통일한다. 서로 다른 색(글자와 바탕)의 경계는 기존대로 유지된다.
-    function groupModeFilter(index, pal, w, h, similar) {
+    function groupModeFilter(index, pal, w, h, similar, r) {
         var k = pal.length, limit = similar * similar, same = new Uint8Array(k * k), i, j;
         for (i = 0; i < k; i++) for (j = 0; j < k; j++) same[i * k + j] = dist2(pal[i], pal[j]) < limit ? 1 : 0;
-        var out = new Uint8Array(index.length), counts = new Uint16Array(k), touched = new Uint8Array(25);
+        var out = new Uint8Array(index.length), counts = new Uint16Array(k), touched = new Uint8Array((2 * r + 1) * (2 * r + 1)), half = Math.ceil((2 * r + 1) * (2 * r + 1) / 2);
         for (var y = 0; y < h; y++) {
             for (var x = 0; x < w; x++) {
                 var p = y * w + x, nt = 0;
-                for (var dy = -2; dy <= 2; dy++) {
+                for (var dy = -r; dy <= r; dy++) {
                     var yy = y + dy < 0 ? 0 : (y + dy >= h ? h - 1 : y + dy), row = yy * w;
-                    for (var dx = -2; dx <= 2; dx++) {
+                    for (var dx = -r; dx <= r; dx++) {
                         var xx = x + dx < 0 ? 0 : (x + dx >= w ? w - 1 : x + dx);
                         var c = index[row + xx];
                         if (counts[c]++ === 0) touched[nt++] = c;
@@ -388,7 +406,7 @@
                     ownGroup += counts[cj2];
                     if (counts[cj2] > counts[ownTop]) ownTop = cj2;
                 }
-                out[p] = ownGroup >= 13 ? ownTop : bestColor;
+                out[p] = ownGroup >= half ? ownTop : bestColor;
                 for (i = 0; i < nt; i++) counts[touched[i]] = 0;
             }
         }
@@ -400,7 +418,7 @@
     // - 흐림 폭보다 좁은 부스러기(경계에 낀 검정 조각, 가장자리 주황 얼룩)는 이웃 색에 밀려 사라진다
     // - 흐림 폭보다 굵은 획은 그대로 남는다
     // 색 수만큼 지도를 동시에 들고 있으면 메모리가 커서, 한 색씩 흐리며 최댓값만 갱신한다.
-    function smoothLabels(index, w, h, k, r) {
+    function smoothLabels(index, w, h, k, r, passes) {
         var n = w * h, bestVal = new Float32Array(n), bestIdx = new Uint8Array(index);
         var mask = new Float32Array(n), tmp = new Float32Array(n), inv = 1 / (2 * r + 1);
         var present = new Uint8Array(k), p, x, y, q, sum;
@@ -409,7 +427,7 @@
         for (var c = 0; c < k; c++) {
             if (!present[c]) continue;
             for (p = 0; p < n; p++) mask[p] = index[p] === c ? 1 : 0;
-            for (var pass = 0; pass < 2; pass++) {
+            for (var pass = 0; pass < passes; pass++) {
                 for (y = 0; y < h; y++) {
                     var base = y * w, first = mask[base], last = mask[base + w - 1];
                     sum = first * (r + 1);
@@ -488,12 +506,32 @@
         return out;
     }
 
-    function cleanIndex(index, w, h, k) {
+    function cleanIndex(index, w, h, k, t) {
         index = modeFilter(index, w, h, k, 1, 5);
-        index = modeFilter(index, w, h, k, 2, 13);
+        if (t.big) index = modeFilter(index, w, h, k, 2, 13);
         index = modeFilter(index, w, h, k, 1, 5);
-        // 흐림 폭은 이미지 크기에 비례 (2000px 전후 2, 3000px 이상 3)
-        return smoothLabels(index, w, h, k, Math.max(1, Math.min(3, Math.round(Math.max(w, h) / 1000))));
+        return t.smoothR > 0 ? smoothLabels(index, w, h, k, t.smoothR, t.smoothPasses) : index;
+    }
+
+    // 정리 필터 강도: 변환용 이미지가 원본보다 몇 배 큰지(srcScale)에 맞춘다.
+    // 원본 1픽셀짜리 잡티·계단은 확대 배율만큼 커지므로, 필터 창도 그만큼만 키워야
+    // 작은 글자의 가는 획(원본 2~3픽셀)을 잡티로 오인해 깎아내거나 둥글게 뭉개지 않는다.
+    function tuning(p) {
+        var s = Math.max(1, p.srcScale || 2), big = s >= 3;
+        var t = {
+            big: big,
+            thinR: big ? 2 : 1,
+            bandR: big ? 4 : 2,
+            groupR: big ? 2 : 1,
+            smoothR: s >= 3.5 ? 2 : 1,
+            smoothPasses: s >= 3.5 ? 2 : 1,
+            speckle: Math.max(2, Math.round(s * 1.5)),
+            corner: 45,
+            length: 3.5,
+            splice: 45
+        };
+        if (p.tune) for (var key in p.tune) t[key] = p.tune[key];
+        return t;
     }
 
     function paint(d, index, pal) {
@@ -503,40 +541,40 @@
         }
     }
 
-    function flattenColors(d, w, h, maxColors, mergeDistance, mergeDeltaE) {
+    function flattenColors(d, w, h, maxColors, mergeDistance, mergeDeltaE, t) {
         var n = w * h;
         var pal = buildPalette(d, n, maxColors, mergeDistance, mergeDeltaE);
-        var q = absorbThinColors(d, quantize(d, n, pal), pal, w, h, 2);
-        var index = cleanEdgeBands(d, q.index, q.pal, w, h);
-        index = groupModeFilter(index, q.pal, w, h, 64);
-        index = cleanIndex(index, w, h, q.pal.length);
+        var q = absorbThinColors(d, quantize(d, n, pal), pal, w, h, t.thinR);
+        var index = cleanEdgeBands(d, q.index, q.pal, w, h, t.bandR);
+        index = groupModeFilter(index, q.pal, w, h, 64, t.groupR);
+        index = cleanIndex(index, w, h, q.pal.length, t);
         paint(d, absorbSmallIslands(index, q.pal, w, h), q.pal);
     }
 
     // 흑백: 명암 기준으로 이진화한 뒤 같은 다수결 필터로 윤곽의 잡티·계단을 정리
-    function flattenMono(d, w, h, threshold, invert) {
+    function flattenMono(d, w, h, threshold, invert, t) {
         var n = w * h, index = new Uint8Array(n);
         for (var p = 0; p < n; p++) {
             var i = p * 4, dark = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114 < threshold;
             index[p] = (invert ? !dark : dark) ? 0 : 1;
             d[i + 3] = 255;
         }
-        paint(d, cleanIndex(index, w, h, 2), [[0, 0, 0], [255, 255, 255]]);
+        paint(d, cleanIndex(index, w, h, 2, t), [[0, 0, 0], [255, 255, 255]]);
     }
 
     // ── 2) VTracer ────────────────────────────────────────────
 
-    function traceOptions(p, w, h) {
+    function traceOptions(p, t) {
         return {
             clustering: p.mode === 'mono' ? 'bw' : 'color-cluster',
             hierarchical: 'stacked',
             mode: 'spline',
-            filterSpeckle: Math.max(4, Math.round(Math.max(w, h) / 450)), // 이보다 작은 조각(경계에 남은 점)은 버린다
+            filterSpeckle: t.speckle, // 이보다 작은 조각(경계에 남은 점)은 버린다
             colorPrecision: 8,
             layerDifference: 16,
-            cornerThreshold: 60,
-            lengthThreshold: 4,
-            spliceThreshold: 45,
+            cornerThreshold: t.corner,   // 이 각도보다 꺾이면 모서리로 살린다 (글자 끝이 둥글게 뭉개지지 않도록 기본 60보다 낮춤)
+            lengthThreshold: t.length,
+            spliceThreshold: t.splice,
             maxIterations: 10,
             pathPrecision: 2
         };
@@ -544,17 +582,17 @@
 
     function wsTraceImage(imgd, p) {
         return ensureVTracer().then(function() {
-            var w = imgd.width, h = imgd.height;
+            var w = imgd.width, h = imgd.height, t = tuning(p);
             var d = new Uint8Array(imgd.data.buffer.slice(0));
 
             if (p.mode === 'mono') {
-                flattenMono(d, w, h, p.threshold, p.invert);
+                flattenMono(d, w, h, p.threshold, p.invert, t);
             } else {
                 if (p.removeBg) removeBackground(d, w, h);
-                flattenColors(d, w, h, p.maxColors, p.mergeDistance, p.mergeDeltaE);
+                flattenColors(d, w, h, p.maxColors, p.mergeDistance, p.mergeDeltaE, t);
             }
 
-            var raw = root.vtracerWasm.vectorize_rgba(d, w, h, traceOptions(p, w, h));
+            var raw = root.vtracerWasm.vectorize_rgba(d, w, h, traceOptions(p, t));
             var open = raw.indexOf('<svg'), start = raw.indexOf('>', open) + 1, end = raw.lastIndexOf('</svg>');
             var body = raw.slice(start, end).trim();
 

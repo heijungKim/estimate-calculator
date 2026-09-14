@@ -184,7 +184,8 @@
                 </div>
                 <div class="ic-preview" id="ic_compare">
                     <div class="ic-compare-stage" id="ic_compare_stage">
-                        <canvas id="ic_enh_canvas"></canvas>
+                        <canvas id="ic_enh_canvas" hidden></canvas>
+                        <canvas id="ic_view_canvas"></canvas>
                     </div>
                     <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span>해상도 개선 중…</div>
                 </div>
@@ -232,7 +233,10 @@
             <div class="ic-preview-col">
                 <div class="ic-preview-toolbar">
                     <span class="ic-compare-label" id="ic_result_title">변환 전 미리보기 (해상도 개선 이미지)</span>
-                    <label class="ic-check"><input type="checkbox" id="ic_dark_bg" /> 어두운 배경</label>
+                    <span class="ic-toolbar-checks">
+                        <label class="ic-check"><input type="checkbox" id="ic_result_zoom" /> 실제 크기로 보기</label>
+                        <label class="ic-check"><input type="checkbox" id="ic_dark_bg" /> 어두운 배경</label>
+                    </span>
                 </div>
                 <div class="ic-preview ic-checker" id="ic_result_box">
                     <img id="ic_result_img" alt="변환 결과" />
