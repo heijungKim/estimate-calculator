@@ -193,6 +193,7 @@
     cursor: pointer;
     white-space: nowrap;
 }
+#ic_mode { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 .ic-seg button.on { background: #fff; color: #0f3460; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 
 .ic-mm-row { display: flex; align-items: center; gap: 10px; }

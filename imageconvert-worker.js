@@ -15,7 +15,7 @@ self.onmessage = function(e) {
         }
         var imgd = { width: msg.width, height: msg.height, data: new Uint8ClampedArray(msg.buffer) };
         self.wsTraceImage(imgd, msg.params).then(function(result) {
-            self.postMessage({ id: msg.id, ok: true, result: result });
+            self.postMessage({ id: msg.id, ok: true, result: result }, result.mask ? [result.mask.buffer] : []);
         }, fail);
     } catch (err) {
         fail(err);

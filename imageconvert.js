@@ -13,9 +13,13 @@ $(function() {
 
     // 해상도 개선 최적값
     var ENHANCE_OPTIONS = { denoise: 1, crisp: 0.6, sharpen: 0.4, contrast: 0 };
+    // 원본 유지 모드에서 사진 부분에 넣을 이미지용: 글자 경계 선명화는 사진에 자글자글한 흰 점을 만들어 끈다
+    var PHOTO_ENHANCE_OPTIONS = { denoise: 0, crisp: 0, sharpen: 0.3, contrast: 0 };
 
     // 변환 방식별 최적값 (imageconvert-trace.js 의 옵션)
     var MODES = {
+        hybrid: { label: '원본유지', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17, hybrid: true,
+                  hint: '글자·도형은 확대해도 깨지지 않는 벡터로, 사진·그라데이션은 선명하게 키운 원본 이미지를 그대로 넣습니다. 실사출력·현수막용으로 가장 원본에 가깝습니다.' },
         illust: { label: '일러스트', maxColors: 16, mergeDistance: 56, mergeDeltaE: 20,
                   hint: '비슷한 색을 합쳐 단순하고 깔끔한 단색 면으로 만듭니다. 확대해도 경계가 깨지지 않아요.' },
         vector: { label: '벡터', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17,
@@ -33,8 +37,8 @@ $(function() {
         step: 1,
         enhCanvas: document.getElementById('ic_enh_canvas'),
         enhDirty: true,
-        mode: 'illust',
-        results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode }
+        mode: 'hybrid',
+        results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode, overlay }
         resultUrl: null,
         resultSvg: null,
         previewUrl: null,
@@ -433,7 +437,8 @@ $(function() {
             removeBg: mode === 'mono' ? true : state.hasAlpha,
             threshold: 128,
             invert: false,
-            srcScale: w / state.srcImg.naturalWidth // 정리 필터 강도를 원본 대비 배율에 맞춘다
+            srcScale: w / state.srcImg.naturalWidth, // 정리 필터 강도를 원본 대비 배율에 맞춘다
+            hybrid: !!preset.hybrid
         };
         if (mode === 'mono') {
             var mono = autoMono(imgd);
@@ -445,12 +450,17 @@ $(function() {
 
         function done(result) {
             if (id !== state.jobId) return;
-            finishJob();
-            result.ms = Date.now() - started;
             result.mode = mode;
             result.aspect = cv.height / cv.width; // mm 세로 크기는 반올림 전 원래 비율로 계산
-            state.results[mode] = result;
-            if (state.mode === mode) showResult(result);
+            var ready = result.mask ? buildPhotoOverlay(result, w, h) : Promise.resolve();
+            ready.then(function() {
+                if (id !== state.jobId) return;
+                finishJob();
+                result.ms = Date.now() - started;
+                result.mask = null;
+                state.results[mode] = result;
+                if (state.mode === mode) showResult(result);
+            }, function(err) { fail(err && err.message || err); });
         }
         function fail(message) {
             if (id !== state.jobId) return;
@@ -539,13 +549,51 @@ $(function() {
         finishJob();
     }
 
+    // 원본 유지 모드: 사진 영역에만 보이는(마스크를 알파로 쓴) 선명하게 키운 원본 이미지를 PNG 로 만든다
+    function buildPhotoOverlay(result, w, h) {
+        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
+        var src = document.createElement('canvas');
+        src.width = sw; src.height = sh;
+        var sctx = src.getContext('2d', { willReadFrequently: true });
+        sctx.drawImage(img, 0, 0);
+        var job = { sw: sw, sh: sh, tw: w, th: h, pixels: sctx.getImageData(0, 0, sw, sh).data, options: PHOTO_ENHANCE_OPTIONS };
+        return runEnhanceJob(job).then(function(pixels) {
+            var mask = result.mask;
+            for (var p = 0, i = 0; p < mask.length; p++, i += 4) {
+                var a = mask[p];
+                if (a === 0) { pixels[i] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = 0; continue; }
+                pixels[i + 3] = Math.round(pixels[i + 3] * a / 255);
+            }
+            var c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            var ctx = c.getContext('2d');
+            var id = ctx.createImageData(w, h);
+            id.data.set(pixels);
+            ctx.putImageData(id, 0, 0);
+            return new Promise(function(resolve, reject) {
+                c.toBlob(function(blob) {
+                    if (!blob) { reject(new Error('사진 영역 이미지를 만들지 못했습니다.')); return; }
+                    var reader = new FileReader();
+                    reader.onload = function() { result.overlay = reader.result; resolve(); };
+                    reader.onerror = function() { reject(new Error('사진 영역 이미지를 읽지 못했습니다.')); };
+                    reader.readAsDataURL(blob);
+                }, 'image/png');
+            });
+        });
+    }
+
     function buildSvg(r) {
         var mm = parseFloat($('#ic_width_mm').val()) || 0;
         var size = mm > 0
             ? 'width="' + fmtNum(mm) + 'mm" height="' + fmtNum(mm * r.aspect) + 'mm"'
             : 'width="' + r.width + '" height="' + r.height + '"';
-        return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ' + size +
-            ' viewBox="0 0 ' + r.width + ' ' + r.height + '">' + r.body + '</svg>';
+        // 일러스트레이터 등 구버전 호환을 위해 href 와 xlink:href 를 함께 쓴다
+        var overlay = r.overlay
+            ? '<image x="0" y="0" width="' + r.width + '" height="' + r.height + '" preserveAspectRatio="none" href="' +
+              r.overlay + '" xlink:href="' + r.overlay + '"/>'
+            : '';
+        return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" ' + size +
+            ' viewBox="0 0 ' + r.width + ' ' + r.height + '">' + r.body + overlay + '</svg>';
     }
 
     function showResult(r) {

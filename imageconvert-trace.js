@@ -11,7 +11,7 @@
 // wsTraceImage(imgd, p) → Promise<{ body, paths, width, height }>
 //   imgd : { width, height, data(Uint8ClampedArray RGBA) }  (흰 배경에 합성된 상태)
 //   p    : { mode:'illust'|'vector'|'mono', maxColors, mergeDistance(RGB), mergeDeltaE(Lab), removeBg, threshold, invert,
-//            srcScale(변환용 이미지 가로 / 원본 가로) }
+//            srcScale(변환용 이미지 가로 / 원본 가로), hybrid(원본 유지: 사진 영역 마스크도 계산) }
 //   body : <svg> 안쪽 내용 (viewBox 0 0 width height 기준). 출력 크기(mm)는 페이지에서 감싼다.
 
 (function(root) {
@@ -642,16 +642,103 @@
         };
     }
 
+    // 단일 채널 박스 블러 (passes 회 반복, 가장자리는 끝 값 반복)
+    function blurChannel(a, w, h, r, passes) {
+        var src = new Float32Array(a), tmp = new Float32Array(a.length), inv = 1 / (2 * r + 1);
+        var x, y, k, sum, base, first, last, add, sub;
+        for (var pass = 0; pass < passes; pass++) {
+            for (y = 0; y < h; y++) {
+                base = y * w; first = src[base]; last = src[base + w - 1];
+                sum = first * (r + 1);
+                for (k = 1; k <= r; k++) sum += k < w ? src[base + k] : last;
+                for (x = 0; x < w; x++) {
+                    tmp[base + x] = sum * inv;
+                    add = x + r + 1; sub = x - r;
+                    sum += (add < w ? src[base + add] : last) - (sub > 0 ? src[base + sub] : first);
+                }
+            }
+            for (x = 0; x < w; x++) {
+                first = tmp[x]; last = tmp[(h - 1) * w + x];
+                sum = first * (r + 1);
+                for (k = 1; k <= r; k++) sum += k < h ? tmp[k * w + x] : last;
+                for (y = 0; y < h; y++) {
+                    src[y * w + x] = sum * inv;
+                    add = y + r + 1; sub = y - r;
+                    sum += (add < h ? tmp[add * w + x] : last) - (sub > 0 ? tmp[sub * w + x] : first);
+                }
+            }
+        }
+        return src;
+    }
+
+    // (2r+1)² 창의 최댓값 (가로→세로 분리)
+    function maxFilter(a, w, h, r) {
+        var n = w * h, tmp = new Float32Array(n), out = new Float32Array(n), x, y, k, hi, k0, k1;
+        for (y = 0; y < h; y++) {
+            var base = y * w;
+            for (x = 0; x < w; x++) {
+                k0 = x - r < 0 ? 0 : x - r; k1 = x + r >= w ? w - 1 : x + r; hi = 0;
+                for (k = k0; k <= k1; k++) if (a[base + k] > hi) hi = a[base + k];
+                tmp[base + x] = hi;
+            }
+        }
+        for (x = 0; x < w; x++) {
+            for (y = 0; y < h; y++) {
+                k0 = y - r < 0 ? 0 : y - r; k1 = y + r >= h ? h - 1 : y + r; hi = 0;
+                for (k = k0; k <= k1; k++) if (tmp[k * w + x] > hi) hi = tmp[k * w + x];
+                out[y * w + x] = hi;
+            }
+        }
+        return out;
+    }
+
+    // ── 원본 유지(하이브리드)용 사진 영역 판단 ──
+    // 단색화 결과가 원본과 넓게 크게 달라지는 곳 = 사진·그라데이션처럼 단색 도형으로는 표현할 수 없는 곳.
+    // 두 이미지를 먼저 살짝 흐려 비교해 글자 가장자리의 미세한 차이는 무시하고,
+    // 차이를 넓게 평균 내서 일정 이상인 영역만 사진으로 본다. 경계는 부드럽게 페더링한다.
+    // 반환: 픽셀별 0~255 (255 = 원본 이미지를 그대로 쓸 곳)
+    function detailMask(orig, flat, w, h, s) {
+        var n = w * h, fine = Math.max(1, Math.round(s)), wide = Math.max(6, Math.round(8 * s));
+        var diff = new Float32Array(n), c, p;
+        for (c = 0; c < 3; c++) {
+            var a = new Float32Array(n), b = new Float32Array(n);
+            for (p = 0; p < n; p++) { a[p] = orig[p * 4 + c]; b[p] = flat[p * 4 + c]; }
+            a = blurChannel(a, w, h, fine, 2);
+            b = blurChannel(b, w, h, fine, 2);
+            for (p = 0; p < n; p++) { var dv = a[p] - b[p]; diff[p] += dv < 0 ? -dv : dv; }
+        }
+        for (p = 0; p < n; p++) diff[p] = orig[p * 4 + 3] < 128 ? 0 : diff[p] / 3;
+        diff = blurChannel(diff, w, h, wide, 2);
+        for (p = 0; p < n; p++) {
+            var v = (diff[p] - MASK_LOW) / (MASK_HIGH - MASK_LOW);
+            diff[p] = v < 0 ? 0 : (v > 1 ? 1 : v);
+        }
+        // 한 번 넓혀서(최댓값) 사진 가장자리까지 덮은 뒤 부드럽게 흐린다
+        var grown = maxFilter(diff, w, h, Math.max(2, Math.round(3 * s)));
+        grown = blurChannel(grown, w, h, Math.max(2, Math.round(2 * s)), 1);
+        var mask = new Uint8Array(n), any = false;
+        for (p = 0; p < n; p++) {
+            var m = grown[p] * 255;
+            mask[p] = m < 6 ? 0 : (m > 249 ? 255 : m);
+            if (mask[p]) any = true;
+        }
+        return any ? mask : null;
+    }
+    var MASK_LOW = 9, MASK_HIGH = 16;
+
     function wsTraceImage(imgd, p) {
         return ensureVTracer().then(function() {
             var w = imgd.width, h = imgd.height, t = tuning(p);
             var d = new Uint8Array(imgd.data.buffer.slice(0));
 
+            var mask = null;
             if (p.mode === 'mono') {
                 flattenMono(d, w, h, p.threshold, p.invert, t);
             } else {
                 if (p.removeBg) removeBackground(d, w, h);
+                var orig = p.hybrid ? d.slice() : null;
                 flattenColors(d, w, h, p.maxColors, p.mergeDistance, p.mergeDeltaE, t);
+                if (p.hybrid) mask = detailMask(orig, d, w, h, Math.max(1, p.srcScale || 2));
             }
 
             var raw = root.vtracerWasm.vectorize_rgba(d, w, h, traceOptions(p, t));
@@ -671,7 +758,8 @@
                 body: body,
                 paths: (body.match(/<path/g) || []).length,
                 width: w,
-                height: h
+                height: h,
+                mask: mask   // 원본 유지 모드: 원본 이미지를 덮어 보여줄 영역 (없으면 null)
             };
         });
     }
