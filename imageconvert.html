@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>이미지 변환 - 우성디지탈 관리 시스템</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="imageconvert.css" />
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <a href="index.html" class="sidebar-brand" style="text-decoration:none">
+        <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
+        <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
+    </a>
+            <nav class="sidebar-nav">
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128203;</span>
+                <span class="nav-cat-label">견적</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="index.html" class="nav-item">
+                    <span class="nav-icon">&#9998;</span>
+                    <span>견적 계산기</span>
+                </a>
+                <a href="estimates.html" class="nav-item">
+                    <span class="nav-icon">&#128196;</span>
+                    <span>견적서 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#9881;</span>
+                <span class="nav-cat-label">관리</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="price.html" class="nav-item">
+                    <span class="nav-icon">&#128176;</span>
+                    <span>단가 설정표</span>
+                </a>
+                <a href="materials.html" class="nav-item">
+                    <span class="nav-icon">&#128230;</span>
+                    <span>자재 관리</span>
+                </a>
+                <a href="vendor.html" class="nav-item">
+                    <span class="nav-icon">&#9679;</span>
+                    <span>업체 관리</span>
+                </a>
+                <a href="print_history.html" class="nav-item">
+                    <span class="nav-icon">&#128424;</span>
+                    <span>출력 내역</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128101;</span>
+                <span class="nav-cat-label">인사/급여</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="employees.html" class="nav-item">
+                    <span class="nav-icon">&#128100;</span>
+                    <span>직원 관리</span>
+                </a>
+                <a href="leave.html" class="nav-item">
+                    <span class="nav-icon">&#128197;</span>
+                    <span>연차 관리</span>
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">&#127761;</span><span>야간 수당 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#127912;</span>
+                <span class="nav-cat-label">도구</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="imageconvert.html" class="nav-item active">
+                    <span class="nav-icon">&#128444;</span>
+                    <span>이미지 변환</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <button type="button" class="nav-logout" onclick="wsLogout()">
+        <span class="nav-icon">&#9711;</span>
+        <span>로그아웃</span>
+    </button>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="logo.svg" class="logo-img" alt="우성디지탈" />
+            <span class="logo-text">우성디지탈 관리 시스템</span>
+        </div>
+        <p class="header-sub">이미지를 선명하게 개선하고 일러스트 · 벡터(SVG)로 변환하세요</p>
+    </div>
+</header>
+
+<div class="ic-wrap">
+
+    <!-- 단계 표시 -->
+    <ol class="ic-stepper" id="ic_stepper">
+        <li class="ic-step active" data-step="1">
+            <span class="ic-step-num">1</span>
+            <span class="ic-step-label">이미지 업로드</span>
+        </li>
+        <li class="ic-step" data-step="2">
+            <span class="ic-step-num">2</span>
+            <span class="ic-step-label">해상도 개선</span>
+        </li>
+        <li class="ic-step" data-step="3">
+            <span class="ic-step-num">3</span>
+            <span class="ic-step-label">일러스트 · 벡터 변환</span>
+        </li>
+    </ol>
+
+    <!-- ── 1단계: 업로드 ── -->
+    <section class="ic-card" id="ic_panel_1">
+        <div class="ic-card-title"><span class="title-bar"></span>1. 이미지 업로드</div>
+
+        <label class="ic-drop" id="ic_drop">
+            <input type="file" id="ic_file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" hidden />
+            <span class="ic-drop-icon">&#128444;</span>
+            <span class="ic-drop-main">이미지를 끌어다 놓거나 클릭해서 선택하세요</span>
+            <span class="ic-drop-sub">PNG · JPG · WEBP · GIF · BMP &nbsp;|&nbsp; 클립보드 붙여넣기(Ctrl+V)도 가능</span>
+        </label>
+
+        <div class="ic-upload-info" id="ic_upload_info" hidden>
+            <div class="ic-thumb-box"><img id="ic_thumb" alt="업로드한 이미지" /></div>
+            <dl class="ic-meta">
+                <div><dt>파일명</dt><dd id="ic_meta_name">-</dd></div>
+                <div><dt>원본 크기</dt><dd id="ic_meta_size">-</dd></div>
+                <div><dt>용량</dt><dd id="ic_meta_bytes">-</dd></div>
+            </dl>
+        </div>
+
+        <p class="ic-error" id="ic_upload_error"></p>
+
+        <div class="ic-actions">
+            <button type="button" class="ic-btn ghost" id="ic_reset" hidden>다른 이미지 선택</button>
+            <button type="button" class="ic-btn primary" id="ic_to_step2" disabled>다음: 해상도 개선 &#8594;</button>
+        </div>
+    </section>
+
+    <!-- ── 2단계: 해상도 개선 ── -->
+    <section class="ic-card" id="ic_panel_2" hidden>
+        <div class="ic-card-title"><span class="title-bar"></span>2. 해상도 개선 미리보기</div>
+
+        <div class="ic-layout">
+            <div class="ic-controls">
+                <div class="ic-field">
+                    <label>확대 배율</label>
+                    <div class="ic-seg" id="ic_scale">
+                        <button type="button" data-v="1">1배</button>
+                        <button type="button" data-v="2" class="on">2배</button>
+                        <button type="button" data-v="3">3배</button>
+                        <button type="button" data-v="4">4배</button>
+                    </div>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_sharpen">선명도 <output id="ic_sharpen_v">60</output></label>
+                    <input type="range" id="ic_sharpen" min="0" max="150" step="5" value="60" />
+                    <span class="ic-hint">경계를 또렷하게 합니다. 너무 높으면 테두리에 흰 띠가 생겨요.</span>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_denoise">노이즈 제거 <output id="ic_denoise_v">1</output></label>
+                    <input type="range" id="ic_denoise" min="0" max="3" step="1" value="1" />
+                    <span class="ic-hint">JPG 압축 얼룩·잡티를 부드럽게 정리합니다.</span>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_contrast">대비 <output id="ic_contrast_v">0</output></label>
+                    <input type="range" id="ic_contrast" min="-30" max="50" step="5" value="0" />
+                </div>
+                <div class="ic-result-size">
+                    결과 크기 <strong id="ic_enh_size">-</strong>
+                    <span class="ic-hint" id="ic_enh_note"></span>
+                </div>
+            </div>
+
+            <div class="ic-preview-col">
+                <div class="ic-preview-toolbar">
+                    <span class="ic-compare-label">&#9664; 원본 &nbsp;|&nbsp; 개선 &#9654;</span>
+                    <label class="ic-check"><input type="checkbox" id="ic_zoom" /> 실제 크기(1:1)로 보기</label>
+                </div>
+                <div class="ic-preview" id="ic_compare">
+                    <div class="ic-compare-stage" id="ic_compare_stage">
+                        <canvas id="ic_enh_canvas"></canvas>
+                        <div class="ic-compare-before" id="ic_compare_before">
+                            <img id="ic_before_img" alt="원본" />
+                        </div>
+                        <div class="ic-compare-line" id="ic_compare_line"></div>
+                    </div>
+                    <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span>해상도 개선 중…</div>
+                </div>
+                <input type="range" class="ic-compare-range" id="ic_compare_range" min="0" max="100" value="50" aria-label="원본/개선 비교 위치" />
+            </div>
+        </div>
+
+        <div class="ic-actions">
+            <button type="button" class="ic-btn ghost" data-goto="1">&#8592; 이전</button>
+            <button type="button" class="ic-btn ghost" id="ic_dl_png_enh">개선 이미지 PNG 저장</button>
+            <button type="button" class="ic-btn primary" id="ic_to_step3">다음: 일러스트 · 벡터 변환 &#8594;</button>
+        </div>
+    </section>
+
+    <!-- ── 3단계: 벡터 변환 ── -->
+    <section class="ic-card" id="ic_panel_3" hidden>
+        <div class="ic-card-title"><span class="title-bar"></span>3. 일러스트 · 벡터 변환</div>
+
+        <div class="ic-layout">
+            <div class="ic-controls">
+                <div class="ic-field">
+                    <label>변환 방식</label>
+                    <div class="ic-seg" id="ic_mode">
+                        <button type="button" data-v="illust" class="on">일러스트</button>
+                        <button type="button" data-v="vector">벡터(정밀)</button>
+                        <button type="button" data-v="mono">흑백(커팅용)</button>
+                    </div>
+                    <span class="ic-hint" id="ic_mode_hint"></span>
+                </div>
+
+                <div class="ic-field" id="ic_field_colors">
+                    <label for="ic_colors">색상 수 <output id="ic_colors_v">8</output></label>
+                    <input type="range" id="ic_colors" min="2" max="64" step="1" value="8" />
+                </div>
+                <div class="ic-field" id="ic_field_threshold" hidden>
+                    <label for="ic_threshold">명암 기준 <output id="ic_threshold_v">128</output></label>
+                    <input type="range" id="ic_threshold" min="10" max="245" step="1" value="128" />
+                    <label class="ic-check"><input type="checkbox" id="ic_invert" /> 흑백 반전 (어두운 바탕에 밝은 글자)</label>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_detail">디테일 <output id="ic_detail_v">3</output></label>
+                    <input type="range" id="ic_detail" min="1" max="10" step="1" value="3" />
+                    <span class="ic-hint">낮을수록 곡선이 단순·매끈하고, 높을수록 원본 모양을 정밀하게 따라갑니다.</span>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_pathomit">작은 조각 제거 <output id="ic_pathomit_v">32</output></label>
+                    <input type="range" id="ic_pathomit" min="0" max="200" step="2" value="32" />
+                    <span class="ic-hint">이 값(px)보다 작은 점·잡티는 버립니다.</span>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_blur">경계 부드럽게 <output id="ic_blur_v">2</output></label>
+                    <input type="range" id="ic_blur" min="0" max="5" step="1" value="2" />
+                </div>
+                <div class="ic-field">
+                    <label for="ic_stroke">윤곽선 두께 <output id="ic_stroke_v">1</output></label>
+                    <input type="range" id="ic_stroke" min="0" max="4" step="0.5" value="1" />
+                    <span class="ic-hint">색 사이 틈을 메웁니다. 커팅 파일은 0을 권장해요.</span>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_trace_res">변환 해상도(긴 변) <span><output id="ic_trace_res_v">1600</output> px</span></label>
+                    <input type="range" id="ic_trace_res" min="400" max="4000" step="100" value="1600" />
+                    <span class="ic-hint">높을수록 정밀하지만 변환 시간이 늘어납니다.</span>
+                </div>
+                <div class="ic-field ic-field-row">
+                    <label class="ic-check"><input type="checkbox" id="ic_remove_bg" /> 배경 제거 (테두리 색을 투명 처리)</label>
+                </div>
+                <div class="ic-field">
+                    <label for="ic_width_mm">출력 가로 크기 (mm)</label>
+                    <div class="ic-mm-row">
+                        <input type="number" id="ic_width_mm" min="0" step="1" placeholder="비우면 픽셀 크기" />
+                        <span class="ic-hint" id="ic_height_mm">세로는 비율에 맞춰 자동</span>
+                    </div>
+                </div>
+
+                <p class="ic-error" id="ic_trace_error"></p>
+
+                <button type="button" class="ic-btn primary block" id="ic_convert">&#10024; 변환하기</button>
+            </div>
+
+            <div class="ic-preview-col">
+                <div class="ic-preview-toolbar">
+                    <span class="ic-compare-label" id="ic_result_title">변환 전 미리보기 (해상도 개선 이미지)</span>
+                    <label class="ic-check"><input type="checkbox" id="ic_dark_bg" /> 어두운 배경</label>
+                </div>
+                <div class="ic-preview ic-checker" id="ic_result_box">
+                    <img id="ic_result_img" alt="변환 결과" />
+                    <div class="ic-busy" id="ic_trace_busy" hidden>
+                        <span class="ic-spinner"></span>
+                        <span>벡터 변환 중… <span id="ic_trace_elapsed">0</span>초</span>
+                        <button type="button" class="ic-btn ghost small" id="ic_cancel">취소</button>
+                    </div>
+                </div>
+                <div class="ic-stats" id="ic_stats" hidden>
+                    <span>크기 <strong id="ic_st_size">-</strong></span>
+                    <span>색상 <strong id="ic_st_colors">-</strong></span>
+                    <span>도형 <strong id="ic_st_paths">-</strong></span>
+                    <span>파일 <strong id="ic_st_bytes">-</strong></span>
+                    <span>소요 <strong id="ic_st_time">-</strong></span>
+                </div>
+                <p class="ic-stale" id="ic_stale" hidden>설정이 바뀌었어요. 다시 <strong>변환하기</strong>를 눌러 반영하세요.</p>
+            </div>
+        </div>
+
+        <div class="ic-actions">
+            <button type="button" class="ic-btn ghost" data-goto="2">&#8592; 이전</button>
+            <button type="button" class="ic-btn ghost" id="ic_dl_png" disabled>PNG 저장</button>
+            <button type="button" class="ic-btn primary" id="ic_dl_svg" disabled>SVG(벡터) 저장</button>
+        </div>
+    </section>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="nav.js"></script>
+<script src="auth.js"></script>
+<script src="lib/imagetracer_v1.2.6.js"></script>
+<script src="imageconvert-trace.js"></script>
+<script src="imageconvert.js"></script>
+</body>
+</html>
