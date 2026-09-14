@@ -1,6 +1,5 @@
 // ── 이미지 변환: 1) 업로드 → 2) 해상도 개선 → 3) 일러스트·벡터 변환 ──
-// 해상도 개선·벡터 변환은 브라우저 안에서만 처리한다.
-// 단, "AI 연관 이미지" 를 누르면 축소한 참조 이미지를 AI Worker(ai-worker/) 로 보낸다.
+// 모든 처리는 브라우저 안에서만 이뤄지며 이미지를 서버로 보내지 않는다.
 
 $(function() {
     'use strict';
@@ -10,11 +9,11 @@ $(function() {
     var MAX_OUTPUT_PIXELS = 12000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
 
     var MODE_PRESETS = {
-        illust: { colors: 12, detail: 5, pathomit: 8,  blur: 1, stroke: 1,
+        illust: { detail: 7, pathomit: 8, smooth: 2,
                   hint: '색을 단순화하고 곡선을 매끈하게 다듬어 일러스트 느낌으로 만듭니다.' },
-        vector: { colors: 40, detail: 9, pathomit: 2,  blur: 0, stroke: 1,
+        vector: { detail: 9, pathomit: 4, smooth: 1,
                   hint: '원본 형태와 색을 최대한 살려 정밀한 벡터로 만듭니다.' },
-        mono:   { colors: 2,  detail: 7, pathomit: 8,  blur: 1, stroke: 0,
+        mono:   { detail: 7, pathomit: 8, smooth: 2,
                   hint: '검정 한 가지 색으로 만들어 채널문자·스카시·시트 커팅용 파일에 적합합니다.' }
     };
 
@@ -30,7 +29,7 @@ $(function() {
         enhNote: '',
         traceResTouched: false,
         thresholdTouched: false,
-        result: null,       // { svg, colors, paths, width, height, ms, params }
+        result: null,       // { svg, paths, width, height, ms, params }
         resultUrl: null,
         previewUrl: null,
         worker: null,
@@ -123,11 +122,10 @@ $(function() {
             state.maxStep = 1;
 
             $('#ic_thumb').attr('src', url);
-            $('#ic_before_img').attr('src', url);
             $('#ic_meta_name').text(file.name || '붙여넣은 이미지');
             $('#ic_meta_size').text(img.naturalWidth + ' × ' + img.naturalHeight + ' px' + (state.hasAlpha ? ' (투명 배경)' : ''));
             $('#ic_meta_bytes').text(formatBytes(file.size));
-            $('#ic_upload_info, #ic_reset, #ic_ai').prop('hidden', false);
+            $('#ic_upload_info, #ic_reset').prop('hidden', false);
             $('#ic_to_step2').prop('disabled', false);
             $('#ic_remove_bg').prop('checked', state.hasAlpha);
             gotoStep(1);
@@ -149,150 +147,6 @@ $(function() {
         var d = ctx.getImageData(0, 0, w, h).data;
         for (var i = 3; i < d.length; i += 4) if (d[i] < 250) return true;
         return false;
-    }
-
-    // ────────────────────────────────────────────────────────
-    //  AI 연관 이미지 (Cloudflare Worker → Workers AI FLUX.2 [klein])
-    //  Worker 소스: ai-worker/src/index.js
-    // ────────────────────────────────────────────────────────
-    var AI_ENDPOINT = 'https://woosung-ai-image.woosung-digital.workers.dev';
-    var AI_STYLES = [
-        { id: 'flat',  label: '플랫 일러스트' },
-        { id: 'logo',  label: '심플 로고' },
-        { id: 'sign',  label: '간판 시안' },
-        { id: 'color', label: '색상 변형' }
-    ];
-    var aiRun = 0;
-
-    $('#ic_ai_generate').on('click', generateAiImages);
-
-    function generateAiImages() {
-        if (!state.srcImg) return;
-        var $grid = $('#ic_ai_grid').empty().prop('hidden', false);
-        if (!AI_ENDPOINT) {
-            $grid.append($('<p class="ic-error">').text('AI 서버 주소가 설정되지 않았습니다. 관리자에게 문의해 주세요.'));
-            return;
-        }
-
-        var run = ++aiRun;
-        var img = state.srcImg, aspect = img.naturalWidth / img.naturalHeight;
-        var cards = AI_STYLES.map(function(style) {
-            var card = buildAiCard(style);
-            $grid.append(card.$el);
-            return card;
-        });
-        $('#ic_ai_generate').prop('disabled', true).text('만드는 중…');
-
-        Promise.all([makeReferencePng(img), getIdToken()]).then(function(ready) {
-            return Promise.all(cards.map(function(card) {
-                return requestAiImage(card, ready[0], aspect, ready[1], run);
-            }));
-        }).catch(function(err) {
-            if (run !== aiRun) return;
-            cards.forEach(function(card) { card.fail(err.message); });
-        }).then(function() {
-            if (run === aiRun) $('#ic_ai_generate').prop('disabled', false).text('다시 만들기');
-        });
-    }
-
-    function buildAiCard(style) {
-        var $el = $('<div class="ic-ai-card">');
-        var $img = $('<div class="ic-ai-img">');
-        var $body = $('<div class="ic-ai-body">').append($('<div class="ic-ai-label">').text(style.label));
-        var $btns = $('<div class="ic-ai-btns">');
-        $el.append($img, $body.append($btns));
-
-        var card = {
-            style: style,
-            $el: $el,
-            loading: function() {
-                $img.empty().append($('<div class="ic-ai-status">').append('<span class="ic-spinner"></span>', $('<span>').text('AI가 그리는 중…')));
-                $btns.empty();
-            },
-            show: function(dataUrl) {
-                $img.empty().append($('<img>').attr({ src: dataUrl, alt: style.label }));
-                $btns.empty().append(
-                    $('<button type="button" class="ic-btn primary">').text('이 이미지로 변환').on('click', function() { useAiImage(dataUrl, style); }),
-                    $('<button type="button" class="ic-btn ghost">').text('저장').on('click', function() {
-                        dataUrlToBlob(dataUrl).then(function(blob) { downloadBlob(blob, aiFileName(style, blob)); });
-                    })
-                );
-            },
-            fail: function(message) {
-                $img.empty().append($('<div class="ic-ai-status err">').text(message || '생성에 실패했습니다.'));
-                $btns.empty().append($('<button type="button" class="ic-btn ghost">').text('다시 시도').on('click', function() {
-                    var run = aiRun, img = state.srcImg;
-                    if (!img) return;
-                    card.loading();
-                    Promise.all([makeReferencePng(img), getIdToken()]).then(function(ready) {
-                        return requestAiImage(card, ready[0], img.naturalWidth / img.naturalHeight, ready[1], run);
-                    }).catch(function(err) { card.fail(err.message); });
-                }));
-            }
-        };
-        card.loading();
-        return card;
-    }
-
-    function requestAiImage(card, refBlob, aspect, token, run) {
-        var fd = new FormData();
-        fd.append('image', refBlob, 'reference.png');
-        fd.append('style', card.style.id);
-        fd.append('aspect', String(aspect));
-        return fetch(AI_ENDPOINT + '/generate', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + token },
-            body: fd
-        }).then(function(res) {
-            return res.json().catch(function() { return {}; }).then(function(data) {
-                if (!res.ok || !data.image) throw new Error(data.error || ('AI 서버 오류 (' + res.status + ')'));
-                return data.image;
-            });
-        }).then(function(dataUrl) {
-            if (run === aiRun) card.show(dataUrl);
-        }, function(err) {
-            if (run === aiRun) card.fail(err instanceof TypeError ? 'AI 서버에 연결할 수 없습니다.' : err.message);
-        });
-    }
-
-    // Workers AI 참조 이미지는 가로·세로 512px 미만이어야 한다
-    function makeReferencePng(img) {
-        var k = Math.min(1, 504 / Math.max(img.naturalWidth, img.naturalHeight));
-        var c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(img.naturalWidth * k));
-        c.height = Math.max(1, Math.round(img.naturalHeight * k));
-        var ctx = c.getContext('2d');
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, c.width, c.height);
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, c.width, c.height);
-        return new Promise(function(resolve, reject) {
-            c.toBlob(function(blob) { blob ? resolve(blob) : reject(new Error('참조 이미지를 만들지 못했습니다.')); }, 'image/png');
-        });
-    }
-
-    function getIdToken() {
-        try {
-            var user = firebase.auth().currentUser;
-            if (user) return user.getIdToken();
-        } catch (e) {}
-        return Promise.reject(new Error('로그인이 필요합니다. 다시 로그인해 주세요.'));
-    }
-
-    function useAiImage(dataUrl, style) {
-        dataUrlToBlob(dataUrl).then(function(blob) {
-            loadFile(new File([blob], aiFileName(style, blob), { type: blob.type }));
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-
-    function aiFileName(style, blob) {
-        var ext = { 'image/png': '.png', 'image/webp': '.webp' }[blob.type] || '.jpg';
-        return baseName() + '_AI_' + style.label.replace(/\s+/g, '') + ext;
-    }
-
-    function dataUrlToBlob(dataUrl) {
-        return fetch(dataUrl).then(function(res) { return res.blob(); });
     }
 
     // ────────────────────────────────────────────────────────
@@ -432,7 +286,7 @@ $(function() {
         });
     }
 
-    // 원본/개선 비교 뷰
+    // 해상도 개선 결과 미리보기 (화면 맞춤 / 실제 크기)
     var $compare = $('#ic_compare'), $stage = $('#ic_compare_stage');
 
     function layoutCompare() {
@@ -448,31 +302,12 @@ $(function() {
             h = Math.max(1, Math.floor(cv.height * k));
         }
         $stage.css({ width: w + 'px', height: h + 'px' });
-        setComparePos(+$('#ic_compare_range').val());
-    }
-
-    function setComparePos(pct) {
-        $('#ic_compare_before').css('clip-path', 'inset(0 ' + (100 - pct) + '% 0 0)');
-        $('#ic_compare_line').css('left', pct + '%');
     }
 
     $('#ic_zoom').on('change', function() {
         $compare.toggleClass('zoom', this.checked);
         layoutCompare();
     });
-    $('#ic_compare_range').on('input', function() { setComparePos(+this.value); });
-
-    // 미리보기 위를 드래그해서 비교선 이동
-    var dragging = false;
-    $stage.on('pointerdown', function(e) { dragging = true; moveCompare(e); this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId); });
-    $stage.on('pointermove', function(e) { if (dragging) moveCompare(e); });
-    $stage.on('pointerup pointercancel', function() { dragging = false; });
-    function moveCompare(e) {
-        var rect = $stage[0].getBoundingClientRect();
-        var pct = Math.max(0, Math.min(100, (e.originalEvent.clientX - rect.left) / rect.width * 100));
-        $('#ic_compare_range').val(pct);
-        setComparePos(pct);
-    }
     $(window).on('resize', function() { if (state.step === 2) layoutCompare(); });
 
     $('#ic_dl_png_enh').on('click', function() {
@@ -497,13 +332,10 @@ $(function() {
     function applyMode(m) {
         mode = m;
         var p = MODE_PRESETS[m];
-        setRange('#ic_colors', p.colors);
         setRange('#ic_detail', p.detail);
         setRange('#ic_pathomit', p.pathomit);
-        setRange('#ic_blur', p.blur);
-        setRange('#ic_stroke', p.stroke);
+        setRange('#ic_smooth', p.smooth);
         $('#ic_mode_hint').text(p.hint);
-        $('#ic_field_colors').prop('hidden', m === 'mono');
         $('#ic_field_threshold').prop('hidden', m !== 'mono');
         if (m === 'mono') $('#ic_remove_bg').prop('checked', true);
         else $('#ic_remove_bg').prop('checked', state.hasAlpha);
@@ -541,7 +373,7 @@ $(function() {
     }
 
     bindRange('#ic_threshold', function() { state.thresholdTouched = true; markStale(); });
-    ['#ic_colors', '#ic_detail', '#ic_pathomit', '#ic_blur', '#ic_stroke'].forEach(function(sel) {
+    ['#ic_detail', '#ic_pathomit', '#ic_smooth'].forEach(function(sel) {
         bindRange(sel, markStale);
     });
     bindRange('#ic_trace_res', function() { state.traceResTouched = true; markStale(); });
@@ -585,11 +417,9 @@ $(function() {
     function collectParams() {
         return {
             mode: mode,
-            colors: +$('#ic_colors').val(),
             detail: +$('#ic_detail').val(),
             pathomit: +$('#ic_pathomit').val(),
-            blur: +$('#ic_blur').val(),
-            stroke: +$('#ic_stroke').val(),
+            smooth: +$('#ic_smooth').val(),
             threshold: +$('#ic_threshold').val(),
             invert: $('#ic_invert').is(':checked'),
             removeBg: $('#ic_remove_bg').is(':checked'),
@@ -654,8 +484,7 @@ $(function() {
             // 워커를 못 쓰는 환경(파일을 직접 연 경우 등): 화면이 잠시 멈출 수 있음
             setTimeout(function() {
                 if (id !== state.jobId) return;
-                try { done(window.wsTraceImage(imgd, params)); }
-                catch (err) { fail(err && err.message || err); }
+                window.wsTraceImage(imgd, params).then(done, function(err) { fail(err && err.message || err); });
             }, 50);
         }
 
@@ -714,7 +543,6 @@ $(function() {
             ? fmtNum(r.params.widthMm) + ' × ' + fmtNum(r.params.widthMm * r.height / r.width) + ' mm'
             : r.width + ' × ' + r.height + ' px';
         $('#ic_st_size').text(size);
-        $('#ic_st_colors').text(r.colors + '색');
         $('#ic_st_paths').text(r.paths.toLocaleString() + '개');
         $('#ic_st_bytes').text(formatBytes(new Blob([r.svg]).size));
         $('#ic_st_time').text((r.ms / 1000).toFixed(1) + '초');

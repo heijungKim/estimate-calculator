@@ -155,19 +155,6 @@
 
         <p class="ic-error" id="ic_upload_error"></p>
 
-        <!-- AI 연관 이미지 -->
-        <div class="ic-ai" id="ic_ai" hidden>
-            <div class="ic-ai-head">
-                <div>
-                    <div class="ic-ai-title">&#10024; AI 연관 이미지</div>
-                    <p class="ic-hint">업로드한 이미지를 바탕으로 AI가 4가지 스타일의 새 이미지를 만들어요. 마음에 드는 이미지는 바로 변환을 이어갈 수 있어요.</p>
-                </div>
-                <button type="button" class="ic-btn primary" id="ic_ai_generate">AI 연관 이미지 만들기</button>
-            </div>
-            <div class="ic-ai-grid" id="ic_ai_grid" hidden></div>
-            <p class="ic-hint ic-ai-note">AI가 만든 이미지 속 글자는 정확하지 않을 수 있어요. 하루 무료 생성량(약 20회)을 넘으면 다음 날 다시 사용할 수 있어요.</p>
-        </div>
-
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" id="ic_reset" hidden>다른 이미지 선택</button>
             <button type="button" class="ic-btn primary" id="ic_to_step2" disabled>다음: 해상도 개선 &#8594;</button>
@@ -216,20 +203,15 @@
 
             <div class="ic-preview-col">
                 <div class="ic-preview-toolbar">
-                    <span class="ic-compare-label">&#9664; 원본 &nbsp;|&nbsp; 개선 &#9654;</span>
+                    <span class="ic-compare-label">해상도 개선 결과</span>
                     <label class="ic-check"><input type="checkbox" id="ic_zoom" /> 실제 크기(1:1)로 보기</label>
                 </div>
                 <div class="ic-preview" id="ic_compare">
                     <div class="ic-compare-stage" id="ic_compare_stage">
                         <canvas id="ic_enh_canvas"></canvas>
-                        <div class="ic-compare-before" id="ic_compare_before">
-                            <img id="ic_before_img" alt="원본" />
-                        </div>
-                        <div class="ic-compare-line" id="ic_compare_line"></div>
                     </div>
                     <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span>해상도 개선 중…</div>
                 </div>
-                <input type="range" class="ic-compare-range" id="ic_compare_range" min="0" max="100" value="50" aria-label="원본/개선 비교 위치" />
             </div>
         </div>
 
@@ -256,10 +238,6 @@
                     <span class="ic-hint" id="ic_mode_hint"></span>
                 </div>
 
-                <div class="ic-field" id="ic_field_colors">
-                    <label for="ic_colors">색상 수 <output id="ic_colors_v">12</output></label>
-                    <input type="range" id="ic_colors" min="2" max="64" step="1" value="12" />
-                </div>
                 <div class="ic-field" id="ic_field_threshold" hidden>
                     <label for="ic_threshold">명암 기준 <output id="ic_threshold_v">128</output></label>
                     <input type="range" id="ic_threshold" min="10" max="245" step="1" value="128" />
@@ -267,23 +245,19 @@
                     <label class="ic-check"><input type="checkbox" id="ic_invert" /> 흑백 반전 (어두운 바탕에 밝은 글자)</label>
                 </div>
                 <div class="ic-field">
-                    <label for="ic_detail">디테일 <output id="ic_detail_v">5</output></label>
-                    <input type="range" id="ic_detail" min="1" max="10" step="1" value="5" />
-                    <span class="ic-hint">낮을수록 곡선이 단순·매끈하고, 높을수록 원본 모양을 정밀하게 따라갑니다.</span>
+                    <label for="ic_detail">디테일 <output id="ic_detail_v">7</output></label>
+                    <input type="range" id="ic_detail" min="1" max="10" step="1" value="7" />
+                    <span class="ic-hint">높을수록 그라데이션·사진의 색 단계를 촘촘하게 나눠 원본에 가까워집니다.</span>
                 </div>
                 <div class="ic-field">
                     <label for="ic_pathomit">작은 조각 제거 <output id="ic_pathomit_v">8</output></label>
-                    <input type="range" id="ic_pathomit" min="0" max="200" step="2" value="8" />
-                    <span class="ic-hint">이 값(px)보다 작은 점·잡티는 버립니다.</span>
+                    <input type="range" id="ic_pathomit" min="0" max="64" step="1" value="8" />
+                    <span class="ic-hint">이 크기(px)보다 작은 점·잡티는 버립니다.</span>
                 </div>
                 <div class="ic-field">
-                    <label for="ic_blur">경계 부드럽게 <output id="ic_blur_v">1</output></label>
-                    <input type="range" id="ic_blur" min="0" max="5" step="1" value="1" />
-                </div>
-                <div class="ic-field">
-                    <label for="ic_stroke">윤곽선 두께 <output id="ic_stroke_v">1</output></label>
-                    <input type="range" id="ic_stroke" min="0" max="4" step="0.5" value="1" />
-                    <span class="ic-hint">색 사이 틈을 메웁니다. 커팅 파일은 0을 권장해요.</span>
+                    <label for="ic_smooth">곡선 단순화 <output id="ic_smooth_v">2</output></label>
+                    <input type="range" id="ic_smooth" min="0" max="5" step="1" value="2" />
+                    <span class="ic-hint">높을수록 곡선의 점이 줄어 매끈하고 파일이 가벼워집니다. 0이면 원본 윤곽을 그대로 따릅니다.</span>
                 </div>
                 <div class="ic-field">
                     <label for="ic_trace_res">변환 해상도(긴 변) <span><output id="ic_trace_res_v">1600</output> px</span></label>
@@ -321,7 +295,6 @@
                 </div>
                 <div class="ic-stats" id="ic_stats" hidden>
                     <span>크기 <strong id="ic_st_size">-</strong></span>
-                    <span>색상 <strong id="ic_st_colors">-</strong></span>
                     <span>도형 <strong id="ic_st_paths">-</strong></span>
                     <span>파일 <strong id="ic_st_bytes">-</strong></span>
                     <span>소요 <strong id="ic_st_time">-</strong></span>
@@ -348,7 +321,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="nav.js"></script>
 <script src="auth.js"></script>
-<script src="lib/imagetracer_v1.2.6.js"></script>
+<script src="lib/vtracer/vtracer.js"></script>
 <script src="imageconvert-trace.js"></script>
 <script src="imageconvert-enhance.js"></script>
 <script src="imageconvert.js"></script>

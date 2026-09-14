@@ -243,26 +243,7 @@
 .ic-preview.zoom { overflow: auto; display: block; }
 
 .ic-compare-stage { position: relative; line-height: 0; }
-.ic-compare-stage canvas,
-.ic-compare-before img { display: block; width: 100%; height: 100%; }
-.ic-compare-before {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    clip-path: inset(0 50% 0 0);
-}
-.ic-compare-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 2px;
-    margin-left: -1px;
-    background: #e94560;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.7);
-    pointer-events: none;
-}
-.ic-compare-range { width: 100%; accent-color: #e94560; }
+.ic-compare-stage canvas { display: block; width: 100%; height: 100%; }
 
 .ic-checker {
     background-color: #fff;
@@ -325,64 +306,4 @@
     .ic-preview { height: 380px; }
     .ic-stepper { gap: 6px; }
     .ic-step { padding: 10px; font-size: 12px; flex-direction: column; text-align: center; gap: 6px; }
-}
-
-/* AI 연관 이미지 */
-.ic-ai {
-    margin-top: 24px;
-    border-top: 1px solid #edf0f5;
-    padding-top: 22px;
-}
-.ic-ai-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-.ic-ai-head > div { flex: 1; min-width: 240px; }
-.ic-ai-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-.ic-ai-head .ic-hint { margin: 0; }
-.ic-ai-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-    margin-top: 18px;
-}
-.ic-ai-card {
-    border: 1.5px solid #edf0f5;
-    border-radius: 14px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-}
-.ic-ai-img {
-    position: relative;
-    aspect-ratio: 1 / 1;
-    background: #f5f7fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.ic-ai-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.ic-ai-status {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #6b7a92;
-    text-align: center;
-    padding: 12px;
-}
-.ic-ai-status.err { color: #e94560; }
-.ic-ai-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
-.ic-ai-label { font-size: 13px; font-weight: 700; color: #1a1a2e; }
-.ic-ai-btns { display: flex; gap: 6px; }
-.ic-ai-btns .ic-btn { flex: 1; padding: 7px 6px; font-size: 12px; }
-.ic-ai-note { margin: 12px 0 0; }
-
-@media (max-width: 900px) {
-    .ic-ai-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
