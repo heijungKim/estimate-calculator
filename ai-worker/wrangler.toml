@@ -1,0 +1,16 @@
+# 우성디지탈 AI 연관 이미지 생성 Worker
+# 배포: ai-worker 폴더에서 `npx wrangler deploy`
+name = "woosung-ai-image"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+[ai]
+binding = "AI"
+
+[vars]
+FIREBASE_PROJECT_ID = "woosung-7c12a"
+# 쉼표로 구분. 로컬 테스트가 필요하면 http://localhost:포트 를 잠깐 추가
+ALLOWED_ORIGINS = "https://heijungkim.github.io"
+
+[observability]
+enabled = true

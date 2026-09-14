@@ -1,12 +1,13 @@
 // ── 이미지 변환: 1) 업로드 → 2) 해상도 개선 → 3) 일러스트·벡터 변환 ──
-// 모든 처리는 브라우저 안에서만 이뤄지며 이미지를 서버로 보내지 않는다.
+// 해상도 개선·벡터 변환은 브라우저 안에서만 처리한다.
+// 단, "AI 연관 이미지" 를 누르면 축소한 참조 이미지를 AI Worker(ai-worker/) 로 보낸다.
 
 $(function() {
     'use strict';
 
     var MAX_SOURCE_PIXELS = 24000000;   // 원본 허용 한도 (약 4900×4900)
     var MAX_OUTPUT_SIDE = 6000;         // 해상도 개선 결과 긴 변 한도
-    var MAX_OUTPUT_PIXELS = 16000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
+    var MAX_OUTPUT_PIXELS = 12000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
 
     var MODE_PRESETS = {
         illust: { colors: 12, detail: 5, pathomit: 8,  blur: 1, stroke: 1,
@@ -42,16 +43,20 @@ $(function() {
     // ────────────────────────────────────────────────────────
     function gotoStep(n) {
         if (n > state.maxStep) return;
-        if (n >= 2) ensureEnhanced();
         state.step = n;
         $('#ic_stepper .ic-step').each(function() {
             var s = +$(this).data('step');
             $(this).toggleClass('active', s === n).toggleClass('done', s !== n && s <= state.maxStep);
         });
         for (var i = 1; i <= 3; i++) $('#ic_panel_' + i).prop('hidden', i !== n);
-        if (n === 2) layoutCompare();
-        if (n === 3) enterStep3();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (n >= 2) {
+            ensureEnhanced().then(function() {
+                if (state.step !== n) return;
+                if (n === 2) layoutCompare();
+                if (n === 3) enterStep3();
+            });
+        }
     }
 
     $('#ic_stepper').on('click', '.ic-step.done', function() { gotoStep(+$(this).data('step')); });
@@ -111,6 +116,7 @@ $(function() {
             state.srcImg = img;
             state.hasAlpha = detectAlpha(img);
             state.enhDirty = true;
+            state.enhCanvas.width = 0; // 이전 이미지의 개선 결과가 잠깐 보이지 않도록
             state.traceResTouched = false;
             state.thresholdTouched = false;
             clearResult();
@@ -121,7 +127,7 @@ $(function() {
             $('#ic_meta_name').text(file.name || '붙여넣은 이미지');
             $('#ic_meta_size').text(img.naturalWidth + ' × ' + img.naturalHeight + ' px' + (state.hasAlpha ? ' (투명 배경)' : ''));
             $('#ic_meta_bytes').text(formatBytes(file.size));
-            $('#ic_upload_info, #ic_reset').prop('hidden', false);
+            $('#ic_upload_info, #ic_reset, #ic_ai').prop('hidden', false);
             $('#ic_to_step2').prop('disabled', false);
             $('#ic_remove_bg').prop('checked', state.hasAlpha);
             gotoStep(1);
@@ -146,152 +152,284 @@ $(function() {
     }
 
     // ────────────────────────────────────────────────────────
+    //  AI 연관 이미지 (Cloudflare Worker → Workers AI FLUX.2 [klein])
+    //  Worker 소스: ai-worker/src/index.js
+    // ────────────────────────────────────────────────────────
+    var AI_ENDPOINT = 'https://woosung-ai-image.woosung-digital.workers.dev';
+    var AI_STYLES = [
+        { id: 'flat',  label: '플랫 일러스트' },
+        { id: 'logo',  label: '심플 로고' },
+        { id: 'sign',  label: '간판 시안' },
+        { id: 'color', label: '색상 변형' }
+    ];
+    var aiRun = 0;
+
+    $('#ic_ai_generate').on('click', generateAiImages);
+
+    function generateAiImages() {
+        if (!state.srcImg) return;
+        var $grid = $('#ic_ai_grid').empty().prop('hidden', false);
+        if (!AI_ENDPOINT) {
+            $grid.append($('<p class="ic-error">').text('AI 서버 주소가 설정되지 않았습니다. 관리자에게 문의해 주세요.'));
+            return;
+        }
+
+        var run = ++aiRun;
+        var img = state.srcImg, aspect = img.naturalWidth / img.naturalHeight;
+        var cards = AI_STYLES.map(function(style) {
+            var card = buildAiCard(style);
+            $grid.append(card.$el);
+            return card;
+        });
+        $('#ic_ai_generate').prop('disabled', true).text('만드는 중…');
+
+        Promise.all([makeReferencePng(img), getIdToken()]).then(function(ready) {
+            return Promise.all(cards.map(function(card) {
+                return requestAiImage(card, ready[0], aspect, ready[1], run);
+            }));
+        }).catch(function(err) {
+            if (run !== aiRun) return;
+            cards.forEach(function(card) { card.fail(err.message); });
+        }).then(function() {
+            if (run === aiRun) $('#ic_ai_generate').prop('disabled', false).text('다시 만들기');
+        });
+    }
+
+    function buildAiCard(style) {
+        var $el = $('<div class="ic-ai-card">');
+        var $img = $('<div class="ic-ai-img">');
+        var $body = $('<div class="ic-ai-body">').append($('<div class="ic-ai-label">').text(style.label));
+        var $btns = $('<div class="ic-ai-btns">');
+        $el.append($img, $body.append($btns));
+
+        var card = {
+            style: style,
+            $el: $el,
+            loading: function() {
+                $img.empty().append($('<div class="ic-ai-status">').append('<span class="ic-spinner"></span>', $('<span>').text('AI가 그리는 중…')));
+                $btns.empty();
+            },
+            show: function(dataUrl) {
+                $img.empty().append($('<img>').attr({ src: dataUrl, alt: style.label }));
+                $btns.empty().append(
+                    $('<button type="button" class="ic-btn primary">').text('이 이미지로 변환').on('click', function() { useAiImage(dataUrl, style); }),
+                    $('<button type="button" class="ic-btn ghost">').text('저장').on('click', function() {
+                        dataUrlToBlob(dataUrl).then(function(blob) { downloadBlob(blob, aiFileName(style, blob)); });
+                    })
+                );
+            },
+            fail: function(message) {
+                $img.empty().append($('<div class="ic-ai-status err">').text(message || '생성에 실패했습니다.'));
+                $btns.empty().append($('<button type="button" class="ic-btn ghost">').text('다시 시도').on('click', function() {
+                    var run = aiRun, img = state.srcImg;
+                    if (!img) return;
+                    card.loading();
+                    Promise.all([makeReferencePng(img), getIdToken()]).then(function(ready) {
+                        return requestAiImage(card, ready[0], img.naturalWidth / img.naturalHeight, ready[1], run);
+                    }).catch(function(err) { card.fail(err.message); });
+                }));
+            }
+        };
+        card.loading();
+        return card;
+    }
+
+    function requestAiImage(card, refBlob, aspect, token, run) {
+        var fd = new FormData();
+        fd.append('image', refBlob, 'reference.png');
+        fd.append('style', card.style.id);
+        fd.append('aspect', String(aspect));
+        return fetch(AI_ENDPOINT + '/generate', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token },
+            body: fd
+        }).then(function(res) {
+            return res.json().catch(function() { return {}; }).then(function(data) {
+                if (!res.ok || !data.image) throw new Error(data.error || ('AI 서버 오류 (' + res.status + ')'));
+                return data.image;
+            });
+        }).then(function(dataUrl) {
+            if (run === aiRun) card.show(dataUrl);
+        }, function(err) {
+            if (run === aiRun) card.fail(err instanceof TypeError ? 'AI 서버에 연결할 수 없습니다.' : err.message);
+        });
+    }
+
+    // Workers AI 참조 이미지는 가로·세로 512px 미만이어야 한다
+    function makeReferencePng(img) {
+        var k = Math.min(1, 504 / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * k));
+        c.height = Math.max(1, Math.round(img.naturalHeight * k));
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        return new Promise(function(resolve, reject) {
+            c.toBlob(function(blob) { blob ? resolve(blob) : reject(new Error('참조 이미지를 만들지 못했습니다.')); }, 'image/png');
+        });
+    }
+
+    function getIdToken() {
+        try {
+            var user = firebase.auth().currentUser;
+            if (user) return user.getIdToken();
+        } catch (e) {}
+        return Promise.reject(new Error('로그인이 필요합니다. 다시 로그인해 주세요.'));
+    }
+
+    function useAiImage(dataUrl, style) {
+        dataUrlToBlob(dataUrl).then(function(blob) {
+            loadFile(new File([blob], aiFileName(style, blob), { type: blob.type }));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    function aiFileName(style, blob) {
+        var ext = { 'image/png': '.png', 'image/webp': '.webp' }[blob.type] || '.jpg';
+        return baseName() + '_AI_' + style.label.replace(/\s+/g, '') + ext;
+    }
+
+    function dataUrlToBlob(dataUrl) {
+        return fetch(dataUrl).then(function(res) { return res.blob(); });
+    }
+
+    // ────────────────────────────────────────────────────────
     //  2단계: 해상도 개선
     // ────────────────────────────────────────────────────────
     var enhParams = { scale: 2 };
 
     $('#ic_scale').on('click', 'button', function() {
+        if (+$(this).data('v') === enhParams.scale) return;
         $(this).addClass('on').siblings().removeClass('on');
         enhParams.scale = +$(this).data('v');
         scheduleEnhance();
     });
     bindRange('#ic_sharpen', scheduleEnhance);
+    bindRange('#ic_crisp', scheduleEnhance);
     bindRange('#ic_denoise', scheduleEnhance);
     bindRange('#ic_contrast', scheduleEnhance);
 
-    var enhTimer = null;
+    // 해상도 개선은 큰 이미지에서 수 초가 걸리므로 웹 워커에서 돌린다.
+    // 처리 중에 설정이 또 바뀌면 끝난 결과는 버리고 최신 설정으로 한 번 더 돌린다.
+    var enh = { timer: null, running: false, waiters: [], worker: null, noWorker: false, jobId: 0 };
+
     function scheduleEnhance() {
         state.enhDirty = true;
         markStale();
-        clearTimeout(enhTimer);
+        clearTimeout(enh.timer);
         $('#ic_enh_busy').prop('hidden', false);
-        // 오버레이가 먼저 그려지도록 잠깐 기다렸다가 처리
-        enhTimer = setTimeout(function() { ensureEnhanced(); }, 250);
+        enh.timer = setTimeout(kickEnhance, 250);
     }
 
+    // 최신 설정의 개선 결과가 캔버스에 준비되면 resolve
     function ensureEnhanced() {
-        clearTimeout(enhTimer);
-        if (!state.srcImg) return;
-        if (state.enhDirty) {
-            try {
-                runEnhance();
-            } catch (err) {
-                $('#ic_enh_note').text('해상도 개선 중 오류가 발생했습니다: ' + (err && err.message || err));
-            }
-            state.enhDirty = false;
-        }
-        $('#ic_enh_busy').prop('hidden', true);
-        if (state.step === 2) layoutCompare();
+        if (!state.srcImg || (!state.enhDirty && !enh.running)) return Promise.resolve();
+        return new Promise(function(resolve) {
+            enh.waiters.push(resolve);
+            clearTimeout(enh.timer);
+            kickEnhance();
+        });
     }
 
-    function runEnhance() {
-        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
-        var scale = enhParams.scale;
-        var sharpen = +$('#ic_sharpen').val() / 100;
-        var denoise = +$('#ic_denoise').val();
-        var contrast = +$('#ic_contrast').val() / 100;
+    function kickEnhance() {
+        if (enh.running) return;
+        if (!state.srcImg || !state.enhDirty) {
+            $('#ic_enh_busy').prop('hidden', true);
+            var waiters = enh.waiters;
+            enh.waiters = [];
+            waiters.forEach(function(fn) { fn(); });
+            return;
+        }
+
+        state.enhDirty = false;
+        enh.running = true;
+        $('#ic_enh_busy').prop('hidden', false);
+
+        var job = buildEnhanceJob();
+        runEnhanceJob(job).then(function(pixels) {
+            if (state.enhDirty) return; // 처리 중에 설정·이미지가 바뀜 → 결과 폐기
+            var out = state.enhCanvas;
+            out.width = job.tw; out.height = job.th;
+            var octx = out.getContext('2d', { willReadFrequently: true });
+            var od = octx.createImageData(job.tw, job.th);
+            od.data.set(pixels);
+            octx.putImageData(od, 0, 0);
+            $('#ic_enh_size').text(job.sw + '×' + job.sh + ' → ' + job.tw + '×' + job.th + ' px');
+            $('#ic_enh_note').text(job.note);
+            updateHeightMm();
+            if (state.step === 2) layoutCompare();
+        }).catch(function(err) {
+            $('#ic_enh_note').text('해상도 개선 중 오류가 발생했습니다: ' + (err && err.message || err));
+        }).then(function() {
+            enh.running = false;
+            kickEnhance();
+        });
+    }
+
+    function buildEnhanceJob() {
+        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight, scale = enhParams.scale;
 
         // 결과 크기 한도 적용
         var maxScale = Math.min(MAX_OUTPUT_SIDE / Math.max(sw, sh), Math.sqrt(MAX_OUTPUT_PIXELS / (sw * sh)));
         var eff = Math.min(scale, Math.max(1, maxScale));
-        var tw = Math.round(sw * eff), th = Math.round(sh * eff);
-        state.enhNote = eff < scale
-            ? '원본이 커서 ' + scale + '배 대신 약 ' + (Math.floor(eff * 10) / 10) + '배로 처리했어요.'
-            : '';
 
-        // 1) 원본 → 노이즈 제거
         var src = document.createElement('canvas');
         src.width = sw; src.height = sh;
         var sctx = src.getContext('2d', { willReadFrequently: true });
         sctx.drawImage(img, 0, 0);
-        if (denoise > 0) {
-            var sd = sctx.getImageData(0, 0, sw, sh);
-            var blurred = boxBlur(sd.data, sw, sh, 1, denoise >= 3 ? 2 : 1);
-            var mix = denoise === 1 ? 0.5 : 1;
-            for (var i = 0; i < sd.data.length; i++) {
-                if ((i & 3) === 3) continue;
-                sd.data[i] = sd.data[i] + (blurred[i] - sd.data[i]) * mix;
+
+        return {
+            sw: sw, sh: sh,
+            tw: Math.round(sw * eff), th: Math.round(sh * eff),
+            note: eff < scale ? '원본이 커서 ' + scale + '배 대신 약 ' + (Math.floor(eff * 10) / 10) + '배로 처리했어요.' : '',
+            pixels: sctx.getImageData(0, 0, sw, sh).data,
+            options: {
+                denoise: +$('#ic_denoise').val(),
+                crisp: +$('#ic_crisp').val() / 100,
+                sharpen: +$('#ic_sharpen').val() / 100,
+                contrast: +$('#ic_contrast').val() / 100
             }
-            sctx.putImageData(sd, 0, 0);
-        }
-
-        // 2) 단계적 2배 확대 (한 번에 크게 늘리는 것보다 계단·뭉개짐이 적다)
-        var cur = src;
-        while (cur.width * 2 <= tw && cur.height * 2 <= th) {
-            cur = resizeCanvas(cur, cur.width * 2, cur.height * 2);
-        }
-        if (cur.width !== tw || cur.height !== th) cur = resizeCanvas(cur, tw, th);
-
-        // 3) 언샤프 마스크 + 대비
-        var out = state.enhCanvas;
-        out.width = tw; out.height = th;
-        var octx = out.getContext('2d', { willReadFrequently: true });
-        octx.clearRect(0, 0, tw, th);
-        octx.drawImage(cur, 0, 0);
-
-        if (sharpen > 0 || contrast !== 0) {
-            var od = octx.getImageData(0, 0, tw, th), d = od.data;
-            var soft = sharpen > 0 ? boxBlur(d, tw, th, Math.max(1, Math.round(eff * 0.6)), 2) : null;
-            var cf = 1 + contrast;
-            for (var j = 0; j < d.length; j++) {
-                if ((j & 3) === 3) continue;
-                var v = d[j];
-                if (soft) {
-                    var diff = v - soft[j];
-                    if (diff > 2 || diff < -2) v += diff * sharpen;
-                }
-                if (contrast !== 0) v = (v - 128) * cf + 128;
-                d[j] = v; // Uint8ClampedArray 가 0~255 로 잘라준다
-            }
-            octx.putImageData(od, 0, 0);
-        }
-
-        $('#ic_enh_size').text(sw + '×' + sh + ' → ' + tw + '×' + th + ' px');
-        $('#ic_enh_note').text(state.enhNote);
-        updateHeightMm();
+        };
     }
 
-    function resizeCanvas(source, w, h) {
-        var c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        var ctx = c.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(source, 0, 0, w, h);
-        return c;
-    }
-
-    // RGB 채널 박스 블러 (passes 회 반복하면 가우시안에 가까워짐). 알파는 그대로 복사.
-    function boxBlur(data, w, h, r, passes) {
-        var a = new Uint8ClampedArray(data), b = new Uint8ClampedArray(data.length);
-        var win = r * 2 + 1, x, y, c, sum, row, col, idx;
-        for (var p = 0; p < passes; p++) {
-            // 가로
-            for (y = 0; y < h; y++) {
-                row = y * w;
-                for (c = 0; c < 3; c++) {
-                    sum = a[row * 4 + c] * (r + 1);
-                    for (x = 1; x <= r; x++) sum += a[(row + Math.min(x, w - 1)) * 4 + c];
-                    for (x = 0; x < w; x++) {
-                        b[(row + x) * 4 + c] = sum / win;
-                        sum += a[(row + Math.min(x + r + 1, w - 1)) * 4 + c] - a[(row + Math.max(x - r, 0)) * 4 + c];
-                    }
-                }
-            }
-            // 세로
-            for (x = 0; x < w; x++) {
-                for (c = 0; c < 3; c++) {
-                    sum = b[x * 4 + c] * (r + 1);
-                    for (y = 1; y <= r; y++) sum += b[(Math.min(y, h - 1) * w + x) * 4 + c];
-                    for (y = 0; y < h; y++) {
-                        idx = (y * w + x) * 4 + c;
-                        a[idx] = sum / win;
-                        sum += b[(Math.min(y + r + 1, h - 1) * w + x) * 4 + c] - b[(Math.max(y - r, 0) * w + x) * 4 + c];
-                    }
-                }
-            }
+    function runEnhanceJob(job) {
+        function onMainThread() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    try { resolve(window.wsEnhanceImage(job.pixels, job.sw, job.sh, job.tw, job.th, job.options)); }
+                    catch (err) { reject(err); }
+                }, 30);
+            });
         }
-        return a;
+        if (enh.noWorker) return onMainThread();
+        if (!enh.worker) {
+            try { enh.worker = new Worker('imageconvert-worker.js'); }
+            catch (err) { enh.noWorker = true; return onMainThread(); }
+        }
+
+        var id = ++enh.jobId, worker = enh.worker;
+        return new Promise(function(resolve, reject) {
+            worker.onmessage = function(e) {
+                if (e.data.id !== id) return;
+                if (e.data.ok) resolve(new Uint8ClampedArray(e.data.buffer));
+                else reject(new Error(e.data.error));
+            };
+            worker.onerror = function(e) {
+                // 워커 스크립트를 못 불러온 환경(파일 직접 열기 등) → 이후로는 메인 스레드에서 처리
+                e.preventDefault();
+                enh.noWorker = true;
+                enh.worker = null;
+                worker.terminate();
+                onMainThread().then(resolve, reject);
+            };
+            var copy = job.pixels.slice();
+            worker.postMessage({
+                id: id, type: 'enhance', buffer: copy.buffer,
+                sw: job.sw, sh: job.sh, tw: job.tw, th: job.th, options: job.options
+            }, [copy.buffer]);
+        });
     }
 
     // 원본/개선 비교 뷰
@@ -338,10 +476,11 @@ $(function() {
     $(window).on('resize', function() { if (state.step === 2) layoutCompare(); });
 
     $('#ic_dl_png_enh').on('click', function() {
-        ensureEnhanced();
-        state.enhCanvas.toBlob(function(blob) {
-            if (blob) downloadBlob(blob, baseName() + '_해상도개선.png');
-        }, 'image/png');
+        ensureEnhanced().then(function() {
+            state.enhCanvas.toBlob(function(blob) {
+                if (blob) downloadBlob(blob, baseName() + '_해상도개선.png');
+            }, 'image/png');
+        });
     });
 
     // ────────────────────────────────────────────────────────
@@ -463,7 +602,14 @@ $(function() {
     $('#ic_cancel').on('click', function() { stopJob(); $('#ic_trace_error').text('변환을 취소했습니다.'); });
 
     function startConvert() {
-        ensureEnhanced();
+        $('#ic_convert').prop('disabled', true);
+        ensureEnhanced().then(function() {
+            $('#ic_convert').prop('disabled', false);
+            beginConvert();
+        });
+    }
+
+    function beginConvert() {
         var cv = state.enhCanvas;
         if (!cv.width) return;
         stopJob();
