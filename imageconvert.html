@@ -239,27 +239,28 @@
                 </div>
 
                 <div class="ic-field" id="ic_field_colors">
-                    <label for="ic_colors">색상 수 <output id="ic_colors_v">8</output></label>
-                    <input type="range" id="ic_colors" min="2" max="64" step="1" value="8" />
+                    <label for="ic_colors">색상 수 <output id="ic_colors_v">12</output></label>
+                    <input type="range" id="ic_colors" min="2" max="64" step="1" value="12" />
                 </div>
                 <div class="ic-field" id="ic_field_threshold" hidden>
                     <label for="ic_threshold">명암 기준 <output id="ic_threshold_v">128</output></label>
                     <input type="range" id="ic_threshold" min="10" max="245" step="1" value="128" />
+                    <span class="ic-hint">이미지에 맞춰 자동으로 정해져요. 연한 부분이 사라지면 값을 높이세요.</span>
                     <label class="ic-check"><input type="checkbox" id="ic_invert" /> 흑백 반전 (어두운 바탕에 밝은 글자)</label>
                 </div>
                 <div class="ic-field">
-                    <label for="ic_detail">디테일 <output id="ic_detail_v">3</output></label>
-                    <input type="range" id="ic_detail" min="1" max="10" step="1" value="3" />
+                    <label for="ic_detail">디테일 <output id="ic_detail_v">5</output></label>
+                    <input type="range" id="ic_detail" min="1" max="10" step="1" value="5" />
                     <span class="ic-hint">낮을수록 곡선이 단순·매끈하고, 높을수록 원본 모양을 정밀하게 따라갑니다.</span>
                 </div>
                 <div class="ic-field">
-                    <label for="ic_pathomit">작은 조각 제거 <output id="ic_pathomit_v">32</output></label>
-                    <input type="range" id="ic_pathomit" min="0" max="200" step="2" value="32" />
+                    <label for="ic_pathomit">작은 조각 제거 <output id="ic_pathomit_v">8</output></label>
+                    <input type="range" id="ic_pathomit" min="0" max="200" step="2" value="8" />
                     <span class="ic-hint">이 값(px)보다 작은 점·잡티는 버립니다.</span>
                 </div>
                 <div class="ic-field">
-                    <label for="ic_blur">경계 부드럽게 <output id="ic_blur_v">2</output></label>
-                    <input type="range" id="ic_blur" min="0" max="5" step="1" value="2" />
+                    <label for="ic_blur">경계 부드럽게 <output id="ic_blur_v">1</output></label>
+                    <input type="range" id="ic_blur" min="0" max="5" step="1" value="1" />
                 </div>
                 <div class="ic-field">
                     <label for="ic_stroke">윤곽선 두께 <output id="ic_stroke_v">1</output></label>

@@ -9,11 +9,11 @@ $(function() {
     var MAX_OUTPUT_PIXELS = 16000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
 
     var MODE_PRESETS = {
-        illust: { colors: 8,  detail: 3, pathomit: 32, blur: 2, stroke: 1,
+        illust: { colors: 12, detail: 5, pathomit: 8,  blur: 1, stroke: 1,
                   hint: '색을 단순화하고 곡선을 매끈하게 다듬어 일러스트 느낌으로 만듭니다.' },
-        vector: { colors: 24, detail: 8, pathomit: 8,  blur: 0, stroke: 1,
+        vector: { colors: 40, detail: 9, pathomit: 2,  blur: 0, stroke: 1,
                   hint: '원본 형태와 색을 최대한 살려 정밀한 벡터로 만듭니다.' },
-        mono:   { colors: 2,  detail: 6, pathomit: 16, blur: 1, stroke: 0,
+        mono:   { colors: 2,  detail: 7, pathomit: 8,  blur: 1, stroke: 0,
                   hint: '검정 한 가지 색으로 만들어 채널문자·스카시·시트 커팅용 파일에 적합합니다.' }
     };
 
@@ -28,6 +28,7 @@ $(function() {
         enhDirty: true,
         enhNote: '',
         traceResTouched: false,
+        thresholdTouched: false,
         result: null,       // { svg, colors, paths, width, height, ms, params }
         resultUrl: null,
         previewUrl: null,
@@ -111,6 +112,7 @@ $(function() {
             state.hasAlpha = detectAlpha(img);
             state.enhDirty = true;
             state.traceResTouched = false;
+            state.thresholdTouched = false;
             clearResult();
             state.maxStep = 1;
 
@@ -366,9 +368,41 @@ $(function() {
         $('#ic_field_threshold').prop('hidden', m !== 'mono');
         if (m === 'mono') $('#ic_remove_bg').prop('checked', true);
         else $('#ic_remove_bg').prop('checked', state.hasAlpha);
+        if (m === 'mono' && !state.thresholdTouched) setRange('#ic_threshold', autoThreshold());
     }
 
-    ['#ic_colors', '#ic_detail', '#ic_pathomit', '#ic_blur', '#ic_stroke', '#ic_threshold'].forEach(function(sel) {
+    // Otsu 방식: 밝은 영역과 어두운 영역이 가장 잘 갈리는 명암값을 찾는다.
+    // 128 고정이면 연한 색 글자가 흰색으로 분류돼 사라지는 경우가 많다.
+    function autoThreshold() {
+        var src = state.enhCanvas;
+        if (!src.width) return 128;
+        var k = Math.min(1, 400 / Math.max(src.width, src.height));
+        var w = Math.max(1, Math.round(src.width * k)), h = Math.max(1, Math.round(src.height * k));
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(src, 0, 0, w, h);
+        var d = ctx.getImageData(0, 0, w, h).data, hist = new Array(256).fill(0), n = w * h;
+        for (var i = 0; i < d.length; i += 4) hist[Math.round(d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114)]++;
+        var sumAll = 0;
+        for (i = 0; i < 256; i++) sumAll += i * hist[i];
+        var sumB = 0, wB = 0, best = 128, bestVar = -1;
+        for (i = 0; i < 256; i++) {
+            wB += hist[i];
+            if (!wB) continue;
+            var wF = n - wB;
+            if (!wF) break;
+            sumB += i * hist[i];
+            var mB = sumB / wB, mF = (sumAll - sumB) / wF, between = wB * wF * (mB - mF) * (mB - mF);
+            if (between > bestVar) { bestVar = between; best = i; }
+        }
+        return Math.max(10, Math.min(245, best + 1));
+    }
+
+    bindRange('#ic_threshold', function() { state.thresholdTouched = true; markStale(); });
+    ['#ic_colors', '#ic_detail', '#ic_pathomit', '#ic_blur', '#ic_stroke'].forEach(function(sel) {
         bindRange(sel, markStale);
     });
     bindRange('#ic_trace_res', function() { state.traceResTouched = true; markStale(); });
@@ -383,6 +417,7 @@ $(function() {
             setRange('#ic_trace_res', Math.round(Math.max(800, Math.min(2000, longSide)) / 100) * 100);
         }
         if (!$('#ic_mode_hint').text()) applyMode(mode);
+        else if (mode === 'mono' && !state.thresholdTouched) setRange('#ic_threshold', autoThreshold());
         updateHeightMm();
         if (!state.result) showEnhancedPreview();
     }

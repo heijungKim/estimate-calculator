@@ -39,41 +39,58 @@
         };
     }
 
-    // 표본 픽셀로 k-means++ 팔레트 생성.
-    // ImageTracer 기본 격자 샘플링은 로고의 작은 강조색을 자주 놓쳐서 직접 만든다.
+    // 색상 히스토그램 기반 가중 k-means++ 로 팔레트 생성.
+    // 픽셀 수를 그대로 가중치로 쓰면 넓은 그라데이션 배경이 비슷한 색으로 팔레트를 다 차지해
+    // 작은 글자·로고의 뚜렷한 색이 빠진다. 그래서 비슷한 색을 한 칸으로 묶고 면적의 제곱근만큼만 반영한다.
     function buildPalette(imgd, k) {
         var d = imgd.data, total = imgd.width * imgd.height;
-        var step = Math.max(1, Math.floor(total / 40000));
-        var samples = [];
-        for (var p = 0; p < total; p += step) {
-            var i = p * 4;
-            samples.push([d[i], d[i + 1], d[i + 2]]);
+        var bins = new Map();
+        for (var p = 0; p < total; p++) {
+            var i = p * 4, key = (d[i] >> 3) << 10 | (d[i + 1] >> 3) << 5 | (d[i + 2] >> 3);
+            var b = bins.get(key);
+            if (!b) { b = [0, 0, 0, 0]; bins.set(key, b); }
+            b[0] += d[i]; b[1] += d[i + 1]; b[2] += d[i + 2]; b[3]++;
         }
+
+        // 아주 드문 색(압축 잡티)은 제외
+        var minCount = Math.max(2, Math.floor(total * 0.00005));
+        var samples = [], weights = [];
+        bins.forEach(function(b) {
+            if (b[3] < minCount) return;
+            samples.push([b[0] / b[3], b[1] / b[3], b[2] / b[3]]);
+            weights.push(Math.sqrt(b[3]));
+        });
+        if (!samples.length) {
+            bins.forEach(function(b) { samples.push([b[0] / b[3], b[1] / b[3], b[2] / b[3]]); weights.push(Math.sqrt(b[3])); });
+        }
+
         var n = samples.length, rnd = makeRandom(20260914);
         k = Math.max(1, Math.min(k, n));
 
-        function dist(a, b) {
-            var dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+        function dist(a, c) {
+            var dr = a[0] - c[0], dg = a[1] - c[1], db = a[2] - c[2];
             return dr * dr + dg * dg + db * db;
         }
 
-        // k-means++ 초기 중심
-        var centers = [samples[Math.floor(rnd() * n)].slice()];
+        // k-means++ 초기 중심: 가장 비중 큰 색에서 시작, 이후 거리² × 가중치에 비례해 선택
+        var first = 0;
+        for (var s = 1; s < n; s++) if (weights[s] > weights[first]) first = s;
+        var centers = [samples[first].slice()];
         var best = new Float64Array(n);
-        for (var s = 0; s < n; s++) best[s] = dist(samples[s], centers[0]);
+        for (s = 0; s < n; s++) best[s] = dist(samples[s], centers[0]);
         while (centers.length < k) {
             var sum = 0;
-            for (s = 0; s < n; s++) sum += best[s];
+            for (s = 0; s < n; s++) sum += best[s] * weights[s];
             if (sum === 0) break; // 남은 색이 모두 기존 중심과 같음
             var target = rnd() * sum, idx = 0;
-            for (s = 0; s < n; s++) { target -= best[s]; if (target <= 0) { idx = s; break; } }
+            for (s = 0; s < n; s++) { target -= best[s] * weights[s]; if (target <= 0) { idx = s; break; } }
             var c = samples[idx].slice();
             centers.push(c);
             for (s = 0; s < n; s++) { var dd = dist(samples[s], c); if (dd < best[s]) best[s] = dd; }
         }
 
-        // Lloyd 반복
-        for (var iter = 0; iter < 8; iter++) {
+        // 가중 Lloyd 반복
+        for (var iter = 0; iter < 10; iter++) {
             var acc = centers.map(function() { return [0, 0, 0, 0]; });
             for (s = 0; s < n; s++) {
                 var bi = 0, bd = Infinity;
@@ -81,7 +98,8 @@
                     var dc = dist(samples[s], centers[ci]);
                     if (dc < bd) { bd = dc; bi = ci; }
                 }
-                acc[bi][0] += samples[s][0]; acc[bi][1] += samples[s][1]; acc[bi][2] += samples[s][2]; acc[bi][3]++;
+                var wt = weights[s];
+                acc[bi][0] += samples[s][0] * wt; acc[bi][1] += samples[s][1] * wt; acc[bi][2] += samples[s][2] * wt; acc[bi][3] += wt;
             }
             for (ci = 0; ci < centers.length; ci++) {
                 if (acc[ci][3]) centers[ci] = [acc[ci][0] / acc[ci][3], acc[ci][1] / acc[ci][3], acc[ci][2] / acc[ci][3]];
@@ -102,11 +120,29 @@
         return bi;
     }
 
-    // 두 색 사이의 "중간색"이면서 면적이 작은 팔레트 색을 제거한다.
+    // 두 색 사이의 "중간색"이면서, 그 두 색 사이에 끼어 있는 가는 띠인 팔레트 색을 제거한다.
     // 흰 바탕 위 빨간 원 둘레의 연분홍 띠처럼, 샤프닝·JPG 압축으로 생긴 경계 번짐이 독립된 색으로 잡히는 것을 막는다.
+    // 가는 글자 획도 "가늘고 중간색"일 수 있지만 한쪽(바탕)에만 닿으므로, 양 끝 색 모두와 맞닿아 있어야 번짐으로 본다.
     function pruneBlendColors(imgd, index, palette, maxShare) {
-        var k = palette.length, total = index.length, counts = new Array(k).fill(0);
-        for (var p = 0; p < total; p++) counts[index[p]]++;
+        var k = palette.length, total = index.length, w = imgd.width, h = imgd.height;
+        var counts = new Array(k).fill(0), edge = new Array(k).fill(0);
+        var adj = new Uint32Array(k * k), adjTotal = new Array(k).fill(0);
+        for (var p = 0; p < total; p++) {
+            var ci0 = index[p], x = p % w;
+            counts[ci0]++;
+            if ((x > 0 && index[p - 1] !== ci0) || (x < w - 1 && index[p + 1] !== ci0) ||
+                (p >= w && index[p - w] !== ci0) || (p < total - w && index[p + w] !== ci0)) {
+                edge[ci0]++;
+            }
+            // 오른쪽·아래 이웃과의 맞닿음 횟수 (색 쌍별)
+            if (x < w - 1 && index[p + 1] !== ci0) { adj[ci0 * k + index[p + 1]]++; adj[index[p + 1] * k + ci0]++; }
+            if (p < total - w && index[p + w] !== ci0) { adj[ci0 * k + index[p + w]]++; adj[index[p + w] * k + ci0]++; }
+        }
+        for (var r = 0; r < k; r++) for (var q = 0; q < k; q++) adjTotal[r] += adj[r * k + q];
+        function touchesBoth(c, a, b) {
+            var t = adjTotal[c];
+            return t > 0 && adj[c * k + a] >= t * 0.2 && adj[c * k + b] >= t * 0.2;
+        }
 
         // 면적이 큰 색부터 판단해, 중간색의 양 끝 색은 반드시 남아 있는 색이 되게 한다
         var order = [], c;
@@ -115,10 +151,10 @@
 
         var kept = [], ends = {};
         order.forEach(function(ci) {
-            if (counts[ci] / total < maxShare) {
+            if (counts[ci] / total < maxShare && edge[ci] / counts[ci] > 0.8) {
                 for (var i = 0; i < kept.length; i++) {
                     for (var j = i + 1; j < kept.length; j++) {
-                        if (liesBetween(palette[ci], palette[kept[i]], palette[kept[j]])) {
+                        if (liesBetween(palette[ci], palette[kept[i]], palette[kept[j]]) && touchesBoth(ci, kept[i], kept[j])) {
                             ends[ci] = [kept[i], kept[j]];
                             return;
                         }
@@ -162,7 +198,8 @@
         return index;
     }
 
-    // 3×3 이웃에서 가장 많은 색으로 바꾼다 (동률이면 현재 색 유지)
+    // 3×3 이웃 중 5칸 이상을 차지한 다른 색이 있을 때만 그 색으로 바꾼다.
+    // 점 잡티·1px 번짐은 지우고, 2px 이상 굵기의 가는 글자 획은 깎지 않는다.
     function majorityFilter(index, w, h, k) {
         var out = new Uint8Array(index.length), counts = new Uint8Array(k), touched = new Uint8Array(9);
         for (var y = 0; y < h; y++) {
@@ -178,7 +215,7 @@
                 }
                 var best = cur;
                 for (var t = 0; t < nt; t++) {
-                    if (counts[touched[t]] > counts[best]) best = touched[t];
+                    if (counts[touched[t]] >= 5 && counts[touched[t]] > counts[best]) best = touched[t];
                 }
                 for (t = 0; t < nt; t++) counts[touched[t]] = 0;
                 out[p] = best;
@@ -254,13 +291,13 @@
         // 색 나누기 → 다수결 필터로 경계의 옅은 번짐 띠 제거 → 팔레트 색으로 다시 칠함
         var index = quantize(imgd, palette);
         if (!mono) {
-            var pruned = pruneBlendColors(imgd, index, palette, p.mode === 'illust' ? 0.06 : 0.03);
+            var pruned = pruneBlendColors(imgd, index, palette, p.mode === 'illust' ? 0.05 : 0.02);
             if (pruned) {
                 palette = pruned.palette;
                 index = pruned.index;
             }
         }
-        var passes = p.mode === 'illust' ? 2 : (mono ? 1 : 0);
+        var passes = p.mode === 'vector' ? 0 : 1;
         for (var ps = 0; ps < passes; ps++) index = majorityFilter(index, imgd.width, imgd.height, palette.length);
         paintIndex(imgd, index, palette);
 
@@ -272,7 +309,7 @@
             qtres: res,
             pathomit: p.pathomit,
             rightangleenhance: p.mode !== 'illust',
-            linefilter: p.mode === 'illust',
+            linefilter: false, // 켜면 I·T 같은 가는 획이 선분으로 취급돼 사라진다
             pal: palette.map(function(c) { return { r: c.r, g: c.g, b: c.b, a: c.a }; }),
             numberofcolors: palette.length,
             colorquantcycles: 1,
@@ -291,14 +328,18 @@
             sizeAttr = 'width="' + w + '" height="' + h + '"';
         }
 
+        var area = new Array(palette.length).fill(0);
+        for (var q = 0; q < index.length; q++) area[index[q]]++;
+        var order = td.layers.map(function(_, n) { return n; }).sort(function(a, b) { return area[b] - area[a]; });
+
         var body = '', pathCount = 0, colorCount = 0;
-        for (var l = 0; l < td.layers.length; l++) {
+        for (var oi = 0; oi < order.length; oi++) {
+            var l = order[oi];
             if (l === bgIndex) continue;
             var layer = td.layers[l], parts = [];
             for (var i = 0; i < layer.length; i++) {
                 var path = layer[i];
                 if (path.isholepath) continue;
-                if (options.linefilter && path.segments.length < 3) continue;
                 parts.push('<path d="' + pathData(layer, path) + '"/>');
             }
             if (!parts.length) continue;
