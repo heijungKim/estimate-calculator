@@ -456,6 +456,67 @@
         return bestIdx;
     }
 
+    // 전환 띠 정리 (그라데이션 사다리 접기).
+    // 흐릿한 그림자처럼 검정 → 적갈색 → 빨강으로 부드럽게 바뀌는 부분은 단계마다 다른 색 조각이 되어 얼룩져 보인다.
+    // 한 색 덩어리가 양쪽에서 서로 다른 두 색 A·B 와 맞닿아 있고, 자기 색이 A 와 B 사이의 중간색이면
+    // 덩어리 속 각 픽셀을 원래 색이 A·B 중 어느 쪽에 더 가까운지(선분 위 위치)에 따라 A 또는 B 로 나눈다.
+    // 여러 단계로 된 사다리도 바깥쪽부터 차례로 접히도록 몇 번 반복한다.
+    // 노랑과 빨강 사이의 검정 외곽선처럼 "사이 색"이 아닌 진짜 테두리는 대상이 아니다.
+    function collapseTransitions(d, index, pal, w, h) {
+        var k = pal.length, n = w * h, out = new Uint8Array(index);
+        var seen = new Uint8Array(n), stack = new Int32Array(n), comp = new Int32Array(n), border = new Uint32Array(k);
+        for (var pass = 0; pass < 6; pass++) {
+            var changed = 0;
+            seen.fill(0);
+            for (var start = 0; start < n; start++) {
+                if (seen[start]) continue;
+                var color = out[start], top = 0, area = 0;
+                seen[start] = 1;
+                stack[top++] = start;
+                border.fill(0);
+                while (top) {
+                    var p = stack[--top];
+                    comp[area++] = p;
+                    var x = p % w;
+                    for (var t = 0; t < 4; t++) {
+                        var q = t === 0 ? (x > 0 ? p - 1 : -1) : t === 1 ? (x < w - 1 ? p + 1 : -1) : t === 2 ? p - w : p + w;
+                        if (q < 0 || q >= n) continue;
+                        var c = out[q];
+                        if (c !== color) { border[c]++; continue; }
+                        if (!seen[q]) { seen[q] = 1; stack[top++] = q; }
+                    }
+                }
+                if (area > n * 0.05) continue; // 넓은 면(배경 등)은 전환 띠가 아니다
+
+                var total = 0, c1;
+                for (c1 = 0; c1 < k; c1++) total += border[c1];
+                if (!total) continue;
+                // 테두리의 15% 이상 맞닿은 색 쌍 중, 자기 색이 그 사이에 있는 쌍 (맞닿은 비율 합이 가장 큰 쌍)
+                var A = -1, B = -1, bestShare = 0;
+                for (c1 = 0; c1 < k; c1++) {
+                    if (border[c1] < total * 0.15) continue;
+                    for (var c2 = c1 + 1; c2 < k; c2++) {
+                        if (border[c2] < total * 0.15) continue;
+                        if (!liesBetween(pal[color], pal[c1], pal[c2])) continue;
+                        if (border[c1] + border[c2] > bestShare) { bestShare = border[c1] + border[c2]; A = c1; B = c2; }
+                    }
+                }
+                if (A < 0) continue;
+
+                var pa = pal[A], pb = pal[B];
+                var abr = pb[0] - pa[0], abg = pb[1] - pa[1], abb = pb[2] - pa[2], len2 = abr * abr + abg * abg + abb * abb;
+                for (var i = 0; i < area; i++) {
+                    var pp = comp[i], i4 = pp * 4;
+                    var tt = ((d[i4] - pa[0]) * abr + (d[i4 + 1] - pa[1]) * abg + (d[i4 + 2] - pa[2]) * abb) / len2;
+                    out[pp] = tt < 0.5 ? A : B;
+                }
+                changed++;
+            }
+            if (!changed) break;
+        }
+        return out;
+    }
+
     // 작은 섬 정리: 서로 다른 두 색 영역 사이에 끼인 작은 덩어리를, 둘 중 눈으로 봐도 비슷한 색(ΔE < 45)으로 칠한다.
     // 노란 숫자와 갈색 외곽선이 맞닿는 곳에 JPG 번짐으로 뭉친 검정 덩어리 같은 것을 없앤다.
     // 사진 위 작은 글자·빨간 바탕 위 흰 점처럼 한 가지 배경에 둘러싸인 요소는 남긴다.
@@ -546,6 +607,7 @@
         var pal = buildPalette(d, n, maxColors, mergeDistance, mergeDeltaE);
         var q = absorbThinColors(d, quantize(d, n, pal), pal, w, h, t.thinR);
         var index = cleanEdgeBands(d, q.index, q.pal, w, h, t.bandR);
+        index = collapseTransitions(d, index, q.pal, w, h);
         index = groupModeFilter(index, q.pal, w, h, 64, t.groupR);
         index = cleanIndex(index, w, h, q.pal.length, t);
         paint(d, absorbSmallIslands(index, q.pal, w, h), q.pal);

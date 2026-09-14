@@ -18,7 +18,7 @@ $(function() {
     var MODES = {
         illust: { label: '일러스트', maxColors: 16, mergeDistance: 56, mergeDeltaE: 20,
                   hint: '비슷한 색을 합쳐 단순하고 깔끔한 단색 면으로 만듭니다. 확대해도 경계가 깨지지 않아요.' },
-        vector: { label: '벡터', maxColors: 24, mergeDistance: 40, mergeDeltaE: 14,
+        vector: { label: '벡터', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17,
                   hint: '대표 색을 더 많이 남겨 원본에 가깝게 만듭니다. 확대해도 경계가 깨지지 않아요.' },
         mono:   { label: '흑백', maxColors: 2, mergeDistance: 0, mergeDeltaE: 0,
                   hint: '검정 한 가지 색으로 만들어 채널문자·스카시·시트 커팅용 파일에 적합합니다.' }
