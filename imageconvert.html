@@ -229,6 +229,32 @@
 
                 <p class="ic-error" id="ic_trace_error"></p>
                 <button type="button" class="ic-btn ghost block" id="ic_retry" hidden>다시 변환</button>
+
+                <!-- 글자 폰트 교체 -->
+                <div class="ic-text" id="ic_text">
+                    <strong class="ic-text-title">&#9999;&#65039; 글자를 폰트로 바꾸기</strong>
+                    <p class="ic-hint">뭉개진 글자는 오른쪽 변환 결과에서 <b>글자를 클릭</b>하세요. 모양이 비슷한 폰트 후보 중에서 골라 선명한 글자로 바꿔 드려요.</p>
+                    <p class="ic-text-status" id="ic_text_status"></p>
+
+                    <div class="ic-text-editor" id="ic_text_editor" hidden>
+                        <div class="ic-text-orig"><canvas id="ic_text_orig" width="552" height="160"></canvas></div>
+                        <label class="ic-text-label" for="ic_text_input">글자 내용</label>
+                        <input type="text" id="ic_text_input" class="ic-text-input" placeholder="선택한 글자를 입력하세요" autocomplete="off" />
+                        <span class="ic-hint" id="ic_text_ocr"></span>
+                        <div class="ic-text-colors">
+                            <label>글자 <input type="color" id="ic_text_fill" /></label>
+                            <label><input type="checkbox" id="ic_text_outline_on" /> 외곽선 <input type="color" id="ic_text_outline" /></label>
+                            <label>배경 <input type="color" id="ic_text_bg" /></label>
+                        </div>
+                        <div class="ic-font-grid" id="ic_font_grid"></div>
+                        <div class="ic-text-buttons">
+                            <button type="button" class="ic-btn ghost small" id="ic_font_more">폰트 더 보기</button>
+                            <button type="button" class="ic-btn ghost small" id="ic_text_close">닫기</button>
+                        </div>
+                    </div>
+
+                    <ul class="ic-text-list" id="ic_text_list"></ul>
+                </div>
             </div>
 
             <div class="ic-preview-col">
@@ -241,6 +267,7 @@
                 </div>
                 <div class="ic-preview ic-checker" id="ic_result_box">
                     <img id="ic_result_img" alt="변환 결과" />
+                    <div class="ic-text-mark" id="ic_text_mark" hidden></div>
                     <div class="ic-busy" id="ic_trace_busy" hidden>
                         <span class="ic-spinner"></span>
                         <span>벡터 변환 중… <span id="ic_trace_elapsed">0</span>초</span>
@@ -277,6 +304,7 @@
 <script src="lib/vtracer/vtracer.js"></script>
 <script src="imageconvert-trace.js"></script>
 <script src="imageconvert-enhance.js"></script>
+<script src="imageconvert-text.js"></script>
 <script src="imageconvert.js"></script>
 </body>
 </html>

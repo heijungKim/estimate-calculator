@@ -674,7 +674,9 @@
         index = absorbSmallIslands(index, q.pal, w, h);
         index = absorbSlivers(d, index, q.pal, w, h, t.scale);
         index = absorbSlivers(d, index, q.pal, w, h, t.scale); // 흡수 후 새로 드러난 부스러기까지 한 번 더
-        paint(d, index, snapExtremes(q.pal));
+        var painted = snapExtremes(q.pal);
+        paint(d, index, painted);
+        return { index: index, palette: painted };
     }
 
     // 흑백: 명암 기준으로 이진화한 뒤 같은 다수결 필터로 윤곽의 잡티·계단을 정리
@@ -685,7 +687,9 @@
             index[p] = (invert ? !dark : dark) ? 0 : 1;
             d[i + 3] = 255;
         }
-        paint(d, cleanIndex(index, w, h, 2, t), [[0, 0, 0], [255, 255, 255]]);
+        index = cleanIndex(index, w, h, 2, t);
+        paint(d, index, [[0, 0, 0], [255, 255, 255]]);
+        return { index: index, palette: [[0, 0, 0], [255, 255, 255]] };
     }
 
     // ── 2) VTracer ────────────────────────────────────────────
@@ -813,13 +817,13 @@
             var w = imgd.width, h = imgd.height, t = tuning(p);
             var d = new Uint8Array(imgd.data.buffer.slice(0));
 
-            var mask = null;
+            var mask = null, flat;
             if (p.mode === 'mono') {
-                flattenMono(d, w, h, p.threshold, p.invert, t);
+                flat = flattenMono(d, w, h, p.threshold, p.invert, t);
             } else {
                 if (p.removeBg) removeBackground(d, w, h);
                 var orig = p.hybrid ? d.slice() : null;
-                flattenColors(d, w, h, p.maxColors, p.mergeDistance, p.mergeDeltaE, t);
+                flat = flattenColors(d, w, h, p.maxColors, p.mergeDistance, p.mergeDeltaE, t);
                 if (p.hybrid) mask = detailMask(orig, d, w, h, Math.max(1, p.srcScale || 2));
             }
 
@@ -841,10 +845,29 @@
                 paths: (body.match(/<path/g) || []).length,
                 width: w,
                 height: h,
-                mask: mask   // 원본 유지 모드: 원본 이미지를 덮어 보여줄 영역 (없으면 null)
+                mask: mask,  // 원본 유지 모드: 원본 이미지를 덮어 보여줄 영역 (없으면 null)
+                index: flat.index,     // 픽셀별 대표 색 번호 (글자 폰트 교체에서 글자 영역을 찾는 데 쓴다)
+                palette: flat.palette  // 대표 색 [r, g, b] 목록
             };
         });
     }
 
+    // 0/1 마스크 → SVG path d 문자열 (글자 폰트 교체에서 폰트 글자·덮개 모양을 벡터로 만들 때 사용)
+    function wsTraceMask(mask, w, h) {
+        return ensureVTracer().then(function() {
+            var px = new Uint8Array(w * h * 4);
+            for (var p = 0; p < w * h; p++) if (mask[p]) px[p * 4 + 3] = 255;
+            var raw = root.vtracerWasm.vectorize_rgba(px, w, h, {
+                clustering: 'color-cluster', hierarchical: 'stacked', mode: 'spline',
+                filterSpeckle: 4, colorPrecision: 8, layerDifference: 16,
+                cornerThreshold: 60, lengthThreshold: 4, spliceThreshold: 45, maxIterations: 10, pathPrecision: 2
+            });
+            var ds = [], re = /<path d="([^"]*)"/g, m;
+            while ((m = re.exec(raw))) ds.push(m[1]);
+            return ds.join(' ');
+        });
+    }
+
     root.wsTraceImage = wsTraceImage;
+    root.wsTraceMask = wsTraceMask;
 })(typeof self !== 'undefined' ? self : this);

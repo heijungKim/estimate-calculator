@@ -38,7 +38,8 @@ $(function() {
         enhCanvas: document.getElementById('ic_enh_canvas'),
         enhDirty: true,
         mode: 'hybrid',
-        results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode, overlay }
+        results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode, overlay, index, palette }
+        replacements: [],   // 글자 폰트 교체 목록 { id, text, font, colors, vec }
         resultUrl: null,
         resultSvg: null,
         previewUrl: null,
@@ -375,6 +376,197 @@ $(function() {
         });
     }
 
+    // ────────────────────────────────────────────────────────
+    //  글자 폰트 교체 (imageconvert-text.js)
+    // ────────────────────────────────────────────────────────
+    var TX = window.wsTextReplace;
+    var editor = null;   // { sel, ranked, showAll, replacementId, ocrDone, userTyped }
+    var rankTimer = null;
+
+    $('#ic_result_img').on('click', function(e) {
+        var r = currentResult();
+        if (!r || !r.index || !$('#ic_trace_busy').prop('hidden')) return;
+        var rect = this.getBoundingClientRect();
+        var x = Math.floor((e.clientX - rect.left) / rect.width * r.width);
+        var y = Math.floor((e.clientY - rect.top) / rect.height * r.height);
+        if (x < 0 || y < 0 || x >= r.width || y >= r.height) return;
+        textStatus('글자를 찾는 중…');
+        setTimeout(function() { openTextEditor(r, x, y); }, 20);
+    });
+
+    function textStatus(msg, isError) {
+        $('#ic_text_status').text(msg || '').toggleClass('err', !!isError);
+    }
+
+    function openTextEditor(r, x, y) {
+        var sel = TX.findLine(r, x, y);
+        if (sel.error) { textStatus(sel.error, true); closeTextEditor(true); return; }
+        editor = { sel: sel, ranked: null, showAll: false, replacementId: null, userTyped: false };
+        textStatus('');
+
+        $('#ic_text_fill').val(sel.colors.fill);
+        $('#ic_text_outline').val(sel.colors.outline || '#000000');
+        $('#ic_text_outline_on').prop('checked', !!sel.colors.outline);
+        $('#ic_text_bg').val(sel.colors.bg);
+        $('#ic_text_input').val('');
+        $('#ic_text_ocr').text('글자 내용을 자동으로 읽는 중… (처음 한 번은 조금 걸려요)');
+        $('#ic_font_grid').empty();
+        $('#ic_font_more').prop('hidden', true);
+        $('#ic_text_editor').prop('hidden', false);
+        drawOriginalCrop(sel);
+        positionTextMark();
+
+        var current = editor;
+        TX.recognize(sel).then(function(out) {
+            if (editor !== current) return;
+            if (!current.userTyped && out.text) {
+                $('#ic_text_input').val(out.text);
+                scheduleRank(0);
+            }
+            $('#ic_text_ocr').text(out.text
+                ? '자동으로 읽은 글자예요. 틀린 부분은 고쳐 주세요.'
+                : '글자를 읽지 못했어요. 선택한 글자를 직접 입력해 주세요.');
+        }).catch(function() {
+            if (editor !== current) return;
+            $('#ic_text_ocr').text('자동 인식을 못 했어요. 선택한 글자를 직접 입력해 주세요.');
+        });
+        $('#ic_text_input').trigger('focus');
+    }
+
+    function closeTextEditor(keepStatus) {
+        editor = null;
+        $('#ic_text_editor, #ic_text_mark').prop('hidden', true);
+        if (!keepStatus) textStatus('');
+    }
+
+    function drawOriginalCrop(sel) {
+        var img = document.getElementById('ic_result_img'), r = currentResult();
+        var canvas = document.getElementById('ic_text_orig'), ctx = canvas.getContext('2d');
+        var k = img.naturalWidth / r.width;
+        var s = Math.min(canvas.width / sel.crop.w, canvas.height / sel.crop.h);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        var dw = sel.crop.w * s, dh = sel.crop.h * s;
+        ctx.drawImage(img, sel.crop.x * k, sel.crop.y * k, sel.crop.w * k, sel.crop.h * k,
+            (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+    }
+
+    function positionTextMark() {
+        var $mark = $('#ic_text_mark'), r = currentResult();
+        if (!editor || !r) { $mark.prop('hidden', true); return; }
+        var img = document.getElementById('ic_result_img');
+        var k = img.clientWidth / r.width, c = editor.sel.crop;
+        $mark.css({
+            left: img.offsetLeft + c.x * k, top: img.offsetTop + c.y * k,
+            width: c.w * k, height: c.h * k
+        }).prop('hidden', false);
+    }
+    $(window).on('resize', positionTextMark);
+    $('#ic_result_zoom').on('change', function() { setTimeout(positionTextMark, 50); });
+
+    function editorColors() {
+        return {
+            fill: $('#ic_text_fill').val(),
+            outline: $('#ic_text_outline_on').is(':checked') ? $('#ic_text_outline').val() : null,
+            bg: $('#ic_text_bg').val()
+        };
+    }
+
+    $('#ic_text_input').on('input', function() {
+        if (!editor) return;
+        editor.userTyped = true;
+        scheduleRank(400);
+    });
+    $('#ic_text_fill, #ic_text_outline, #ic_text_bg, #ic_text_outline_on').on('input change', function() {
+        if (editor && editor.ranked) renderFontGrid();
+    });
+    $('#ic_font_more').on('click', function() {
+        if (!editor) return;
+        editor.showAll = !editor.showAll;
+        renderFontGrid();
+    });
+    $('#ic_text_close').on('click', closeTextEditor);
+
+    function scheduleRank(delay) {
+        clearTimeout(rankTimer);
+        rankTimer = setTimeout(rankCandidates, delay);
+    }
+
+    function rankCandidates() {
+        if (!editor) return;
+        var text = $.trim($('#ic_text_input').val()), current = editor;
+        if (!text) { $('#ic_font_grid').empty(); $('#ic_font_more').prop('hidden', true); return; }
+        $('#ic_font_grid').html('<p class="ic-hint">비슷한 폰트를 찾는 중…</p>');
+        TX.loadFonts(text).then(function() {
+            if (editor !== current) return;
+            current.text = text;
+            current.ranked = TX.rankFonts(current.sel, text);
+            renderFontGrid();
+        });
+    }
+
+    function renderFontGrid() {
+        var $grid = $('#ic_font_grid').empty(), colors = editorColors();
+        var list = editor.showAll ? editor.ranked : editor.ranked.slice(0, TX.TOP_COUNT);
+        var applied = editor.replacementId && state.replacements.filter(function(rp) { return rp.id === editor.replacementId; })[0];
+        list.forEach(function(item, i) {
+            var aspect = editor.sel.crop.h / editor.sel.crop.w;
+            var canvas = document.createElement('canvas');
+            canvas.width = 260;
+            canvas.height = Math.max(40, Math.min(200, Math.round(260 * aspect)));
+            TX.renderPreview(canvas, editor.sel, item.font, editor.text, colors);
+            var $card = $('<button type="button" class="ic-font-card">')
+                .toggleClass('on', !!applied && applied.font === item.font)
+                .append(canvas, $('<span>').append($('<b>').text(item.font.name), $('<em>').text(i < 3 && !editor.showAll ? '추천' : Math.round(item.score * 100) + '%')))
+                .on('click', function() { applyFont(item.font, $card); });
+            $grid.append($card);
+        });
+        $('#ic_font_more').prop('hidden', false).text(editor.showAll ? '추천 폰트만 보기' : '폰트 더 보기 (' + editor.ranked.length + '개)');
+    }
+
+    function applyFont(font, $card) {
+        var current = editor, colors = editorColors(), text = current.text;
+        $('.ic-font-card').prop('disabled', true);
+        textStatus('선택한 폰트로 바꾸는 중…');
+        TX.buildVector(current.sel, font, text, colors).then(function(vec) {
+            $('.ic-font-card').prop('disabled', false);
+            if (editor !== current) return;
+            var rp = current.replacementId && state.replacements.filter(function(x) { return x.id === current.replacementId; })[0];
+            if (!rp) {
+                rp = { id: 'rp' + Date.now() };
+                state.replacements.push(rp);
+                current.replacementId = rp.id;
+            }
+            rp.text = text; rp.font = font; rp.colors = colors; rp.vec = vec;
+            $('.ic-font-card').removeClass('on');
+            $card.addClass('on');
+            textStatus('"' + text + '" 글자를 ' + font.name + ' 폰트로 바꿨어요.');
+            renderTextList();
+            var r = currentResult();
+            if (r) showResult(r);
+        }).catch(function(err) {
+            $('.ic-font-card').prop('disabled', false);
+            textStatus('폰트로 바꾸지 못했어요: ' + (err && err.message || err), true);
+        });
+    }
+
+    function renderTextList() {
+        var $list = $('#ic_text_list').empty();
+        state.replacements.forEach(function(rp) {
+            $list.append($('<li>').append(
+                $('<span>').text(rp.text + ' · ' + rp.font.name),
+                $('<button type="button">').text('되돌리기').on('click', function() {
+                    state.replacements = state.replacements.filter(function(x) { return x.id !== rp.id; });
+                    if (editor && editor.replacementId === rp.id) editor.replacementId = null;
+                    renderTextList();
+                    $('.ic-font-card').removeClass('on');
+                    var r = currentResult();
+                    if (r) showResult(r);
+                })
+            ));
+        });
+    }
+
     function showBusy() {
         var started = Date.now();
         $('#ic_trace_busy').prop('hidden', false);
@@ -385,6 +577,8 @@ $(function() {
         }, 500);
         $('#ic_stats').prop('hidden', true);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', true);
+        $('#ic_result_img').removeClass('pickable');
+        $('#ic_text_mark').prop('hidden', true);
         $('#ic_result_title').text(MODES[state.mode].label + ' 변환 중… (해상도 개선 이미지)');
         showEnhancedPreview();
     }
@@ -592,8 +786,11 @@ $(function() {
             ? '<image x="0" y="0" width="' + r.width + '" height="' + r.height + '" preserveAspectRatio="none" href="' +
               r.overlay + '" xlink:href="' + r.overlay + '"/>'
             : '';
+        var texts = state.replacements.map(function(rp) {
+            return window.wsTextReplace.toSvg(rp.vec, rp.colors, r.mode === 'mono');
+        }).join('');
         return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" ' + size +
-            ' viewBox="0 0 ' + r.width + ' ' + r.height + '">' + r.body + overlay + '</svg>';
+            ' viewBox="0 0 ' + r.width + ' ' + r.height + '">' + r.body + overlay + texts + '</svg>';
     }
 
     function showResult(r) {
@@ -614,6 +811,8 @@ $(function() {
         $('#ic_st_time').text((r.ms / 1000).toFixed(1) + '초');
         $('#ic_stats').prop('hidden', false);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', false);
+        $('#ic_result_img').addClass('pickable');
+        positionTextMark();
         if (r.paths === 0) $('#ic_trace_error').text('변환할 도형을 찾지 못했습니다. 다른 변환 방식을 선택해 보세요.');
     }
 
@@ -621,6 +820,9 @@ $(function() {
         stopJob();
         state.results = {};
         state.resultSvg = null;
+        state.replacements = [];
+        closeTextEditor();
+        renderTextList();
         if (state.resultUrl) { URL.revokeObjectURL(state.resultUrl); state.resultUrl = null; }
         $('#ic_result_img').removeAttr('src');
         $('#ic_stats, #ic_retry').prop('hidden', true);
