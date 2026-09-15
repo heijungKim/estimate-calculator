@@ -8,8 +8,8 @@ $(function() {
     var MAX_SOURCE_PIXELS = 24000000;   // 원본 허용 한도 (약 4900×4900)
     var MAX_OUTPUT_SIDE = 6000;         // 해상도 개선 결과 긴 변 한도
     var MAX_OUTPUT_PIXELS = 12000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
-    var ENHANCE_TARGET_SIDE = 3000;     // 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배)
-    var TRACE_MAX_SIDE = 4000;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (클수록 곡선이 매끈하다)
+    var ENHANCE_TARGET_SIDE = 4500;     // 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배). 1500px 배너면 3배 — 작은 글자 획이 원본에 가장 가깝다
+    var TRACE_MAX_SIDE = 4800;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (클수록 곡선이 매끈하다)
 
     // 해상도 개선 최적값
     var ENHANCE_OPTIONS = { denoise: 1, crisp: 0.6, sharpen: 0.4, contrast: 0 };

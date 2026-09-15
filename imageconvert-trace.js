@@ -580,6 +580,7 @@
     function tuning(p) {
         var s = Math.max(1, p.srcScale || 2), big = s >= 3;
         var t = {
+            scale: s,
             big: big,
             thinR: big ? 2 : 1,
             bandR: big ? 4 : 2,
@@ -602,6 +603,66 @@
         }
     }
 
+    // 가는 조각·부스러기 흡수 (마지막 마무리).
+    // 외곽선 가장자리에 남은 갈색·회갈색 띠, 글자 속 작은 얼룩처럼
+    // 평균 굵기(2×면적÷둘레)가 얇거나 아주 작은 색 조각은, 픽셀마다 원래 색이 가장 가까운 "맞닿은 이웃 색"으로 칠한다.
+    // 단, 맞닿은 모든 이웃과 눈으로 봐도 뚜렷이 다른 색(흰 바탕 위 가는 빨간 선 등)은 진짜 요소로 보고 남긴다.
+    function absorbSlivers(d, index, pal, w, h, scale) {
+        var k = pal.length, n = w * h, labs = pal.map(toLab);
+        // 면적 상한을 작게 둬 굵기가 비슷한 진짜 외곽선(길게 이어진 큰 조각)은 건드리지 않는다
+        var thinLimit = 1.9 * scale, tinyArea = Math.round(14 * scale * scale), maxArea = Math.round(90 * scale * scale);
+        var out = new Uint8Array(index), seen = new Uint8Array(n), stack = new Int32Array(n), comp = new Int32Array(n);
+        var border = new Uint32Array(k), cache = {};
+        for (var start = 0; start < n; start++) {
+            if (seen[start]) continue;
+            var color = index[start], top = 0, area = 0, per = 0, tooBig = false;
+            seen[start] = 1;
+            stack[top++] = start;
+            border.fill(0);
+            while (top) {
+                var p = stack[--top];
+                if (area < maxArea) comp[area] = p; else tooBig = true;
+                area++;
+                var x = p % w;
+                for (var t = 0; t < 4; t++) {
+                    var q = t === 0 ? (x > 0 ? p - 1 : -1) : t === 1 ? (x < w - 1 ? p + 1 : -1) : t === 2 ? p - w : p + w;
+                    if (q < 0 || q >= n) { per++; continue; }
+                    if (index[q] !== color) { per++; border[index[q]]++; continue; }
+                    if (!seen[q]) { seen[q] = 1; stack[top++] = q; }
+                }
+            }
+            if (tooBig) continue;
+            var thick = per ? 2 * area / per : 99;
+            if (!(thick < thinLimit || area < tinyArea)) continue;
+
+            var total = 0, cands = [], c;
+            for (c = 0; c < k; c++) total += border[c];
+            for (c = 0; c < k; c++) if (border[c] && border[c] >= total * 0.05) cands.push(c);
+            if (!cands.length) continue;
+            var distinct = true;
+            for (c = 0; c < cands.length; c++) if (dist2(labs[color], labs[cands[c]]) < 45 * 45) { distinct = false; break; }
+            if (distinct && area >= tinyArea) continue;
+
+            var key = cands.join(','), candLabs = cache[key] || (cache[key] = cands.map(function(ci) { return labs[ci]; }));
+            for (var i = 0; i < area; i++) {
+                var pp = comp[i], i4 = pp * 4;
+                out[pp] = cands.length === 1 ? cands[0] : cands[nearestLab(toLab([d[i4], d[i4 + 1], d[i4 + 2]]), candLabs)];
+            }
+        }
+        return out;
+    }
+
+    // 칠할 때만 거의 흰색·거의 검정을 순백·순흑으로 맞춘다 (배경이 누렇게, 검정이 갈색으로 탁해 보이지 않도록).
+    // 색 매칭 단계에서 바꾸면 짙은 갈색 외곽선이 순흑보다 갈색에 가깝다고 판정돼 외곽선 색이 바뀌므로 마지막에만 적용한다.
+    function snapExtremes(pal) {
+        return pal.map(function(c) {
+            var mx = Math.max(c[0], c[1], c[2]), mn = Math.min(c[0], c[1], c[2]);
+            if (mn >= 236 && mx - mn <= 12) return [255, 255, 255];
+            if (mx <= 34 && mx - mn <= 22) return [0, 0, 0];
+            return c;
+        });
+    }
+
     function flattenColors(d, w, h, maxColors, mergeDistance, mergeDeltaE, t) {
         var n = w * h;
         var pal = buildPalette(d, n, maxColors, mergeDistance, mergeDeltaE);
@@ -610,7 +671,10 @@
         index = collapseTransitions(d, index, q.pal, w, h);
         index = groupModeFilter(index, q.pal, w, h, 64, t.groupR);
         index = cleanIndex(index, w, h, q.pal.length, t);
-        paint(d, absorbSmallIslands(index, q.pal, w, h), q.pal);
+        index = absorbSmallIslands(index, q.pal, w, h);
+        index = absorbSlivers(d, index, q.pal, w, h, t.scale);
+        index = absorbSlivers(d, index, q.pal, w, h, t.scale); // 흡수 후 새로 드러난 부스러기까지 한 번 더
+        paint(d, index, snapExtremes(q.pal));
     }
 
     // 흑백: 명암 기준으로 이진화한 뒤 같은 다수결 필터로 윤곽의 잡티·계단을 정리
@@ -713,6 +777,24 @@
             var v = (diff[p] - MASK_LOW) / (MASK_HIGH - MASK_LOW);
             diff[p] = v < 0 ? 0 : (v > 1 ? 1 : v);
         }
+        // 넓은 덩어리만 사진으로 인정: 붓 터치 끝·글자 주변 질감처럼 작은 곳이 원본 이미지로 덮이면 번져 보인다
+        var bin = new Uint8Array(n), seen = new Uint8Array(n), stack = new Int32Array(n), comp = new Int32Array(n), minArea = n * 0.006;
+        for (p = 0; p < n; p++) bin[p] = diff[p] >= 0.5 ? 1 : 0;
+        for (var st = 0; st < n; st++) {
+            if (!bin[st] || seen[st]) continue;
+            var top = 0, area = 0;
+            seen[st] = 1; stack[top++] = st;
+            while (top) {
+                var cp = stack[--top], cx = cp % w;
+                comp[area++] = cp;
+                if (cx > 0 && bin[cp - 1] && !seen[cp - 1]) { seen[cp - 1] = 1; stack[top++] = cp - 1; }
+                if (cx < w - 1 && bin[cp + 1] && !seen[cp + 1]) { seen[cp + 1] = 1; stack[top++] = cp + 1; }
+                if (cp >= w && bin[cp - w] && !seen[cp - w]) { seen[cp - w] = 1; stack[top++] = cp - w; }
+                if (cp < n - w && bin[cp + w] && !seen[cp + w]) { seen[cp + w] = 1; stack[top++] = cp + w; }
+            }
+            if (area < minArea) for (var ci = 0; ci < area; ci++) diff[comp[ci]] = 0;
+        }
+        for (p = 0; p < n; p++) if (diff[p] < 0.5 && !seen[p]) diff[p] = 0;
         // 한 번 넓혀서(최댓값) 사진 가장자리까지 덮은 뒤 부드럽게 흐린다
         var grown = maxFilter(diff, w, h, Math.max(2, Math.round(3 * s)));
         grown = blurChannel(grown, w, h, Math.max(2, Math.round(2 * s)), 1);
