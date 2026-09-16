@@ -168,7 +168,7 @@
     // 정확히 그 가로·세로로 놓는다. 한 점에 여러 변이 걸리면 각 변이 원하는 좌표의 평균을 쓴다.
     // 기준 방향을 이미지에서 재는 이유: 살짝 기울여 찍은 사진은 모든 획이 같이 기울어 있으므로,
     // 화면 가로·세로에 억지로 맞추면 긴 변만 돌아가 들쭉날쭉해진다. 반듯한 원본이면 기준 방향이 0° 로 잡힌다.
-    function snapAxes(pts, longLen, tolDeg, skew) {
+    function snapAxes(pts, longLen, tolDeg, skew, maxMove) {
         var n = pts.length, tol = Math.tan(tolDeg * Math.PI / 180);
         var cs = Math.cos(skew || 0), sn = Math.sin(skew || 0);
         var us = new Float64Array(n), vs = new Float64Array(n), U = new Float64Array(n), V = new Float64Array(n);
@@ -177,6 +177,8 @@
         for (i = 0; i < n; i++) {
             var j = (i + 1) % n, du = Math.abs(U[j] - U[i]), dv = Math.abs(V[j] - V[i]);
             if (Math.hypot(du, dv) < longLen) continue;
+            // 끝점이 maxMove 보다 많이 움직여야 맞춰지는 긴 변(배경 사각형·띠의 가장자리)은 건드리지 않는다
+            if (Math.min(du, dv) / 2 > maxMove) continue;
             if (dv <= du * tol) { var mv = (V[i] + V[j]) / 2; vs[i] += mv; vc[i]++; vs[j] += mv; vc[j]++; }
             else if (du <= dv * tol) { var mu = (U[i] + U[j]) / 2; us[i] += mu; uc[i]++; us[j] += mu; uc[j]++; }
         }
@@ -189,18 +191,22 @@
     }
 
     // 이미지 전체 긴 변들의 주된 기울기 (라디안, -45°~45°). 90° 주기이므로 각도를 4배 해 원형 평균을 낸다.
+    // - 글자 크기의 변만 세고(아주 긴 변은 배경·띠라서 가중치 상한), 방향이 뚜렷이 모일 때만 인정
+    // - 0.4° 안쪽이면 반듯한 원본으로 보고 정확히 0 으로 둔다
     function dominantSkew(polys, longLen) {
-        var cx = 0, sy = 0;
+        var cx = 0, sy = 0, wsum = 0, cap = longLen * 12;
         for (var k = 0; k < polys.length; k++) {
             var pts = polys[k], n = pts.length;
             for (var i = 0; i < n; i++) {
                 var q = pts[(i + 1) % n], dx = q[0] - pts[i][0], dy = q[1] - pts[i][1], l = Math.hypot(dx, dy);
                 if (l < longLen * 2) continue;
-                var a = 4 * Math.atan2(dy, dx);
-                cx += Math.cos(a) * l; sy += Math.sin(a) * l;
+                var a = 4 * Math.atan2(dy, dx), w = l > cap ? cap : l;
+                cx += Math.cos(a) * w; sy += Math.sin(a) * w; wsum += w;
             }
         }
-        return (cx === 0 && sy === 0) ? 0 : Math.atan2(sy, cx) / 4;
+        if (!wsum || Math.hypot(cx, sy) / wsum < 0.5) return 0;
+        var skew = Math.atan2(sy, cx) / 4;
+        return Math.abs(skew) < 0.4 * Math.PI / 180 ? 0 : skew;
     }
 
     // ── 4) 곡선으로 잇기 ──
@@ -245,7 +251,7 @@
     function params(scale, o) {
         var s = Math.max(1, scale || 1);
         o = o || {};
-        return { eps: (o.eps || 0.45) * s, longLen: (o.longLen || 3.5) * s, maxRun: (o.maxRun || 4) * s, tol: o.tol || 4 };
+        return { eps: (o.eps || 0.45) * s, longLen: (o.longLen || 3.5) * s, maxRun: (o.maxRun || 4) * s, tol: o.tol || 4, maxMove: (o.maxMove || 1.5) * s };
     }
 
     // 단순화한 점 목록들 → path d
@@ -253,7 +259,7 @@
         var out = '';
         for (var i = 0; i < polys.length; i++) {
             var sc = sharpenCorners(polys[i], P.longLen, P.maxRun);
-            var pts = snapAxes(sc.pts, P.longLen, P.tol, skew);
+            var pts = snapAxes(sc.pts, P.longLen, P.tol, skew, P.maxMove);
             if (pts.length < 3) continue;
             out += emit(pts, sc.corner, P.longLen);
         }
