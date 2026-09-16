@@ -111,7 +111,7 @@
             <img src="logo.svg" class="logo-img" alt="우성디지탈" />
             <span class="logo-text">우성디지탈 관리 시스템</span>
         </div>
-        <p class="header-sub">이미지를 선명하게 개선하고 일러스트 · 벡터(SVG)로 변환하세요</p>
+        <p class="header-sub">저화질 이미지를 AI 로 선명하게 복원하고 일러스트 · 벡터(SVG)로 변환하세요</p>
     </div>
 </header>
 
@@ -125,7 +125,7 @@
         </li>
         <li class="ic-step" data-step="2">
             <span class="ic-step-num">2</span>
-            <span class="ic-step-label">해상도 개선</span>
+            <span class="ic-step-label">AI 해상도 복원</span>
         </li>
         <li class="ic-step" data-step="3">
             <span class="ic-step-num">3</span>
@@ -163,13 +163,13 @@
 
     <!-- ── 2단계: 해상도 개선 ── -->
     <section class="ic-card" id="ic_panel_2" hidden>
-        <div class="ic-card-title"><span class="title-bar"></span>2. 해상도 개선 미리보기</div>
+        <div class="ic-card-title"><span class="title-bar"></span>2. AI 해상도 복원 미리보기</div>
 
         <div class="ic-layout">
             <div class="ic-controls">
                 <div class="ic-auto-note">
-                    <strong>&#10024; 자동 최적화</strong>
-                    <p class="ic-hint">이미지 크기에 맞춰 확대 배율을 고르고, JPG 얼룩 제거 · 글자 경계 선명화 · 선명도 보정을 최적값으로 적용해요.</p>
+                    <strong>&#10024; AI 복원 (Real-ESRGAN)</strong>
+                    <p class="ic-hint">흐린 글자 경계 · JPG 얼룩 · 그라데이션을 학습된 AI 모델이 되살리며 4배로 키워요. 이미지는 서버로 보내지 않고 이 브라우저 안에서 처리해요. GPU 가 있으면 10~20초, 없으면 1~2분쯤 걸려요.</p>
                 </div>
                 <div class="ic-result-size">
                     결과 크기 <strong id="ic_enh_size">-</strong>
@@ -179,7 +179,7 @@
 
             <div class="ic-preview-col">
                 <div class="ic-preview-toolbar">
-                    <span class="ic-compare-label">해상도 개선 결과</span>
+                    <span class="ic-compare-label">AI 복원 결과</span>
                     <label class="ic-check"><input type="checkbox" id="ic_zoom" /> 실제 크기(1:1)로 보기</label>
                 </div>
                 <div class="ic-preview" id="ic_compare">
@@ -187,7 +187,7 @@
                         <canvas id="ic_enh_canvas" hidden></canvas>
                         <canvas id="ic_view_canvas"></canvas>
                     </div>
-                    <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span>해상도 개선 중…</div>
+                    <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span><span id="ic_enh_busy_text">AI 해상도 복원 준비 중…</span></div>
                 </div>
             </div>
         </div>
@@ -306,6 +306,7 @@
 <script src="imageconvert-trace.js"></script>
 <script src="imageconvert-enhance.js"></script>
 <script src="imageconvert-text.js"></script>
+<script src="imageconvert-ai.js"></script>
 <script src="imageconvert.js"></script>
 </body>
 </html>

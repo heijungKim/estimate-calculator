@@ -6,12 +6,13 @@ $(function() {
     'use strict';
 
     var MAX_SOURCE_PIXELS = 24000000;   // 원본 허용 한도 (약 4900×4900)
-    var MAX_OUTPUT_SIDE = 6000;         // 해상도 개선 결과 긴 변 한도
-    var MAX_OUTPUT_PIXELS = 12000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
-    var ENHANCE_TARGET_SIDE = 4500;     // 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배). 1500px 배너면 3배 — 작은 글자 획이 원본에 가장 가깝다
+    var MAX_OUTPUT_SIDE = 8000;         // 해상도 개선 결과 긴 변 한도
+    var MAX_OUTPUT_PIXELS = 20000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
+    var AI_MAX_SOURCE_SIDE = 2500;      // 긴 변이 이 크기 이하면 AI 복원(4배). 더 크면 이미 고해상도라 기본 방식으로 다듬기만 한다
+    var ENHANCE_TARGET_SIDE = 4500;     // (기본 방식) 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배)
     var TRACE_MAX_SIDE = 4800;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (클수록 곡선이 매끈하다)
 
-    // 해상도 개선 최적값
+    // 해상도 개선 최적값 (AI 복원을 쓸 수 없을 때의 기본 방식)
     var ENHANCE_OPTIONS = { denoise: 1, crisp: 0.6, sharpen: 0.4, contrast: 0 };
     // 원본 유지 모드에서 사진 부분에 넣을 이미지용: 글자 경계 선명화는 사진에 자글자글한 흰 점을 만들어 끈다
     var PHOTO_ENHANCE_OPTIONS = { denoise: 0, crisp: 0, sharpen: 0.3, contrast: 0 };
@@ -37,6 +38,7 @@ $(function() {
         step: 1,
         enhCanvas: document.getElementById('ic_enh_canvas'),
         enhDirty: true,
+        enhAi: false,       // 개선 결과가 AI 복원인지 (원본 유지 모드의 사진 영역에 그대로 쓴다)
         mode: 'hybrid',
         results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode, overlay, index, palette }
         replacements: [],   // 글자 폰트 교체 목록 { id, text, font, colors, vec }
@@ -180,32 +182,76 @@ $(function() {
         state.enhDirty = false;
         enh.running = true;
         $('#ic_enh_busy').prop('hidden', false);
+        $('#ic_enh_busy_text').text('AI 해상도 복원 준비 중…');
 
         var job = buildEnhanceJob();
-        runEnhanceJob(job).then(function(pixels) {
+        var work = job.ai
+            ? runAiJob(job).catch(function(err) {
+                if (state.enhDirty) throw err;
+                // AI 를 쓸 수 없는 환경(오래된 브라우저·오프라인 등) → 기본 방식으로
+                job.ai = false;
+                job.note = '이 브라우저에서는 AI 복원을 쓸 수 없어 기본 방식으로 처리했어요. (' + (err && err.message || err) + ')';
+                $('#ic_enh_busy_text').text('해상도 개선 중…');
+                return runEnhanceJob(job).then(function(px) { return { pixels: px, w: job.tw, h: job.th }; });
+            })
+            : runEnhanceJob(job).then(function(px) { return { pixels: px, w: job.tw, h: job.th }; });
+
+        work.then(function(res) {
             if (state.enhDirty) return; // 처리 중에 이미지가 바뀜 → 결과 폐기
+            putEnhanced(res.pixels, res.w, res.h);
+            state.enhAi = !!job.ai;
             var out = state.enhCanvas;
-            out.width = job.tw; out.height = job.th;
-            var octx = out.getContext('2d', { willReadFrequently: true });
-            var od = octx.createImageData(job.tw, job.th);
-            od.data.set(pixels);
-            octx.putImageData(od, 0, 0);
-            $('#ic_enh_size').text(job.sw + '×' + job.sh + ' → ' + job.tw + '×' + job.th + ' px');
+            $('#ic_enh_size').text(job.sw + '×' + job.sh + ' → ' + out.width + '×' + out.height + ' px');
             $('#ic_enh_note').text(job.note);
             updateHeightMm();
             if (state.step === 2) layoutPreview();
         }).catch(function(err) {
-            $('#ic_enh_note').text('해상도 개선 중 오류가 발생했습니다: ' + (err && err.message || err));
+            if (!state.enhDirty) $('#ic_enh_note').text('해상도 개선 중 오류가 발생했습니다: ' + (err && err.message || err));
         }).then(function() {
             enh.running = false;
             kickEnhance();
         });
     }
 
+    // 결과 픽셀을 개선 캔버스에 넣는다. 한도를 넘는 크기면 절반씩 고품질로 줄여 넣는다.
+    function putEnhanced(pixels, w, h) {
+        var src = document.createElement('canvas');
+        src.width = w; src.height = h;
+        var sctx = src.getContext('2d', { willReadFrequently: true });
+        var id = sctx.createImageData(w, h);
+        id.data.set(pixels);
+        sctx.putImageData(id, 0, 0);
+
+        var k = Math.min(1, MAX_OUTPUT_SIDE / Math.max(w, h), Math.sqrt(MAX_OUTPUT_PIXELS / (w * h)));
+        var out = state.enhCanvas;
+        if (k >= 1) {
+            out.width = w; out.height = h;
+            out.getContext('2d', { willReadFrequently: true }).drawImage(src, 0, 0);
+        } else {
+            drawScaled(src, out, Math.round(w * k), Math.round(h * k));
+        }
+    }
+
+    // AI 복원 (imageconvert-ai.js): 4배 확대. 진행률을 표시하고, 이미지가 바뀌면 중단한다.
+    function runAiJob(job) {
+        var ai = window.wsAiUpscale;
+        if (!ai || !ai.supported()) return Promise.reject(new Error('AI 모듈 없음'));
+        return ai.run(job.pixels, job.sw, job.sh, {
+            isCancelled: function() { return state.enhDirty; },
+            onProgress: function(done, total, backend) {
+                var pct = total ? Math.round(done / total * 100) : 0;
+                $('#ic_enh_busy_text').text('AI 해상도 복원 중… ' + pct + '% (' + (backend === 'webgpu' ? 'GPU' : 'CPU') + ')');
+            }
+        }).then(function(res) {
+            job.note = '원본을 AI 가 4배로 복원했어요 (' + (res.backend === 'webgpu' ? 'GPU' : 'CPU') + ' 처리). 흐린 글자 경계·JPG 얼룩이 정리됩니다.';
+            return { pixels: res.pixels, w: job.sw * ai.SCALE, h: job.sh * ai.SCALE };
+        });
+    }
+
     function buildEnhanceJob() {
         var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
 
-        // 긴 변이 목표 크기에 닿는 정수 배율(1~4배), 메모리 한도 안에서
+        // (기본 방식) 긴 변이 목표 크기에 닿는 정수 배율(1~4배), 메모리 한도 안에서
         var want = Math.min(4, Math.max(1, Math.ceil(ENHANCE_TARGET_SIDE / Math.max(sw, sh))));
         var maxScale = Math.min(MAX_OUTPUT_SIDE / Math.max(sw, sh), Math.sqrt(MAX_OUTPUT_PIXELS / (sw * sh)));
         var eff = Math.min(want, Math.max(1, maxScale));
@@ -215,13 +261,27 @@ $(function() {
         var sctx = src.getContext('2d', { willReadFrequently: true });
         sctx.drawImage(img, 0, 0);
 
+        // 흰 배경에 합성한 픽셀 (AI 모델은 투명도를 다루지 않는다). 투명 배경은 3단계에서 다시 제거한다.
+        var pixels = sctx.getImageData(0, 0, sw, sh).data;
+        var ai = !!window.wsAiUpscale && Math.max(sw, sh) <= AI_MAX_SOURCE_SIDE;
+        if (ai && state.hasAlpha) {
+            var flat = document.createElement('canvas');
+            flat.width = sw; flat.height = sh;
+            var fctx = flat.getContext('2d', { willReadFrequently: true });
+            fctx.fillStyle = '#fff';
+            fctx.fillRect(0, 0, sw, sh);
+            fctx.drawImage(img, 0, 0);
+            pixels = fctx.getImageData(0, 0, sw, sh).data;
+        }
+
         return {
             sw: sw, sh: sh,
             tw: Math.round(sw * eff), th: Math.round(sh * eff),
+            ai: ai,
             note: eff > 1
                 ? '약 ' + (Math.round(eff * 10) / 10) + '배로 자동 확대하고 선명하게 다듬었어요.'
                 : '원본이 충분히 커서 크기는 그대로 두고 선명하게만 다듬었어요.',
-            pixels: sctx.getImageData(0, 0, sw, sh).data,
+            pixels: pixels,
             options: ENHANCE_OPTIONS
         };
     }
@@ -632,7 +692,8 @@ $(function() {
             threshold: 128,
             invert: false,
             srcScale: w / state.srcImg.naturalWidth, // 정리 필터 강도를 원본 대비 배율에 맞춘다
-            hybrid: !!preset.hybrid
+            hybrid: !!preset.hybrid,
+            clean: state.enhAi // AI 복원 이미지는 잡티가 없으므로 정리 필터를 약하게
         };
         if (mode === 'mono') {
             var mono = autoMono(imgd);
@@ -743,15 +804,23 @@ $(function() {
         finishJob();
     }
 
-    // 원본 유지 모드: 사진 영역에만 보이는(마스크를 알파로 쓴) 선명하게 키운 원본 이미지를 PNG 로 만든다
+    // 원본 유지 모드: 사진 영역에만 보이는(마스크를 알파로 쓴) 선명하게 키운 원본 이미지를 PNG 로 만든다.
+    // AI 복원 결과가 있으면 그대로 쓰고, 기본 방식이면 사진용 설정으로 다시 키운다
+    // (글자 경계 선명화는 사진에 자글자글한 흰 점을 만든다).
     function buildPhotoOverlay(result, w, h) {
-        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
-        var src = document.createElement('canvas');
-        src.width = sw; src.height = sh;
-        var sctx = src.getContext('2d', { willReadFrequently: true });
-        sctx.drawImage(img, 0, 0);
-        var job = { sw: sw, sh: sh, tw: w, th: h, pixels: sctx.getImageData(0, 0, sw, sh).data, options: PHOTO_ENHANCE_OPTIONS };
-        return runEnhanceJob(job).then(function(pixels) {
+        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight, ready;
+        if (state.enhAi) {
+            var scaled = document.createElement('canvas');
+            drawScaled(state.enhCanvas, scaled, w, h);
+            ready = Promise.resolve(scaled.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data);
+        } else {
+            var src = document.createElement('canvas');
+            src.width = sw; src.height = sh;
+            var sctx = src.getContext('2d', { willReadFrequently: true });
+            sctx.drawImage(img, 0, 0);
+            ready = runEnhanceJob({ sw: sw, sh: sh, tw: w, th: h, pixels: sctx.getImageData(0, 0, sw, sh).data, options: PHOTO_ENHANCE_OPTIONS });
+        }
+        return ready.then(function(pixels) {
             var mask = result.mask;
             for (var p = 0, i = 0; p < mask.length; p++, i += 4) {
                 var a = mask[p];

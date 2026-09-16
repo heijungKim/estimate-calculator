@@ -11,7 +11,8 @@
 // wsTraceImage(imgd, p) → Promise<{ body, paths, width, height }>
 //   imgd : { width, height, data(Uint8ClampedArray RGBA) }  (흰 배경에 합성된 상태)
 //   p    : { mode:'illust'|'vector'|'mono', maxColors, mergeDistance(RGB), mergeDeltaE(Lab), removeBg, threshold, invert,
-//            srcScale(변환용 이미지 가로 / 원본 가로), hybrid(원본 유지: 사진 영역 마스크도 계산) }
+//            srcScale(변환용 이미지 가로 / 원본 가로), hybrid(원본 유지: 사진 영역 마스크도 계산),
+//            clean(AI 복원 이미지처럼 잡티가 없는 입력: 정리 필터를 약하게) }
 //   body : <svg> 안쪽 내용 (viewBox 0 0 width height 기준). 출력 크기(mm)는 페이지에서 감싼다.
 
 (function(root) {
@@ -194,6 +195,10 @@
             else if (dd < sd) { si = j; sd = dd; }
         }
         if (si < 0) return bi;
+        // 두 후보가 눈에 띄게 다른 색(글자 대 배경)일 때만 선형 광량 기준을 쓴다.
+        // 남색과 검정처럼 비슷한 어두운 색 사이에서는 선형 광량이 검정 쪽으로 쏠려 그림자·구멍 속이 검게 칠해지므로 Lab 최근접을 따른다.
+        var LA = labs[bi], LB = labs[si], dL2 = LA[0] - LB[0], da2 = LA[1] - LB[1], db2 = LA[2] - LB[2];
+        if (dL2 * dL2 + 1.6 * (da2 * da2 + db2 * db2) < 60 * 60) return bi;
         var A = P.lins[bi], B = P.lins[si], p = toLin(c);
         var abr = B[0] - A[0], abg = B[1] - A[1], abb = B[2] - A[2], len2 = abr * abr + abg * abg + abb * abb;
         if (len2 < 1e-4) return bi;
@@ -604,17 +609,19 @@
     // 정리 필터 강도: 변환용 이미지가 원본보다 몇 배 큰지(srcScale)에 맞춘다.
     // 원본 1픽셀짜리 잡티·계단은 확대 배율만큼 커지므로, 필터 창도 그만큼만 키워야
     // 작은 글자의 가는 획(원본 2~3픽셀)을 잡티로 오인해 깎아내거나 둥글게 뭉개지 않는다.
+    // AI 복원 이미지(p.clean)는 JPG 잡티·번짐이 이미 정리돼 있으므로 정리 필터를 약하게 건다.
+    // 세게 걸면 가는 선(테두리 선·그림자)이 군데군데 끊겨 점선처럼 남는다.
     function tuning(p) {
-        var s = Math.max(1, p.srcScale || 2), big = s >= 3;
+        var s = Math.max(1, p.srcScale || 2), big = s >= 3 && !p.clean;
         var t = {
             scale: s,
             big: big,
             thinR: big ? 2 : 1,
             bandR: big ? 4 : 2,
             groupR: big ? 2 : 1,
-            smoothR: s >= 3.5 ? 2 : 1,
-            smoothPasses: s >= 3.5 ? 2 : 1,
-            speckle: Math.max(2, Math.round(s * 1.5)),
+            smoothR: s >= 3.5 && !p.clean ? 2 : 1,
+            smoothPasses: s >= 3.5 && !p.clean ? 2 : 1,
+            speckle: Math.max(2, Math.round(s * (p.clean ? 1 : 1.5))),
             corner: 45,
             length: 3.5,
             splice: 45
@@ -697,8 +704,10 @@
         index = collapseTransitions(d, index, q.pal, w, h);
         index = groupModeFilter(index, q.pal, w, h, 64, t.groupR);
         index = cleanIndex(index, w, h, q.pal.length, t);
-        index = absorbSmallIslands(index, q.pal, w, h);
+        // 부스러기를 먼저 걷어낸 뒤 작은 섬을 본다. 글자 구멍 둘레에 남은 가는 검정 띠를 섬 판정이 "이웃 색"으로 세면
+        // 남색 구멍 전체가 검정으로 칠해진다.
         index = absorbSlivers(d, index, q.pal, w, h, t.scale);
+        index = absorbSmallIslands(index, q.pal, w, h);
         index = absorbSlivers(d, index, q.pal, w, h, t.scale); // 흡수 후 새로 드러난 부스러기까지 한 번 더
         var painted = snapExtremes(q.pal);
         paint(d, index, painted);
