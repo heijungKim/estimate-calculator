@@ -167,32 +167,59 @@
         return items.map(function(it) { return it.c.map(Math.round); });
     }
 
+    // sRGB → 선형 광량 (0~1). 두 색이 섞인 경계 픽셀의 "섞인 비율"은 이 공간에서 직선이다.
+    var LIN = new Float32Array(256);
+    for (var li = 0; li < 256; li++) { var lv = li / 255; LIN[li] = lv > 0.04045 ? Math.pow((lv + 0.055) / 1.055, 2.4) : lv / 12.92; }
+    function toLin(c) {
+        return [LIN[Math.round(c[0])], LIN[Math.round(c[1])], LIN[Math.round(c[2])]];
+    }
+
+    // 팔레트를 비교용으로 준비 (Lab · 선형 광량을 미리 계산)
+    function prepPalette(pal) {
+        return { labs: pal.map(toLab), lins: pal.map(toLin) };
+    }
+
     // 픽셀 색 → 가장 가까운 팔레트 색 번호.
-    // 사람 눈 기준 색 공간(Lab)에서 비교하되 색기(a·b) 차이에 가중치를 더 준다.
-    // RGB 로 비교하면 글자 획 사이의 연한 회색이 흰 바탕 대신 사진 부분의 살구색으로 칠해지는 일이 생긴다.
-    // 같은 팔레트로 수백만 픽셀을 비교하므로 RGB 6비트 단위로 결과를 캐시한다.
-    function nearestLab(lab, labs) {
-        var bi = 0, bd = Infinity;
+    // 1) 사람 눈 기준 색 공간(Lab)에서 가장 가까운 두 색을 고른다. 색기(a·b) 차이에 가중치를 더 준다.
+    //    (RGB 로 비교하면 글자 획 사이의 연한 회색이 흰 바탕 대신 사진 부분의 살구색으로 칠해지는 일이 생긴다)
+    // 2) 픽셀이 그 두 색이 섞인 색(경계의 안티앨리어싱·JPG 번짐)이면, 선형 광량 기준으로 절반 지점을 경계로 삼는다.
+    //    Lab 밝기는 어두운 쪽이 촘촘해서 Lab 만으로 고르면 밝은 색이 유리하다 — 흰 글자는 한 픽셀씩 굵어지고
+    //    노란 숫자의 검정 외곽선은 가늘어져 끊긴다. 실제 경계는 두 색이 반반 섞인 곳이므로 선형 광량으로 판정한다.
+    function nearestIn(c, P) {
+        var lab = toLab(c), labs = P.labs, bi = 0, bd = Infinity, si = -1, sd = Infinity;
         for (var j = 0; j < labs.length; j++) {
             var dL = lab[0] - labs[j][0], da = lab[1] - labs[j][1], db = lab[2] - labs[j][2];
             var dd = dL * dL + 1.6 * (da * da + db * db);
-            if (dd < bd) { bd = dd; bi = j; }
+            if (dd < bd) { si = bi; sd = bd; bi = j; bd = dd; }
+            else if (dd < sd) { si = j; sd = dd; }
         }
-        return bi;
+        if (si < 0) return bi;
+        var A = P.lins[bi], B = P.lins[si], p = toLin(c);
+        var abr = B[0] - A[0], abg = B[1] - A[1], abb = B[2] - A[2], len2 = abr * abr + abg * abg + abb * abb;
+        if (len2 < 1e-4) return bi;
+        var pr = p[0] - A[0], pg = p[1] - A[1], pb = p[2] - A[2];
+        var t = (pr * abr + pg * abg + pb * abb) / len2;
+        if (t <= 0 || t >= 1) return bi;
+        var perp2 = pr * pr + pg * pg + pb * pb - t * t * len2;
+        if (perp2 > 0.25 * len2) return bi; // 두 색 사이의 섞임이 아닌 별개 색
+        return t < 0.5 ? bi : si;
     }
 
+    // 같은 팔레트로 수백만 픽셀을 비교하므로 RGB 6비트 단위로 결과를 캐시한다.
     function makeMatcher(pal) {
-        var labs = pal.map(toLab), cache = new Int16Array(1 << 18).fill(-1);
+        var P = prepPalette(pal), cache = new Int16Array(1 << 18).fill(-1);
         return function(r, g, b) {
             var key = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2), v = cache[key];
-            if (v < 0) v = cache[key] = nearestLab(toLab([(r >> 2) * 4 + 2, (g >> 2) * 4 + 2, (b >> 2) * 4 + 2]), labs);
+            if (v < 0) v = cache[key] = nearestIn([(r >> 2) * 4 + 2, (g >> 2) * 4 + 2, (b >> 2) * 4 + 2], P);
             return v;
         };
     }
 
-    // 캐시 없이 한 픽셀만 비교 (주변 몇 색 중에서 고를 때)
-    function nearestColor(r, g, b, pal) {
-        return nearestLab(toLab([r, g, b]), pal.map(toLab));
+    // 주변 몇 색 중에서 고를 때: 후보 번호 목록(cands)별로 준비한 팔레트를 cache 에 재사용한다
+    function nearestAmong(r, g, b, cands, pal, cache) {
+        var key = cands.join(','), P = cache[key];
+        if (!P) P = cache[key] = prepPalette(cands.map(function(ci) { return pal[ci]; }));
+        return cands[nearestIn([r, g, b], P)];
     }
 
     function quantize(d, n, pal) {
@@ -303,7 +330,7 @@
     // 주변과 뚜렷하게 다른 고유한 색의 가는 선(노랑 바탕 위 검정 선 등)은 그대로 남는다.
     function cleanEdgeBands(d, index, pal, w, h, R) {
         var k = pal.length, n = w * h, solid = solidMask(index, w, h, 2), out = new Uint8Array(index);
-        var seen = new Uint8Array(k), cand = new Uint8Array(k);
+        var seen = new Uint8Array(k), cand = new Uint8Array(k), prepCache = {};
         var labs = pal.map(toLab), near = new Uint8Array(k * k);
         for (var i = 0; i < k; i++) for (var j = 0; j < k; j++) near[i * k + j] = dist2(labs[i], labs[j]) < 45 * 45 ? 1 : 0;
         for (var y = 0; y < h; y++) {
@@ -334,8 +361,8 @@
                 }
                 if (replace) {
                     var i4 = p * 4, sub = [];
-                    for (a = 0; a < nc; a++) sub.push(pal[cand[a]]);
-                    out[p] = cand[nearestColor(d[i4], d[i4 + 1], d[i4 + 2], sub)];
+                    for (a = 0; a < nc; a++) sub.push(cand[a]);
+                    out[p] = nearestAmong(d[i4], d[i4 + 1], d[i4 + 2], sub, pal, prepCache);
                 }
                 for (a = 0; a < nc; a++) seen[cand[a]] = 0;
             }
@@ -643,10 +670,9 @@
             for (c = 0; c < cands.length; c++) if (dist2(labs[color], labs[cands[c]]) < 45 * 45) { distinct = false; break; }
             if (distinct && area >= tinyArea) continue;
 
-            var key = cands.join(','), candLabs = cache[key] || (cache[key] = cands.map(function(ci) { return labs[ci]; }));
             for (var i = 0; i < area; i++) {
                 var pp = comp[i], i4 = pp * 4;
-                out[pp] = cands.length === 1 ? cands[0] : cands[nearestLab(toLab([d[i4], d[i4 + 1], d[i4 + 2]]), candLabs)];
+                out[pp] = cands.length === 1 ? cands[0] : nearestAmong(d[i4], d[i4 + 1], d[i4 + 2], cands, pal, cache);
             }
         }
         return out;
@@ -830,6 +856,9 @@
             var raw = root.vtracerWasm.vectorize_rgba(d, w, h, traceOptions(p, t));
             var open = raw.indexOf('<svg'), start = raw.indexOf('>', open) + 1, end = raw.lastIndexOf('</svg>');
             var body = raw.slice(start, end).trim();
+
+            // 경로 다듬기: 곧은 획은 곧게, 깎인 모서리는 뾰족하게 (imageconvert-refine.js)
+            if (root.wsRefineSvg) body = root.wsRefineSvg(body, t.scale);
 
             if (p.mode === 'mono') {
                 body = body.replace(/fill="#[0-9A-Fa-f]{6}"/g, 'fill="#000000"');

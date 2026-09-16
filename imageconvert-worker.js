@@ -1,6 +1,6 @@
 // ── 이미지 변환 웹 워커 ────────────────────────────────────────
 // 해상도 개선·벡터 변환은 큰 이미지에서 수 초가 걸리므로 화면이 멈추지 않게 워커에서 돌린다.
-importScripts('lib/vtracer/vtracer.js', 'imageconvert-trace.js', 'imageconvert-enhance.js');
+importScripts('lib/vtracer/vtracer.js', 'imageconvert-refine.js', 'imageconvert-trace.js', 'imageconvert-enhance.js');
 
 self.onmessage = function(e) {
     var msg = e.data;
