@@ -1,110 +1,104 @@
-// ── AI 해상도 복원 (Real-ESRGAN, 브라우저 안에서 실행) ─────────────────
-// 저화질 JPG 를 4배로 키우면서 흐릿한 글자 경계·JPG 얼룩을 학습된 모델이 복원한다.
-// Lanczos 확대 + 선명화 필터로는 흐린 경계를 "추측"할 수 없어 글자가 뭉개지지만,
-// Real-ESRGAN 은 글자·그라데이션·사진을 원본 디자인에 가깝게 되살린다.
-//
-// - 모델: realesr-general-x4v3 (Tencent ARC, BSD-3, 약 5MB) → lib/realesrgan/
-// - 실행: onnxruntime-web (CDN). GPU(WebGPU)가 되면 GPU 로, 아니면 CPU(WASM) 로 자동 전환
-// - 이미지는 서버로 보내지 않는다. 큰 이미지는 타일로 잘라 순서대로 처리한다.
-//
-// wsAiUpscale.run(pixels, sw, sh, { onProgress(done, total, backend), isCancelled() })
-//   → Promise<{ pixels: Uint8ClampedArray (sw*4 × sh*4 RGBA), backend: 'webgpu'|'wasm' }>
-
+// Bounded tile inference: only one 4x tile exists at a time. Runs in a dedicated worker.
 (function(root) {
     'use strict';
-
-    var ORT_BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/';
-    var MODEL_URL = 'lib/realesrgan/realesr-general-x4v3.onnx';
-    var SCALE = 4, PAD = 8;
-
-    var ortLoaded = null, sessionPromise = null, backendUsed = null;
-
-    function loadOrt() {
-        if (root.ort) return Promise.resolve(root.ort);
-        if (!ortLoaded) {
-            ortLoaded = new Promise(function(resolve, reject) {
-                var s = document.createElement('script');
-                s.src = ORT_BASE + 'ort.webgpu.min.js';
-                s.onload = function() { resolve(root.ort); };
-                s.onerror = function() { ortLoaded = null; reject(new Error('AI 실행 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.')); };
+    var BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/';
+    var session, backend, PAD = 24, SCALE = 4;
+    function canvas(w, h) {
+        var c = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : document.createElement('canvas');
+        c.width = w; c.height = h; return c;
+    }
+    async function getSession(cpu) {
+        if (session && (!cpu || backend === 'wasm')) return session;
+        if (session) { await session.release(); session = null; }
+        if (!root.ort) {
+            if (typeof importScripts === 'function') importScripts(BASE + 'ort.webgpu.min.js');
+            else await new Promise(function(resolve, reject) {
+                var s = document.createElement('script'); s.src = BASE + 'ort.webgpu.min.js';
+                s.onload = resolve; s.onerror = function() { reject(new Error('AI 실행 모듈 다운로드 실패')); };
                 document.head.appendChild(s);
             });
         }
-        return ortLoaded;
+        var ort = root.ort;
+        ort.env.wasm.wasmPaths = BASE;
+        ort.env.wasm.numThreads = 1;
+        // This code already runs in a worker. ORT proxy does not support WebGPU.
+        ort.env.wasm.proxy = false;
+        var response = await fetch('lib/realesrgan/realesr-general-x4v3.onnx');
+        if (!response.ok) throw new Error('AI 모델 다운로드 실패 (' + response.status + ')');
+        var model = await response.arrayBuffer();
+        backend = !cpu && root.navigator && root.navigator.gpu ? 'webgpu' : 'wasm';
+        try { session = await ort.InferenceSession.create(model, {executionProviders: [backend]}); }
+        catch (error) {
+            if (backend === 'wasm') throw error;
+            backend = 'wasm';
+            session = await ort.InferenceSession.create(model, {executionProviders: ['wasm']});
+        }
+        return session;
     }
-
-    function fetchModel() {
-        return fetch(MODEL_URL).then(function(res) {
-            if (!res.ok) throw new Error('AI 모델 파일을 불러오지 못했습니다.');
-            return res.arrayBuffer();
-        });
-    }
-
-    // 세션은 한 번만 만든다. WebGPU → 실패하면 WASM(워커에서 실행해 화면이 멈추지 않게)
-    function getSession() {
-        if (sessionPromise) return sessionPromise;
-        sessionPromise = Promise.all([loadOrt(), fetchModel()]).then(function(r) {
-            var ort = r[0], model = new Uint8Array(r[1]);
-            ort.env.wasm.wasmPaths = ORT_BASE;
-            function createWith(backend) {
-                return ort.InferenceSession.create(model, { executionProviders: [backend], graphOptimizationLevel: 'all' })
-                    .then(function(sess) { backendUsed = backend; return sess; });
-            }
-            var gpuOk = !!(root.navigator && root.navigator.gpu);
-            var first = gpuOk ? createWith('webgpu') : Promise.reject(new Error('no webgpu'));
-            return first.catch(function() {
-                ort.env.wasm.proxy = true;
-                return createWith('wasm');
-            });
-        });
-        sessionPromise.catch(function() { sessionPromise = null; });
-        return sessionPromise;
-    }
-
-    function run(pixels, sw, sh, o) {
+    async function run(pixels, sw, sh, o) {
         o = o || {};
-        return getSession().then(function(sess) {
-            var ort = root.ort, tile = backendUsed === 'webgpu' ? 192 : 128;
-            var cols = Math.ceil(sw / tile), rows = Math.ceil(sh / tile), total = cols * rows, done = 0;
-            var out = new Uint8ClampedArray(sw * SCALE * sh * SCALE * 4);
-            var inputName = sess.inputNames[0], outputName = sess.outputNames[0];
-
-            function step(ty, tx) {
-                if (o.isCancelled && o.isCancelled()) return Promise.reject(new Error('cancelled'));
-                if (ty >= sh) return Promise.resolve();
+        var w = o.width || sw * SCALE, h = o.height || sh * SCALE;
+        if (!Number.isInteger(w) || !Number.isInteger(h) || w < 1 || h < 1 || w * h > 20000000 || Math.max(w, h) > 8000) throw new Error('결과 크기가 처리 한도를 초과합니다.');
+        var sess = await getSession(o.cpu), tile = backend === 'webgpu' ? 128 : 64;
+        var out = canvas(w, h), ctx = out.getContext('2d', {willReadFrequently:true});
+        ctx.imageSmoothingQuality = 'high';
+        var total = Math.ceil(sw / tile) * Math.ceil(sh / tile), done = 0;
+        if (o.onProgress) o.onProgress(0, total, backend);
+        try {
+            for (var ty = 0; ty < sh; ty += tile) for (var tx = 0; tx < sw; tx += tile) {
+                if (o.isCancelled && o.isCancelled()) throw new Error('cancelled');
                 var x0 = Math.max(0, tx - PAD), y0 = Math.max(0, ty - PAD);
-                var x1 = Math.min(sw, tx + tile + PAD), y1 = Math.min(sh, ty + tile + PAD);
-                var tw = x1 - x0, th = y1 - y0, n = tw * th, inp = new Float32Array(3 * n);
-                for (var y = 0; y < th; y++) {
-                    for (var x = 0; x < tw; x++) {
-                        var i = ((y0 + y) * sw + (x0 + x)) * 4, p = y * tw + x;
-                        inp[p] = pixels[i] / 255; inp[n + p] = pixels[i + 1] / 255; inp[2 * n + p] = pixels[i + 2] / 255;
-                    }
+                var tw = Math.min(sw, tx + tile + PAD) - x0, th = Math.min(sh, ty + tile + PAD) - y0;
+                var n = tw * th, inp = new Float32Array(n * 3);
+                for (var y = 0; y < th; y++) for (var x = 0; x < tw; x++) {
+                    var i = ((y0+y)*sw+x0+x)*4, p = y*tw+x, a = pixels[i+3]/255;
+                    for (var c = 0; c < 3; c++) inp[c*n+p] = (pixels[i+c]*a + 255*(1-a))/255;
                 }
-                var feed = {};
-                feed[inputName] = new ort.Tensor('float32', inp, [1, 3, th, tw]);
-                return sess.run(feed).then(function(res) {
-                    var t = res[outputName].data, ow = tw * SCALE, oh = th * SCALE, on = ow * oh;
-                    var cx0 = (tx - x0) * SCALE, cy0 = (ty - y0) * SCALE;
-                    var cw = Math.min(tile, sw - tx) * SCALE, ch = Math.min(tile, sh - ty) * SCALE, OW = sw * SCALE;
-                    for (var yy = 0; yy < ch; yy++) {
-                        var srcRow = (cy0 + yy) * ow + cx0, dstRow = ((ty * SCALE + yy) * OW + tx * SCALE) * 4;
-                        for (var xx = 0; xx < cw; xx++) {
-                            var q = srcRow + xx, d = dstRow + xx * 4;
-                            out[d] = t[q] * 255 + 0.5; out[d + 1] = t[on + q] * 255 + 0.5; out[d + 2] = t[2 * on + q] * 255 + 0.5; out[d + 3] = 255;
-                        }
+                var feed = {}, result;
+                feed[sess.inputNames[0]] = new root.ort.Tensor('float32', inp, [1,3,th,tw]);
+                try {
+                    result = await sess.run(feed);
+                    var tensor = result[sess.outputNames[0]], data = tensor.data, ow = tw*SCALE, oh = th*SCALE, count = ow*oh;
+                    if (data.length !== count*3) throw new Error('AI 모델 출력 크기가 올바르지 않습니다.');
+                    var rgba = new Uint8ClampedArray(count*4);
+                    for (var p = 0; p < count; p++) {
+                        for (var c = 0; c < 3; c++) rgba[p*4+c] = data[c*count+p]*255;
+                        rgba[p*4+3] = 255;
                     }
-                    done++;
-                    if (o.onProgress) o.onProgress(done, total, backendUsed);
-                    var nx = tx + tile, ny = ty;
-                    if (nx >= sw) { nx = 0; ny = ty + tile; }
-                    return step(ny, nx);
-                });
+                    if (root.wsEnhanceImage && o.options) rgba = root.wsEnhanceImage(rgba,ow,oh,ow,oh,o.options);
+                    var piece = canvas(ow,oh);
+                    piece.getContext('2d').putImageData(new ImageData(rgba,ow,oh),0,0);
+                    var cw = Math.min(tile,sw-tx), ch = Math.min(tile,sh-ty);
+                    var dx = Math.round(tx*w/sw), dy = Math.round(ty*h/sh);
+                    ctx.drawImage(piece,(tx-x0)*SCALE,(ty-y0)*SCALE,cw*SCALE,ch*SCALE,
+                        dx,dy,Math.round((tx+cw)*w/sw)-dx,Math.round((ty+ch)*h/sh)-dy);
+                    piece.width = piece.height = 1;
+                } finally {
+                    feed[sess.inputNames[0]].dispose();
+                    if (result) Object.keys(result).forEach(function(key) { result[key].dispose(); });
+                }
+                if (o.onProgress) o.onProgress(++done,total,backend);
+                await new Promise(function(resolve) { setTimeout(resolve,0); });
             }
-            if (o.onProgress) o.onProgress(0, total, backendUsed);
-            return step(0, 0).then(function() { return { pixels: out, backend: backendUsed }; });
-        });
+        } catch (error) {
+            out.width = out.height = 1;
+            if (backend === 'webgpu' && error.message !== 'cancelled') return run(pixels,sw,sh,Object.assign({},o,{cpu:true}));
+            throw error;
+        }
+        var output = ctx.getImageData(0,0,w,h).data;
+        // Resample the original alpha separately, then undo the white inference matte.
+        if (o.hasAlpha) {
+            var original = canvas(sw,sh); original.getContext('2d').putImageData(new ImageData(pixels,sw,sh),0,0);
+            var mask = canvas(w,h), mc = mask.getContext('2d'); mc.imageSmoothingQuality = 'high';
+            mc.drawImage(original,0,0,w,h);
+            var alpha = mc.getImageData(0,0,w,h).data;
+            for (var i = 0; i < output.length; i+=4) {
+                var a = alpha[i+3]/255;
+                for (var c = 0; c < 3; c++) output[i+c] = a > 0 ? (output[i+c]-255*(1-a))/a : 0;
+                output[i+3] = alpha[i+3];
+            }
+        }
+        return {pixels:output, width:w, height:h, backend:backend};
     }
-
-    root.wsAiUpscale = { run: run, SCALE: SCALE, supported: function() { return typeof fetch === 'function' && typeof WebAssembly === 'object'; } };
-})(window);
+    root.wsAiUpscale = {run:run,SCALE:SCALE,supported:function() { return typeof WebAssembly === 'object'; }};
+})(typeof self !== 'undefined' ? self : window);

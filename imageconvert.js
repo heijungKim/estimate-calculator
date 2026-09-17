@@ -1,6 +1,6 @@
 // ── 이미지 변환: 1) 업로드 → 2) 해상도 개선 → 3) 일러스트·벡터 변환 ──
 // 모든 처리는 브라우저 안에서만 이뤄지며 이미지를 서버로 보내지 않는다.
-// 사용자가 품질을 조절하지 않도록, 간판·로고·사진이 섞인 이미지로 비교해 정한 최적값으로 자동 처리한다.
+// 이미지 종류와 출력 크기에 맞춰 복원하고 원본과 비교한다.
 
 $(function() {
     'use strict';
@@ -8,8 +8,6 @@ $(function() {
     var MAX_SOURCE_PIXELS = 24000000;   // 원본 허용 한도 (약 4900×4900)
     var MAX_OUTPUT_SIDE = 8000;         // 해상도 개선 결과 긴 변 한도
     var MAX_OUTPUT_PIXELS = 20000000;   // 해상도 개선 결과 픽셀 한도 (브라우저 메모리 보호)
-    var AI_MAX_SOURCE_SIDE = 2500;      // 긴 변이 이 크기 이하면 AI 복원(4배). 더 크면 이미 고해상도라 기본 방식으로 다듬기만 한다
-    var ENHANCE_TARGET_SIDE = 4500;     // (기본 방식) 긴 변이 이 크기 이상이 되도록 배율 자동 선택 (최대 4배)
     var TRACE_MAX_SIDE = 4800;          // 벡터 변환에 쓰는 이미지 긴 변 한도 (클수록 곡선이 매끈하다)
 
     // 해상도 개선 최적값 (AI 복원을 쓸 수 없을 때의 기본 방식)
@@ -19,6 +17,7 @@ $(function() {
 
     // 변환 방식별 최적값 (imageconvert-trace.js 의 옵션)
     var MODES = {
+        raster: { label: '사진 유지 · 글자 교체', hint: '사진은 그대로 유지합니다. 글자 한 줄을 직접 선택하고 비슷한 폰트로 교체하세요. SVG에는 사진과 교체한 벡터 글자가 함께 저장됩니다.' },
         hybrid: { label: '원본유지', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17, hybrid: true,
                   hint: '글자·도형은 확대해도 깨지지 않는 벡터로, 사진·그라데이션은 선명하게 키운 원본 이미지를 그대로 넣습니다. 실사출력·현수막용으로 가장 원본에 가깝습니다.' },
         illust: { label: '일러스트', maxColors: 16, mergeDistance: 56, mergeDeltaE: 20,
@@ -71,6 +70,24 @@ $(function() {
     $('#ic_to_step2').on('click', function() { state.maxStep = Math.max(state.maxStep, 2); gotoStep(2); });
     $('#ic_to_step3').on('click', function() { state.maxStep = 3; gotoStep(3); });
 
+    $('#ic_direct_fonts').on('click', function() { enterFontMode(true); });
+    $('#ic_enh_fonts').on('click', function() { enterFontMode(false); });
+    function enterFontMode(original) {
+        if (!state.srcImg) return;
+        if (original) {
+            cancelAi();
+            state.enhDirty = false;
+            var img=state.srcImg, scale=Math.min(1,MAX_OUTPUT_SIDE/Math.max(img.naturalWidth,img.naturalHeight),Math.sqrt(MAX_OUTPUT_PIXELS/(img.naturalWidth*img.naturalHeight)));
+            drawScaled(img,state.enhCanvas,Math.max(1,Math.floor(img.naturalWidth*scale)),Math.max(1,Math.floor(img.naturalHeight*scale)));
+            state.enhAi=false;clearResults();
+            $('#ic_enh_size').text(state.enhCanvas.width+' × '+state.enhCanvas.height+' px');
+            $('#ic_enh_note').text('원본 이미지 · AI 복원 없이 글자 교체');
+            $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled',false);printReport();
+        }
+        state.mode='raster'; $('#ic_mode button').removeClass('on').filter('[data-v="raster"]').addClass('on');
+        state.maxStep=3;gotoStep(3);
+    }
+
     // ────────────────────────────────────────────────────────
     //  1단계: 업로드
     // ────────────────────────────────────────────────────────
@@ -98,7 +115,9 @@ $(function() {
     });
     $('#ic_reset').on('click', function() { $('#ic_file').trigger('click'); });
 
+    var uploadVersion = 0;
     function loadFile(file) {
+        var version = ++uploadVersion;
         $('#ic_upload_error').text('');
         if (!file.type || file.type.indexOf('image/') !== 0) {
             $('#ic_upload_error').text('이미지 파일만 올릴 수 있습니다.');
@@ -111,6 +130,7 @@ $(function() {
         var url = URL.createObjectURL(file);
         var img = new Image();
         img.onload = function() {
+            if (version !== uploadVersion) { URL.revokeObjectURL(url); return; }
             if (img.naturalWidth * img.naturalHeight > MAX_SOURCE_PIXELS) {
                 URL.revokeObjectURL(url);
                 $('#ic_upload_error').text('이미지가 너무 큽니다 (' + img.naturalWidth + '×' + img.naturalHeight +
@@ -118,11 +138,14 @@ $(function() {
                 return;
             }
             if (state.srcUrl) URL.revokeObjectURL(state.srcUrl);
+            cancelAi();
             state.file = file;
             state.srcUrl = url;
             state.srcImg = img;
             state.hasAlpha = detectAlpha(img);
             state.enhDirty = true;
+            $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled', true);
+            $('#ic_enh_error, #ic_enh_note').text('');
             state.enhCanvas.width = 0; // 이전 이미지의 개선 결과가 잠깐 보이지 않도록
             clearResults();
             state.maxStep = 1;
@@ -132,11 +155,12 @@ $(function() {
             $('#ic_meta_size').text(img.naturalWidth + ' × ' + img.naturalHeight + ' px' + (state.hasAlpha ? ' (투명 배경)' : ''));
             $('#ic_meta_bytes').text(formatBytes(file.size));
             $('#ic_upload_info, #ic_reset').prop('hidden', false);
-            $('#ic_to_step2').prop('disabled', false);
+            $('#ic_to_step2, #ic_direct_fonts').prop('disabled', false);
             gotoStep(1);
         };
         img.onerror = function() {
             URL.revokeObjectURL(url);
+            if (version !== uploadVersion) return;
             $('#ic_upload_error').text('이미지를 읽을 수 없습니다. 브라우저가 지원하지 않는 형식(HEIC 등)이면 JPG · PNG 로 바꿔서 올려주세요.');
         };
         img.src = url;
@@ -158,7 +182,44 @@ $(function() {
     //  2단계: 해상도 개선 (자동)
     // ────────────────────────────────────────────────────────
     // 큰 이미지에서 수 초가 걸리므로 웹 워커에서 돌린다. 이미지가 바뀌면 끝난 결과는 버리고 다시 돌린다.
-    var enh = { running: false, waiters: [], worker: null, noWorker: false, jobId: 0 };
+    var enh = { running: false, waiters: [], worker: null, noWorker: false, jobId: 0, aiWorker: null, rejectAi: null };
+    function cancelAi() {
+        if (enh.aiWorker) { enh.aiWorker.terminate(); enh.aiWorker = null; }
+        if (enh.rejectAi) { enh.rejectAi(new Error('cancelled')); enh.rejectAi = null; }
+    }
+    $('#ic_enh_cancel').on('click', function() {
+        if (!enh.aiWorker) return;
+        state.enhDirty = false;
+        cancelAi();
+        $('#ic_enh_error').text('복원을 취소했습니다. 다시 복원 버튼으로 재시도할 수 있습니다.');
+    });
+    $('#ic_enh_apply').on('click', function() {
+        cancelAi();
+        state.enhDirty = true;
+        state.enhCanvas.width = 0;
+        clearResults();
+        state.maxStep = 2;
+        gotoStep(2);
+    });
+    $('#ic_restore_sharp, #ic_restore_noise').on('input', function() {
+        $('#ic_sharp_value').text($('#ic_restore_sharp').val());
+        $('#ic_noise_value').text($('#ic_restore_noise').val());
+    });
+    $('#ic_restore_preset').on('change', function() {
+        var preset = this.value;
+        $('#ic_restore_sharp').val(preset === 'text' ? 65 : preset === 'gentle' ? 15 : 40).trigger('input');
+        $('#ic_restore_noise').val(preset === 'text' ? 0.5 : 0).trigger('input');
+    });
+    function printReport() {
+        var cv = state.enhCanvas, mm = +$('#ic_print_width').val(), dpi = +$('#ic_print_dpi').val();
+        if (!cv.width) { $('#ic_print_report').text('복원 후 출력 가능 크기를 확인할 수 있습니다.'); return; }
+        if (!(mm > 0 && Number.isFinite(mm))) { $('#ic_print_report').text('출력 가로 크기를 입력하세요.'); return; }
+        var actual = cv.width * 25.4 / mm;
+        $('#ic_print_report').text('출력 ' + fmtNum(mm) + ' × ' + fmtNum(mm*cv.height/cv.width) + ' mm · ' + Math.round(actual) + ' PPI\n' +
+            '목표 ' + dpi + ' PPI 기준 최대 ' + fmtNum(cv.width*25.4/dpi) + ' × ' + fmtNum(cv.height*25.4/dpi) + ' mm\n' +
+            (actual >= dpi ? '목표 픽셀 수 충족 · 실제 선명도는 1:1로 확인하세요.' : '목표보다 픽셀이 부족합니다. 출력 크기를 줄이거나 더 큰 원본을 사용하세요.'));
+    }
+    $('#ic_print_width, #ic_print_dpi').on('input change', printReport);
 
     // 현재 이미지의 개선 결과가 캔버스에 준비되면 resolve
     function ensureEnhanced() {
@@ -181,13 +242,23 @@ $(function() {
 
         state.enhDirty = false;
         enh.running = true;
+        $('#ic_enh_error, #ic_enh_note').text('');
+        $('#ic_enh_size').text('처리 중');
+        printReport();
+        $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts, #ic_enh_apply').prop('disabled', true);
         $('#ic_enh_busy').prop('hidden', false);
         $('#ic_enh_busy_text').text('AI 해상도 복원 준비 중…');
 
-        var job = buildEnhanceJob();
+        var job;
+        try { job = buildEnhanceJob(); } catch (error) {
+            enh.running = false; $('#ic_enh_apply').prop('disabled', false);
+            $('#ic_enh_error').text(error.message); kickEnhance(); return;
+        }
+        $('#ic_enh_cancel').prop('hidden', !job.ai);
         var work = job.ai
             ? runAiJob(job).catch(function(err) {
-                if (state.enhDirty) throw err;
+                if (state.enhDirty || err.message === 'cancelled') throw err;
+                $('#ic_enh_cancel').prop('hidden', true);
                 // AI 를 쓸 수 없는 환경(오래된 브라우저·오프라인 등) → 기본 방식으로
                 job.ai = false;
                 job.note = '이 브라우저에서는 AI 복원을 쓸 수 없어 기본 방식으로 처리했어요. (' + (err && err.message || err) + ')';
@@ -204,11 +275,14 @@ $(function() {
             $('#ic_enh_size').text(job.sw + '×' + job.sh + ' → ' + out.width + '×' + out.height + ' px');
             $('#ic_enh_note').text(job.note);
             updateHeightMm();
+            printReport();
+            $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled', false);
             if (state.step === 2) layoutPreview();
         }).catch(function(err) {
-            if (!state.enhDirty) $('#ic_enh_note').text('해상도 개선 중 오류가 발생했습니다: ' + (err && err.message || err));
+            if (!state.enhDirty && err.message !== 'cancelled') $('#ic_enh_error').text('복원 실패: ' + (err && err.message || err) + '. 다시 복원 버튼으로 재시도하세요.');
         }).then(function() {
             enh.running = false;
+            $('#ic_enh_apply').prop('disabled', false);
             kickEnhance();
         });
     }
@@ -234,56 +308,39 @@ $(function() {
 
     // AI 복원 (imageconvert-ai.js): 4배 확대. 진행률을 표시하고, 이미지가 바뀌면 중단한다.
     function runAiJob(job) {
-        var ai = window.wsAiUpscale;
-        if (!ai || !ai.supported()) return Promise.reject(new Error('AI 모듈 없음'));
-        return ai.run(job.pixels, job.sw, job.sh, {
-            isCancelled: function() { return state.enhDirty; },
-            onProgress: function(done, total, backend) {
-                var pct = total ? Math.round(done / total * 100) : 0;
-                $('#ic_enh_busy_text').text('AI 해상도 복원 중… ' + pct + '% (' + (backend === 'webgpu' ? 'GPU' : 'CPU') + ')');
-            }
-        }).then(function(res) {
-            job.note = '원본을 AI 가 4배로 복원했어요 (' + (res.backend === 'webgpu' ? 'GPU' : 'CPU') + ' 처리). 흐린 글자 경계·JPG 얼룩이 정리됩니다.';
-            return { pixels: res.pixels, w: job.sw * ai.SCALE, h: job.sh * ai.SCALE };
+        return new Promise(function(resolve,reject) {
+            if (!window.Worker || !window.OffscreenCanvas) { reject(new Error('이 브라우저의 AI 작업 기능이 지원되지 않습니다')); return; }
+            var worker;
+            try { worker = new Worker('imageconvert-ai-worker.js'); } catch (error) { reject(error); return; }
+            enh.aiWorker = worker; enh.rejectAi = reject;
+            function cleanup() { worker.terminate(); if (enh.aiWorker === worker) { enh.aiWorker=null; enh.rejectAi=null; } }
+            worker.onmessage = function(event) {
+                var r = event.data;
+                if (r.progress) {
+                    $('#ic_enh_busy_text').text('AI 복원 ' + Math.round(r.done/r.total*100) + '% · ' + r.done + '/' + r.total + ' 영역 (' + (r.backend==='webgpu'?'GPU':'CPU') + ')'); return;
+                }
+                cleanup();
+                if (!r.ok) { reject(new Error(r.error)); return; }
+                job.note = 'AI 복원 완료 · ' + (r.backend==='webgpu'?'GPU':'CPU') + ' · 원본 대비 ' + (r.width/job.sw).toFixed(2) + '배' + (job.hasAlpha?' · 투명 배경 유지':'');
+                resolve({pixels:new Uint8ClampedArray(r.buffer),w:r.width,h:r.height});
+            };
+            worker.onerror = function(event) { event.preventDefault(); cleanup(); reject(new Error(event.message || 'AI 작업 실행 실패')); };
+            var copy=job.pixels.slice();
+            worker.postMessage({buffer:copy.buffer,sw:job.sw,sh:job.sh,tw:job.tw,th:job.th,hasAlpha:job.hasAlpha,options:job.options},[copy.buffer]);
         });
     }
 
     function buildEnhanceJob() {
         var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
-
-        // (기본 방식) 긴 변이 목표 크기에 닿는 정수 배율(1~4배), 메모리 한도 안에서
-        var want = Math.min(4, Math.max(1, Math.ceil(ENHANCE_TARGET_SIDE / Math.max(sw, sh))));
-        var maxScale = Math.min(MAX_OUTPUT_SIDE / Math.max(sw, sh), Math.sqrt(MAX_OUTPUT_PIXELS / (sw * sh)));
-        var eff = Math.min(want, Math.max(1, maxScale));
-
-        var src = document.createElement('canvas');
-        src.width = sw; src.height = sh;
-        var sctx = src.getContext('2d', { willReadFrequently: true });
-        sctx.drawImage(img, 0, 0);
-
-        // 흰 배경에 합성한 픽셀 (AI 모델은 투명도를 다루지 않는다). 투명 배경은 3단계에서 다시 제거한다.
-        var pixels = sctx.getImageData(0, 0, sw, sh).data;
-        var ai = !!window.wsAiUpscale && Math.max(sw, sh) <= AI_MAX_SOURCE_SIDE;
-        if (ai && state.hasAlpha) {
-            var flat = document.createElement('canvas');
-            flat.width = sw; flat.height = sh;
-            var fctx = flat.getContext('2d', { willReadFrequently: true });
-            fctx.fillStyle = '#fff';
-            fctx.fillRect(0, 0, sw, sh);
-            fctx.drawImage(img, 0, 0);
-            pixels = fctx.getImageData(0, 0, sw, sh).data;
-        }
-
-        return {
-            sw: sw, sh: sh,
-            tw: Math.round(sw * eff), th: Math.round(sh * eff),
-            ai: ai,
-            note: eff > 1
-                ? '약 ' + (Math.round(eff * 10) / 10) + '배로 자동 확대하고 선명하게 다듬었어요.'
-                : '원본이 충분히 커서 크기는 그대로 두고 선명하게만 다듬었어요.',
-            pixels: pixels,
-            options: ENHANCE_OPTIONS
-        };
+        var want = +$('#ic_restore_scale').val() || 4;
+        var scale = Math.min(want,MAX_OUTPUT_SIDE/Math.max(sw,sh),Math.sqrt(MAX_OUTPUT_PIXELS/(sw*sh)));
+        var src=document.createElement('canvas'); src.width=sw; src.height=sh;
+        var ctx=src.getContext('2d',{willReadFrequently:true}); ctx.drawImage(img,0,0);
+        return {sw:sw,sh:sh,tw:Math.max(1,Math.floor(sw*scale)),th:Math.max(1,Math.floor(sh*scale)),
+            ai:!!window.wsAiUpscale, hasAlpha:state.hasAlpha,
+            note:'기본 선명화 처리 · AI 복원 아님',pixels:ctx.getImageData(0,0,sw,sh).data,
+            options:{denoise:+$('#ic_restore_noise').val(),crisp:$('#ic_restore_preset').val()==='text'?0.4:0,
+                sharpen:+$('#ic_restore_sharp').val()/100,contrast:0}};
     }
 
     function runEnhanceJob(job) {
@@ -341,11 +398,19 @@ $(function() {
         }
         $stage.css({ width: w + 'px', height: h + 'px' });
 
-        // 실제 크기면 개선 캔버스를 그대로, 화면 맞춤이면 고품질로 줄인 화면용 캔버스를 보여준다.
-        // (큰 캔버스를 CSS 로 크게 줄이면 브라우저가 거칠게 축소해 글자가 흐리고 지글지글해 보인다)
-        cv.hidden = !zoom;
-        view.hidden = zoom;
-        if (!zoom) drawScaled(cv, view, Math.round(w * (window.devicePixelRatio || 1)), Math.round(h * (window.devicePixelRatio || 1)));
+        cv.hidden = true;
+        view.hidden = false;
+        var ratio = zoom ? 1 : (window.devicePixelRatio || 1);
+        drawScaled(cv, view, Math.round(w*ratio), Math.round(h*ratio));
+        if ($('#ic_show_original').is(':checked')) {
+            var ctx = view.getContext('2d'), split = view.width * (+$('#ic_compare_split').val()/100);
+            ctx.save(); ctx.beginPath(); ctx.rect(0,0,split,view.height); ctx.clip();
+            ctx.clearRect(0,0,split,view.height); ctx.imageSmoothingQuality='high';
+            ctx.drawImage(state.srcImg,0,0,view.width,view.height); ctx.restore();
+            ctx.fillStyle='#2979ff'; ctx.fillRect(split,0,2*ratio,view.height);
+            ctx.font=(12*ratio)+'px sans-serif'; ctx.fillStyle='#16345b';
+            ctx.fillText('원본',8*ratio,20*ratio); ctx.fillText('복원',Math.min(split+8*ratio,view.width-35*ratio),20*ratio);
+        }
     }
 
     // 절반씩 단계적으로 줄여 그리기 (한 번에 많이 줄이면 픽셀을 건너뛰어 가는 획이 끊겨 보인다)
@@ -369,12 +434,19 @@ $(function() {
         $preview.toggleClass('zoom', this.checked);
         layoutPreview();
     });
+    $('#ic_show_original, #ic_compare_split').on('input change', layoutPreview);
     $(window).on('resize', function() { if (state.step === 2) layoutPreview(); });
 
     $('#ic_dl_png_enh').on('click', function() {
         ensureEnhanced().then(function() {
-            state.enhCanvas.toBlob(function(blob) {
-                if (blob) downloadBlob(blob, baseName() + '_해상도개선.png');
+            if (!state.enhCanvas.width) return;
+            var mm = +$('#ic_print_width').val();
+            var dpi = mm > 0 && Number.isFinite(mm) ? state.enhCanvas.width*25.4/mm : +$('#ic_print_dpi').val();
+            var filename = baseName() + '_복원_' + state.enhCanvas.width + 'x' + state.enhCanvas.height + '_' + Math.round(dpi) + 'ppi.png';
+            state.enhCanvas.toBlob(async function(blob) {
+                try { if (blob) downloadBlob(await window.wsPrintPng(blob,dpi), filename);
+                    else throw new Error('이미지 저장 실패');
+                } catch (error) { $('#ic_enh_error').text(error.message); }
             }, 'image/png');
         });
     });
@@ -386,6 +458,7 @@ $(function() {
         var m = $(this).data('v');
         if (m === state.mode) return;
         $(this).addClass('on').siblings().removeClass('on');
+        closeTextEditor();
         state.mode = m;
         $('#ic_mode_hint').text(MODES[m].hint);
         convertCurrent();
@@ -441,25 +514,58 @@ $(function() {
     // ────────────────────────────────────────────────────────
     var TX = window.wsTextReplace;
     var editor = null;   // { sel, ranked, showAll, replacementId, ocrDone, userTyped }
-    var rankTimer = null;
+    var rankTimer = null, selectingText = false, drag = null;
+    function setTextSelection(on) {
+        selectingText=on;drag=null;
+        $('#ic_select_text').attr('aria-pressed',String(on)).text(on?'영역 선택 중 · 취소':'직접 영역 선택');
+        $('#ic_result_img').toggleClass('select-region',on);
+        if(!on) positionTextMark();
+    }
+    $('#ic_select_text').on('click',function(){setTextSelection(!selectingText);if(selectingText)textStatus('글자 한 줄을 테두리 안에 넣어 드래그하세요. Esc로 취소할 수 있습니다.');});
+    $(document).on('keydown',function(event){if(event.key==='Escape'){setTextSelection(false);positionTextMark();}});
+    function pointInImage(event,img,r) {
+        var rect=img.getBoundingClientRect();
+        return {x:Math.max(0,Math.min(r.width,(event.clientX-rect.left)/rect.width*r.width)),y:Math.max(0,Math.min(r.height,(event.clientY-rect.top)/rect.height*r.height))};
+    }
+    $('#ic_result_img').on('dragstart',function(event){event.preventDefault();});
+    $('#ic_result_img').on('pointerdown',function(event){
+        var r=currentResult();if(!selectingText||!r||!$('#ic_trace_busy').prop('hidden'))return;
+        var e=event.originalEvent;if(e.button!==0)return;event.preventDefault();
+        drag={start:pointInImage(e,this,r),result:r,pointer:e.pointerId};this.setPointerCapture(e.pointerId);
+    }).on('pointermove',function(event){
+        if(!drag)return;var p=pointInImage(event.originalEvent,this,drag.result),a=drag.start;
+        drag.box={x:Math.min(a.x,p.x),y:Math.min(a.y,p.y),w:Math.abs(a.x-p.x),h:Math.abs(a.y-p.y)};
+        var k=this.clientWidth/drag.result.width,b=drag.box;
+        $('#ic_text_mark').css({left:this.offsetLeft+b.x*k,top:this.offsetTop+b.y*k,width:b.w*k,height:b.h*k}).prop('hidden',false);
+    }).on('pointerup',function(event){
+        if(!drag)return;var selected=drag;drag=null;
+        if(this.hasPointerCapture(selected.pointer))this.releasePointerCapture(selected.pointer);
+        if(!selected.box||selected.box.w<3||selected.box.h<3){textStatus('글자 한 줄을 드래그해서 선택하세요.',true);return;}
+        var r=selected.result,c=document.createElement('canvas');c.width=r.width;c.height=r.height;
+        c.getContext('2d').drawImage(this,0,0,r.width,r.height);
+        var sel=TX.selectRegion(c.getContext('2d').getImageData(0,0,r.width,r.height),selected.box);
+        if(sel.error){textStatus(sel.error,true);return;}
+        setTextSelection(false);openTextEditor(r,0,0,sel);
+    }).on('pointercancel',function(){drag=null;positionTextMark();});
 
     $('#ic_result_img').on('click', function(e) {
         var r = currentResult();
-        if (!r || !r.index || !$('#ic_trace_busy').prop('hidden')) return;
+        if (selectingText || !r || !r.index || !$('#ic_trace_busy').prop('hidden')) return;
         var rect = this.getBoundingClientRect();
         var x = Math.floor((e.clientX - rect.left) / rect.width * r.width);
         var y = Math.floor((e.clientY - rect.top) / rect.height * r.height);
         if (x < 0 || y < 0 || x >= r.width || y >= r.height) return;
         textStatus('글자를 찾는 중…');
-        setTimeout(function() { openTextEditor(r, x, y); }, 20);
+        if (editor) return;
+        setTimeout(function() { if(currentResult()===r)openTextEditor(r, x, y); }, 20);
     });
 
     function textStatus(msg, isError) {
         $('#ic_text_status').text(msg || '').toggleClass('err', !!isError);
     }
 
-    function openTextEditor(r, x, y) {
-        var sel = TX.findLine(r, x, y);
+    function openTextEditor(r, x, y, manual) {
+        var sel = manual || TX.findLine(r, x, y);
         if (sel.error) { textStatus(sel.error, true); closeTextEditor(true); return; }
         editor = { sel: sel, ranked: null, showAll: false, replacementId: null, userTyped: false };
         textStatus('');
@@ -469,6 +575,8 @@ $(function() {
         $('#ic_text_outline_on').prop('checked', !!sel.colors.outline);
         $('#ic_text_bg').val(sel.colors.bg);
         $('#ic_text_input').val('');
+        $('#ic_text_cover').prop('checked',false);
+        $('#ic_fonts_retry').prop('hidden',true);
         $('#ic_text_ocr').text('글자 내용을 자동으로 읽는 중… (처음 한 번은 조금 걸려요)');
         $('#ic_font_grid').empty();
         $('#ic_font_more').prop('hidden', true);
@@ -494,7 +602,7 @@ $(function() {
     }
 
     function closeTextEditor(keepStatus) {
-        editor = null;
+        editor = null;clearTimeout(rankTimer);
         $('#ic_text_editor, #ic_text_mark').prop('hidden', true);
         if (!keepStatus) textStatus('');
     }
@@ -528,7 +636,8 @@ $(function() {
         return {
             fill: $('#ic_text_fill').val(),
             outline: $('#ic_text_outline_on').is(':checked') ? $('#ic_text_outline').val() : null,
-            bg: $('#ic_text_bg').val()
+            bg: $('#ic_text_bg').val(),
+            coverAll: $('#ic_text_cover').is(':checked')
         };
     }
 
@@ -537,7 +646,8 @@ $(function() {
         editor.userTyped = true;
         scheduleRank(400);
     });
-    $('#ic_text_fill, #ic_text_outline, #ic_text_bg, #ic_text_outline_on').on('input change', function() {
+    $('#ic_text_fill, #ic_text_outline, #ic_text_bg, #ic_text_outline_on, #ic_text_cover').on('input change', function() {
+        if (editor) editor.applyVersion=(editor.applyVersion||0)+1;
         if (editor && editor.ranked) renderFontGrid();
     });
     $('#ic_font_more').on('click', function() {
@@ -547,7 +657,10 @@ $(function() {
     });
     $('#ic_text_close').on('click', closeTextEditor);
 
+    $('#ic_fonts_retry').on('click',function(){scheduleRank(0);});
     function scheduleRank(delay) {
+        if(editor){editor.rankVersion=(editor.rankVersion||0)+1;editor.applyVersion=(editor.applyVersion||0)+1;editor.ranked=null;}
+        $('#ic_font_grid').empty();$('#ic_font_more').prop('hidden',true);
         clearTimeout(rankTimer);
         rankTimer = setTimeout(rankCandidates, delay);
     }
@@ -557,15 +670,21 @@ $(function() {
         var text = $.trim($('#ic_text_input').val()), current = editor;
         if (!text) { $('#ic_font_grid').empty(); $('#ic_font_more').prop('hidden', true); return; }
         $('#ic_font_grid').html('<p class="ic-hint">비슷한 폰트를 찾는 중…</p>');
-        TX.loadFonts(text).then(function() {
-            if (editor !== current) return;
+        var version=current.rankVersion;
+        $('#ic_fonts_retry').prop('hidden',true);
+        TX.loadFonts(text).then(function(available) {
+            if (editor !== current || current.rankVersion!==version) return;
             current.text = text;
-            current.ranked = TX.rankFonts(current.sel, text);
+            current.ranked = TX.rankFonts(current.sel, text, available);
             renderFontGrid();
+        }).catch(function(error){
+            if(editor!==current||current.rankVersion!==version)return;
+            $('#ic_font_grid').empty();$('#ic_fonts_retry').prop('hidden',false);textStatus(error.message,true);
         });
     }
 
     function renderFontGrid() {
+        if(!editor || !editor.ranked)return;
         var $grid = $('#ic_font_grid').empty(), colors = editorColors();
         var list = editor.showAll ? editor.ranked : editor.ranked.slice(0, TX.TOP_COUNT);
         var applied = editor.replacementId && state.replacements.filter(function(rp) { return rp.id === editor.replacementId; })[0];
@@ -585,18 +704,21 @@ $(function() {
     }
 
     function applyFont(font, $card) {
-        var current = editor, colors = editorColors(), text = current.text;
+        var current = editor;
+        if(!current || $.trim($('#ic_text_input').val())!==current.text)return;
+        var colors = editorColors(), text = current.text, version=current.applyVersion=(current.applyVersion||0)+1;
         $('.ic-font-card').prop('disabled', true);
         textStatus('선택한 폰트로 바꾸는 중…');
         TX.buildVector(current.sel, font, text, colors).then(function(vec) {
+            if (editor !== current || current.applyVersion!==version) return;
             $('.ic-font-card').prop('disabled', false);
-            if (editor !== current) return;
             var rp = current.replacementId && state.replacements.filter(function(x) { return x.id === current.replacementId; })[0];
             if (!rp) {
                 rp = { id: 'rp' + Date.now() };
                 state.replacements.push(rp);
                 current.replacementId = rp.id;
             }
+            rp.width=currentResult().width;rp.height=currentResult().height;
             rp.text = text; rp.font = font; rp.colors = colors; rp.vec = vec;
             $('.ic-font-card').removeClass('on');
             $card.addClass('on');
@@ -605,6 +727,7 @@ $(function() {
             var r = currentResult();
             if (r) showResult(r);
         }).catch(function(err) {
+            if(editor!==current || current.applyVersion!==version)return;
             $('.ic-font-card').prop('disabled', false);
             textStatus('폰트로 바꾸지 못했어요: ' + (err && err.message || err), true);
         });
@@ -731,6 +854,11 @@ $(function() {
             }, 50);
         }
 
+        if(mode==='raster') {
+            // Keep the image intact; only replacement letters become vector paths.
+            ctx.clearRect(0,0,w,h);ctx.drawImage(cv,0,0,w,h);
+            done({width:w,height:h,body:'',paths:0,overlay:c.toDataURL('image/png')});return;
+        }
         var worker = getWorker();
         if (!worker) { runOnMainThread(); return; }
 
@@ -856,7 +984,8 @@ $(function() {
               r.overlay + '" xlink:href="' + r.overlay + '"/>'
             : '';
         var texts = state.replacements.map(function(rp) {
-            return window.wsTextReplace.toSvg(rp.vec, rp.colors, r.mode === 'mono');
+            var sx=rp.width?r.width/rp.width:1,sy=rp.height?r.height/rp.height:1;
+            return '<g transform="scale('+sx+' '+sy+')">'+window.wsTextReplace.toSvg(rp.vec, rp.colors, r.mode === 'mono')+'</g>';
         }).join('');
         return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" ' + size +
             ' viewBox="0 0 ' + r.width + ' ' + r.height + '">' + r.body + overlay + texts + '</svg>';
@@ -875,14 +1004,15 @@ $(function() {
         $('#ic_st_size').text(mm > 0
             ? fmtNum(mm) + ' × ' + fmtNum(mm * r.aspect) + ' mm'
             : r.width + ' × ' + r.height + ' px');
-        $('#ic_st_paths').text(r.paths.toLocaleString() + '개');
+        $('#ic_st_paths').text((svg.match(/<path\b/g) || []).length.toLocaleString() + '개');
         $('#ic_st_bytes').text(formatBytes(new Blob([svg]).size));
         $('#ic_st_time').text((r.ms / 1000).toFixed(1) + '초');
         $('#ic_stats').prop('hidden', false);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', false);
         $('#ic_result_img').addClass('pickable');
         positionTextMark();
-        if (r.paths === 0) $('#ic_trace_error').text('변환할 도형을 찾지 못했습니다. 다른 변환 방식을 선택해 보세요.');
+        if(r.mode==='raster'&&!editor)setTextSelection(true);
+        if (r.paths === 0 && r.mode !== 'raster') $('#ic_trace_error').text('변환할 도형을 찾지 못했습니다. 다른 변환 방식을 선택해 보세요.');
     }
 
     function clearResults() {

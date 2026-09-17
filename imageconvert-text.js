@@ -11,6 +11,10 @@
 
     // 무료 상업용(OFL) 한글 폰트. Google Fonts 에서 필요한 글자만 불러온다.
     var FONTS = [
+        { name: "본고딕 Regular", family: "Noto Sans KR", weight: 400 },
+        { name: "본고딕 Bold", family: "Noto Sans KR", weight: 700 },
+        { name: "나눔고딕 Regular", family: "Nanum Gothic", weight: 400 },
+        { name: "나눔명조 Regular", family: "Nanum Myeongjo", weight: 400 },
         { name: '검은고딕',        family: 'Black Han Sans',          weight: 400 },
         { name: '도현',            family: 'Do Hyeon',                weight: 400 },
         { name: '주아',            family: 'Jua',                     weight: 400 },
@@ -44,31 +48,77 @@
     var fontsLinked = null;
     function linkFonts() {
         if (fontsLinked) return fontsLinked;
-        var families = FONTS.map(function(f) {
-            return 'family=' + f.family.replace(/ /g, '+') + (f.weight !== 400 ? ':wght@' + f.weight : '');
+        var groups = {};
+        FONTS.forEach(function(f) { (groups[f.family] || (groups[f.family] = [])).push(f.weight); });
+        var families = Object.keys(groups).map(function(family) {
+            return 'family=' + family.replace(/ /g,'+') + ':wght@' + groups[family].sort(function(a,b){return a-b;}).join(';');
         });
-        fontsLinked = new Promise(function(resolve) {
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://fonts.googleapis.com/css2?' + families.join('&') + '&display=block';
-            link.onload = resolve;
-            link.onerror = resolve;
-            document.head.appendChild(link);
-        });
+        fontsLinked = new Promise(function(resolve,reject) {
+            var link = document.createElement('link'), timer;
+            function fail() { clearTimeout(timer); link.remove(); reject(new Error('폰트를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 시도하세요.')); }
+            link.rel='stylesheet'; link.href='https://fonts.googleapis.com/css2?'+families.join('&')+'&display=block';
+            link.onload=function(){clearTimeout(timer);resolve();}; link.onerror=fail;
+            timer=setTimeout(fail,15000);document.head.appendChild(link);
+        }).catch(function(error) { fontsLinked=null; throw error; });
         return fontsLinked;
     }
-
-    function fontString(f, px) {
-        return f.weight + ' ' + px + 'px "' + f.family + '"';
-    }
-
-    // 사용하는 글자만 해당 폰트 조각을 내려받는다 (실패해도 대체 글꼴로 그려지니 막지 않음)
+    function fontString(f,px) { return f.weight + ' ' + px + 'px "' + f.family + '"'; }
     function loadFonts(text) {
         return linkFonts().then(function() {
             return Promise.all(FONTS.map(function(f) {
-                return document.fonts.load(fontString(f, 64), text || '가').catch(function() { return null; });
+                return new Promise(function(resolve) {
+                    var timer=setTimeout(function(){resolve(null);},12000);
+                    document.fonts.load(fontString(f,64),text||'가').then(function(faces) {
+                        clearTimeout(timer);resolve(faces.length ? f : null);
+                    },function(){clearTimeout(timer);resolve(null);});
+                });
             }));
+        }).then(function(fonts) {
+            var available=fonts.filter(Boolean);
+            if (!available.length) throw new Error('사용 가능한 폰트를 불러오지 못했습니다. 다시 시도하세요.');
+            return available;
         });
+    }
+
+    // Manual selection works on pixels even when vector segmentation/OCR finds no letters.
+    function selectRegion(image, box) {
+        var x0=Math.max(0,Math.floor(box.x)), y0=Math.max(0,Math.floor(box.y));
+        var w=Math.min(image.width-x0,Math.ceil(box.w)), h=Math.min(image.height-y0,Math.ceil(box.h));
+        if (!(w>=3 && h>=3)) return {error:'글자 한 줄을 조금 더 크게 선택하세요.'};
+        var pixels=image.data, colors={};
+        function rgb(x,y) {
+            var i=((y+y0)*image.width+x+x0)*4,a=pixels[i+3]/255;
+            return [0,1,2].map(function(c){return Math.round(pixels[i+c]*a+255*(1-a));});
+        }
+        for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(x===0||y===0||x===w-1||y===h-1){
+            var color=rgb(x,y),key=color.map(function(v){return v>>4;}).join(',');
+            var item=colors[key]||(colors[key]={n:0,sum:[0,0,0]});item.n++;
+            color.forEach(function(v,c){item.sum[c]+=v;});
+        }
+        var dominant=Object.values(colors).sort(function(a,b){return b.n-a.n;})[0];
+        var bg=dominant.sum.map(function(v){return v/dominant.n;});
+        var distances=new Float32Array(w*h),hist=new Uint32Array(256);
+        for(var y=0;y<h;y++)for(var x=0;x<w;x++){
+            var color=rgb(x,y),dist=Math.sqrt(color.reduce(function(sum,v,c){return sum+(v-bg[c])*(v-bg[c]);},0)/3);
+            distances[y*w+x]=dist;hist[Math.round(dist)]++;
+        }
+        var sum=0;for(var i=0;i<256;i++)sum+=i*hist[i];
+        var count=0,partial=0,best=-1,threshold=12;
+        for(var i=0;i<255;i++){
+            count+=hist[i];partial+=i*hist[i];if(!count||count===w*h)continue;
+            var diff=partial/count-(sum-partial)/(w*h-count),score=count*(w*h-count)*diff*diff;
+            if(score>best){best=score;threshold=i;}
+        }
+        threshold=Math.max(8,threshold);
+        var fill=new Uint8Array(w*h),minX=w,minY=h,maxX=-1,maxY=-1,total=0,ink=[0,0,0];
+        for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(distances[y*w+x]>threshold){
+            fill[y*w+x]=1;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+            var color=rgb(x,y);color.forEach(function(v,c){ink[c]+=v;});total++;
+        }
+        if(!total) return {error:'선택 영역에서 글자 경계를 찾지 못했습니다. 글자와 배경이 함께 들어오도록 선택하세요.'};
+        return {crop:{x:x0,y:y0,w:w,h:h},fill:fill,outlineMask:null,
+            center:{x:(minX+maxX+1)/2,y:(minY+maxY+1)/2},size:{w:maxX-minX+1,h:maxY-minY+1},angle:0,
+            colors:{fill:hex(ink.map(function(v){return v/total;})),bg:hex(bg),outline:null},thickness:Math.max(1,h*0.025)};
     }
 
     function hex(c) {
@@ -356,7 +406,7 @@
     }
 
     // 원본 글자 모양과 겹치는 정도(IoU)로 폰트 순위를 매긴다 (작게 줄여 빠르게 비교)
-    function rankFonts(sel, text) {
+    function rankFonts(sel, text, available) {
         var s = Math.min(1, 220 / Math.max(sel.crop.w, sel.crop.h));
         var W = Math.max(1, Math.round(sel.crop.w * s)), H = Math.max(1, Math.round(sel.crop.h * s));
         var target = new Uint8Array(W * H), x, y;
@@ -366,7 +416,7 @@
         var c = document.createElement('canvas');
         c.width = W; c.height = H;
         var ctx = c.getContext('2d', { willReadFrequently: true });
-        return FONTS.map(function(f) {
+        return (available || FONTS).map(function(f) {
             ctx.clearRect(0, 0, W, H);
             ctx.fillStyle = '#000';
             var ratio = drawText(ctx, sel, f, text, s, 'fill');
@@ -434,6 +484,7 @@
             }
         }
 
+        if (colors.coverAll) cover.fill(1);
         var jobs = [root.wsTraceMask(cover, cw, ch), root.wsTraceMask(maskOf('fill'), W, H)];
         var hasOutline = colors.outline && sel.thickness > 0;
         if (hasOutline) jobs.push(root.wsTraceMask(maskOf('stroke'), W, H));
@@ -508,6 +559,7 @@
         FONTS: FONTS,
         TOP_COUNT: TOP_COUNT,
         findLine: findLine,
+        selectRegion: selectRegion,
         loadFonts: loadFonts,
         rankFonts: rankFonts,
         renderPreview: renderPreview,

@@ -139,7 +139,6 @@
 
         <label class="ic-drop" id="ic_drop">
             <input type="file" id="ic_file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" hidden />
-            <span class="ic-drop-icon">&#128444;</span>
             <span class="ic-drop-main">이미지를 끌어다 놓거나 클릭해서 선택하세요</span>
             <span class="ic-drop-sub">PNG · JPG · WEBP · GIF · BMP &nbsp;|&nbsp; 클립보드 붙여넣기(Ctrl+V)도 가능</span>
         </label>
@@ -157,6 +156,7 @@
 
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" id="ic_reset" hidden>다른 이미지 선택</button>
+            <button type="button" class="ic-btn ghost" id="ic_direct_fonts" disabled>복원 없이 글자 폰트 교체</button>
             <button type="button" class="ic-btn primary" id="ic_to_step2" disabled>다음: 해상도 개선 &#8594;</button>
         </div>
     </section>
@@ -169,8 +169,18 @@
             <div class="ic-controls">
                 <div class="ic-auto-note">
                     <strong>&#10024; AI 복원 (Real-ESRGAN)</strong>
-                    <p class="ic-hint">흐린 글자 경계 · JPG 얼룩 · 그라데이션을 학습된 AI 모델이 되살리며 4배로 키워요. 이미지는 서버로 보내지 않고 이 브라우저 안에서 처리해요. GPU 가 있으면 10~20초, 없으면 1~2분쯤 걸려요.</p>
+                    <p class="ic-hint">학습된 AI로 경계와 질감을 복원합니다. 이미지는 이 기기에서 처리하며, 첫 실행에는 모델 다운로드가 필요합니다. 이미지 크기와 기기에 따라 수 분 이상 걸릴 수 있습니다.</p>
                 </div>
+                <div class="ic-field"><label for="ic_restore_preset">이미지 종류</label><select id="ic_restore_preset"><option value="photo">사진 · 자연스러운 복원</option><option value="text">글자 · 로고 · 간판</option><option value="gentle">원본 질감 보존</option></select></div>
+                <div class="ic-field"><label for="ic_restore_scale">확대 배율</label><select id="ic_restore_scale"><option value="4">4배 · 세부 복원</option><option value="2">2배</option><option value="1">원본 크기 · 선명도 개선</option></select><span class="ic-hint">최대 2,000만 픽셀 / 긴 변 8,000px 안에서 자동 조절됩니다.</span></div>
+                <div class="ic-field"><label for="ic_restore_sharp">선명도 <output id="ic_sharp_value">40</output></label><input id="ic_restore_sharp" type="range" min="0" max="100" value="40" /></div>
+                <div class="ic-field"><label for="ic_restore_noise">잡티 정리 <output id="ic_noise_value">0</output></label><input id="ic_restore_noise" type="range" min="0" max="3" step="0.5" value="0" /></div>
+                <button type="button" class="ic-btn primary block" id="ic_enh_apply">설정으로 다시 복원</button>
+                <p class="ic-error" id="ic_enh_error" role="status"></p>
+                <div class="ic-field"><label for="ic_print_width">출력 가로 크기 (mm)</label><input type="number" id="ic_print_width" min="1" max="100000" value="210" /></div>
+                <div class="ic-field"><label for="ic_print_dpi">목표 해상도</label><select id="ic_print_dpi"><option value="300">300 PPI</option><option value="150">150 PPI</option><option value="100">100 PPI</option></select></div>
+                <p class="ic-print-report" id="ic_print_report" aria-live="polite">복원 후 출력 가능 크기를 확인할 수 있습니다.</p>
+                <p class="ic-hint">픽셀 수가 충분해도 원본에서 사라진 글자·세부 형태의 정확성은 보장되지 않습니다. 1:1 비교와 시험 출력으로 확인하세요.</p>
                 <div class="ic-result-size">
                     결과 크기 <strong id="ic_enh_size">-</strong>
                     <span class="ic-hint" id="ic_enh_note"></span>
@@ -179,7 +189,7 @@
 
             <div class="ic-preview-col">
                 <div class="ic-preview-toolbar">
-                    <span class="ic-compare-label">AI 복원 결과</span>
+                    <label class="ic-check"><input type="checkbox" id="ic_show_original" /> 원본과 비교</label><label class="ic-check" for="ic_compare_split">경계 <input id="ic_compare_split" type="range" min="0" max="100" value="50" aria-label="원본 비교 경계" /></label>
                     <label class="ic-check"><input type="checkbox" id="ic_zoom" /> 실제 크기(1:1)로 보기</label>
                 </div>
                 <div class="ic-preview" id="ic_compare">
@@ -187,15 +197,16 @@
                         <canvas id="ic_enh_canvas" hidden></canvas>
                         <canvas id="ic_view_canvas"></canvas>
                     </div>
-                    <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span><span id="ic_enh_busy_text">AI 해상도 복원 준비 중…</span></div>
+                    <div class="ic-busy" id="ic_enh_busy" hidden><span class="ic-spinner"></span><span id="ic_enh_busy_text" role="status">AI 해상도 복원 준비 중…</span><button type="button" class="ic-btn ghost small" id="ic_enh_cancel">복원 취소</button></div>
                 </div>
             </div>
         </div>
 
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" data-goto="1">&#8592; 이전</button>
-            <button type="button" class="ic-btn ghost" id="ic_dl_png_enh">개선 이미지 PNG 저장</button>
-            <button type="button" class="ic-btn primary" id="ic_to_step3">다음: 일러스트 · 벡터 변환 &#8594;</button>
+            <button type="button" class="ic-btn ghost" id="ic_dl_png_enh" disabled>개선 이미지 PNG 저장</button>
+            <button type="button" class="ic-btn ghost" id="ic_enh_fonts" disabled>글자가 흐리면 폰트로 교체</button>
+            <button type="button" class="ic-btn primary" id="ic_to_step3" disabled>다음: 일러스트 · 벡터 변환 &#8594;</button>
         </div>
     </section>
 
@@ -208,6 +219,7 @@
                 <div class="ic-field">
                     <label>변환 방식</label>
                     <div class="ic-seg" id="ic_mode">
+                        <button type="button" data-v="raster">사진 유지 · 글자 교체</button>
                         <button type="button" data-v="hybrid" class="on">원본 유지 (추천)</button>
                         <button type="button" data-v="illust">일러스트</button>
                         <button type="button" data-v="vector">벡터(정밀)</button>
@@ -224,7 +236,7 @@
                 </div>
                 <div class="ic-auto-note">
                     <strong>&#10024; 자동 변환</strong>
-                    <p class="ic-hint">이미지에 맞춰 최고 품질 설정으로 바로 변환해요. 변환 방식을 바꾸면 자동으로 다시 변환합니다.</p>
+                    <p class="ic-hint">변환 방식을 선택하면 결과를 미리 볼 수 있습니다. 사진을 유지하려면 사진 유지 · 글자 교체를 선택하세요.</p>
                 </div>
 
                 <p class="ic-error" id="ic_trace_error"></p>
@@ -233,20 +245,25 @@
                 <!-- 글자 폰트 교체 -->
                 <div class="ic-text" id="ic_text">
                     <strong class="ic-text-title">&#9999;&#65039; 글자를 폰트로 바꾸기</strong>
-                    <p class="ic-hint">뭉개진 글자는 오른쪽 변환 결과에서 <b>글자를 클릭</b>하세요. 모양이 비슷한 폰트 후보 중에서 골라 선명한 글자로 바꿔 드려요.</p>
-                    <p class="ic-text-status" id="ic_text_status"></p>
+                    <p class="ic-hint">오른쪽 이미지에서 <b>글자 한 줄을 드래그</b>해 선택하세요. 글자 내용을 입력하면 비슷한 폰트를 추천합니다. 후보를 누르면 이미지에 적용되며 되돌릴 수 있습니다.</p>
+                    <button type="button" class="ic-btn ghost block" id="ic_select_text" aria-pressed="false">직접 영역 선택</button>
+                    <p class="ic-hint">사진·그라데이션 위 글자는 배경색 덮개가 보일 수 있습니다. 작은 영역부터 확인하세요.</p>
+                    <p class="ic-text-status" id="ic_text_status" role="status"></p>
 
                     <div class="ic-text-editor" id="ic_text_editor" hidden>
                         <div class="ic-text-orig"><canvas id="ic_text_orig" width="552" height="160"></canvas></div>
                         <label class="ic-text-label" for="ic_text_input">글자 내용</label>
-                        <input type="text" id="ic_text_input" class="ic-text-input" placeholder="선택한 글자를 입력하세요" autocomplete="off" />
+                        <input type="text" id="ic_text_input" class="ic-text-input" placeholder="선택한 글자 한 줄을 정확히 입력하세요" maxlength="120" autocomplete="off" />
                         <span class="ic-hint" id="ic_text_ocr"></span>
                         <div class="ic-text-colors">
                             <label>글자 <input type="color" id="ic_text_fill" /></label>
                             <label><input type="checkbox" id="ic_text_outline_on" /> 외곽선 <input type="color" id="ic_text_outline" /></label>
                             <label>배경 <input type="color" id="ic_text_bg" /></label>
                         </div>
+                        <label class="ic-check"><input type="checkbox" id="ic_text_cover" /> 선택 영역 전체를 배경색으로 덮기</label>
+                        <span class="ic-hint">기존 글자 잔상이 남을 때 사용하세요. 기본은 글자 주변만 덮습니다.</span>
                         <div class="ic-font-grid" id="ic_font_grid"></div>
+                        <button type="button" class="ic-btn ghost small" id="ic_fonts_retry" hidden>폰트 다시 불러오기</button>
                         <div class="ic-text-buttons">
                             <button type="button" class="ic-btn ghost small" id="ic_font_more">폰트 더 보기</button>
                             <button type="button" class="ic-btn ghost small" id="ic_text_close">닫기</button>
@@ -307,6 +324,7 @@
 <script src="imageconvert-enhance.js"></script>
 <script src="imageconvert-text.js"></script>
 <script src="imageconvert-ai.js"></script>
+<script src="imageconvert-print.js"></script>
 <script src="imageconvert.js"></script>
 </body>
 </html>

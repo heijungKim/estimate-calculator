@@ -93,7 +93,6 @@
     transition: border-color 0.15s, background 0.15s;
 }
 .ic-drop:hover, .ic-drop.over { border-color: #0f3460; background: #f3f6fb; }
-.ic-drop-icon { font-size: 40px; }
 .ic-drop-main { font-size: 15px; font-weight: 600; color: #2d3748; }
 .ic-drop-sub { font-size: 12px; color: #8892a4; }
 
@@ -343,3 +342,14 @@
     .ic-stepper { gap: 6px; }
     .ic-step { padding: 10px; font-size: 12px; flex-direction: column; text-align: center; gap: 6px; }
 }
+
+.ic-controls select, .ic-controls input[type="number"] { width:100%; padding:10px; border:1px solid #ccd6e3; border-radius:8px; background:#fff; color:#182b48; font:inherit; box-sizing:border-box; }
+.ic-controls input[type="range"] { width:100%; accent-color:#0f3460; }
+.ic-print-report { background:#edf4ff; color:#173b65; border-radius:8px; padding:12px; font-size:13px; line-height:1.7; white-space:pre-line; }
+#ic_compare_split { width:80px; }
+.ic-preview-toolbar { flex-wrap:wrap; gap:10px; }
+#ic_enh_error:empty { display:none; }
+
+#ic_result_img.select-region { touch-action:none; user-select:none; cursor:crosshair; }
+#ic_select_text[aria-pressed="true"] { background:#e8f0ff; border-color:#225ba8; }
+#ic_result_img { -webkit-user-drag:none; }
