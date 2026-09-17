@@ -17,7 +17,8 @@
 
     function wsEnhanceImage(src, sw, sh, tw, th, o) {
         var data = premultiply(src);
-        if (o.denoise > 0) data = denoise(data, sw, sh, o.denoise);
+        // Filter radii and the noise table require integer levels.
+        if (o.denoise > 0) data = denoise(data, sw, sh, Math.max(1, Math.min(3, Math.round(o.denoise))));
 
         var up = (tw !== sw || th !== sh) ? lanczosResize(data, sw, sh, tw, th) : data;
         var scale = tw / sw;

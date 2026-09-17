@@ -50,3 +50,12 @@ test('manual text selection works without vector segmentation and rejects empty 
     assert.ok(ctx.window.wsTextReplace.selectRegion(image,{x:0,y:0,w:3,h:3}).error);
     assert.ok(ctx.window.wsTextReplace.selectRegion(image,{x:200,y:0,w:10,h:10}).error);
 });
+
+test('noise removal preserves flat colours at integer and fractional strengths',()=>{
+    const ctx={self:{}};vm.runInNewContext(fs.readFileSync(path.join(root,'imageconvert-enhance.js'),'utf8'),ctx);
+    const pixels=new Uint8ClampedArray(12*12*4);for(let i=0;i<pixels.length;i+=4)pixels.set([245,235,225,255],i);
+    for(const denoise of [0.5,1,1.5,2,3]){
+        const out=ctx.self.wsEnhanceImage(pixels,12,12,12,12,{denoise,crisp:0.2,sharpen:0.8,contrast:0});
+        for(let i=0;i<out.length;i++)assert.ok(Math.abs(out[i]-pixels[i])<=1,'flat colour changed at strength '+denoise);
+    }
+});

@@ -49,6 +49,22 @@ $(function() {
         timer: null
     };
 
+    var suggestionKey=null;
+    var suggestions=new window.wsImageSuggestions(document.getElementById('ic_suggestion_grid'),function(mode){
+        closeTextEditor();enterFontMode(!state.enhCanvas.width,mode);
+    });
+    $('#ic_suggestion_filters').on('click','button',function(){
+        $(this).attr('aria-pressed','true').siblings().attr('aria-pressed','false');
+        suggestions.filter($(this).data('kind'));
+    });
+    function showSuggestions() {
+        if(!state.srcImg)return;
+        var key=state.srcUrl+':'+state.enhCanvas.width+':'+state.enhAi;
+        $('#ic_suggestions').prop('hidden',false);
+        if(key===suggestionKey)return;suggestionKey=key;
+        suggestions.show(state.enhCanvas.width?state.enhCanvas:state.srcImg,MODES,autoMono);
+    }
+
     // ────────────────────────────────────────────────────────
     //  단계 이동
     // ────────────────────────────────────────────────────────
@@ -61,18 +77,19 @@ $(function() {
         });
         for (var i = 1; i <= 3; i++) $('#ic_panel_' + i).prop('hidden', i !== n);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (n === 2) ensureEnhanced().then(function() { if (state.step === 2) layoutPreview(); });
+        if (n === 2) ensureEnhanced().then(function() { if (state.step === 2) { layoutPreview(); showSuggestions(); } });
         if (n === 3) enterStep3();
     }
 
     $('#ic_stepper').on('click', '.ic-step.done', function() { gotoStep(+$(this).data('step')); });
     $(document).on('click', '[data-goto]', function() { gotoStep(+$(this).data('goto')); });
     $('#ic_to_step2').on('click', function() { state.maxStep = Math.max(state.maxStep, 2); gotoStep(2); });
-    $('#ic_to_step3').on('click', function() { state.maxStep = 3; gotoStep(3); });
+    $('#ic_to_step3').on('click', function() { showSuggestions(); document.getElementById('ic_suggestions').scrollIntoView({behavior:'smooth',block:'start'}); });
 
     $('#ic_direct_fonts').on('click', function() { enterFontMode(true); });
     $('#ic_enh_fonts').on('click', function() { enterFontMode(false); });
-    function enterFontMode(original) {
+    function enterFontMode(original,mode) {
+        mode=mode||'raster';
         if (!state.srcImg) return;
         if (original) {
             cancelAi();
@@ -81,10 +98,10 @@ $(function() {
             drawScaled(img,state.enhCanvas,Math.max(1,Math.floor(img.naturalWidth*scale)),Math.max(1,Math.floor(img.naturalHeight*scale)));
             state.enhAi=false;clearResults();
             $('#ic_enh_size').text(state.enhCanvas.width+' × '+state.enhCanvas.height+' px');
-            $('#ic_enh_note').text('원본 이미지 · AI 복원 없이 글자 교체');
+            $('#ic_enh_note').text('원본 이미지 · AI 복원 없이 대체 변환');
             $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled',false);printReport();
         }
-        state.mode='raster'; $('#ic_mode button').removeClass('on').filter('[data-v="raster"]').addClass('on');
+        state.mode=mode; $('#ic_mode button').removeClass('on').filter('[data-v="'+mode+'"]').addClass('on');
         state.maxStep=3;gotoStep(3);
     }
 
@@ -138,7 +155,7 @@ $(function() {
                 return;
             }
             if (state.srcUrl) URL.revokeObjectURL(state.srcUrl);
-            cancelAi();
+            cancelAi();suggestions.reset();suggestionKey=null;$('#ic_suggestions').prop('hidden',true);
             state.file = file;
             state.srcUrl = url;
             state.srcImg = img;
@@ -201,17 +218,8 @@ $(function() {
         state.maxStep = 2;
         gotoStep(2);
     });
-    $('#ic_restore_sharp, #ic_restore_noise').on('input', function() {
-        $('#ic_sharp_value').text($('#ic_restore_sharp').val());
-        $('#ic_noise_value').text($('#ic_restore_noise').val());
-    });
-    $('#ic_restore_preset').on('change', function() {
-        var preset = this.value;
-        $('#ic_restore_sharp').val(preset === 'text' ? 65 : preset === 'gentle' ? 15 : 40).trigger('input');
-        $('#ic_restore_noise').val(preset === 'text' ? 0.5 : 0).trigger('input');
-    });
     function printReport() {
-        var cv = state.enhCanvas, mm = +$('#ic_print_width').val(), dpi = +$('#ic_print_dpi').val();
+        var cv = state.enhCanvas, mm = +$('#ic_print_width').val(), dpi = 300;
         if (!cv.width) { $('#ic_print_report').text('복원 후 출력 가능 크기를 확인할 수 있습니다.'); return; }
         if (!(mm > 0 && Number.isFinite(mm))) { $('#ic_print_report').text('출력 가로 크기를 입력하세요.'); return; }
         var actual = cv.width * 25.4 / mm;
@@ -219,7 +227,7 @@ $(function() {
             '목표 ' + dpi + ' PPI 기준 최대 ' + fmtNum(cv.width*25.4/dpi) + ' × ' + fmtNum(cv.height*25.4/dpi) + ' mm\n' +
             (actual >= dpi ? '목표 픽셀 수 충족 · 실제 선명도는 1:1로 확인하세요.' : '목표보다 픽셀이 부족합니다. 출력 크기를 줄이거나 더 큰 원본을 사용하세요.'));
     }
-    $('#ic_print_width, #ic_print_dpi').on('input change', printReport);
+    $('#ic_print_width').on('input change', printReport);
 
     // 현재 이미지의 개선 결과가 캔버스에 준비되면 resolve
     function ensureEnhanced() {
@@ -242,8 +250,10 @@ $(function() {
 
         state.enhDirty = false;
         enh.running = true;
+        suggestions.reset();suggestionKey=null;$('#ic_suggestions').prop('hidden',true);
         $('#ic_enh_error, #ic_enh_note').text('');
         $('#ic_enh_size').text('처리 중');
+        document.getElementById('ic_view_canvas').width=0;
         printReport();
         $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts, #ic_enh_apply').prop('disabled', true);
         $('#ic_enh_busy').prop('hidden', false);
@@ -255,17 +265,7 @@ $(function() {
             $('#ic_enh_error').text(error.message); kickEnhance(); return;
         }
         $('#ic_enh_cancel').prop('hidden', !job.ai);
-        var work = job.ai
-            ? runAiJob(job).catch(function(err) {
-                if (state.enhDirty || err.message === 'cancelled') throw err;
-                $('#ic_enh_cancel').prop('hidden', true);
-                // AI 를 쓸 수 없는 환경(오래된 브라우저·오프라인 등) → 기본 방식으로
-                job.ai = false;
-                job.note = '이 브라우저에서는 AI 복원을 쓸 수 없어 기본 방식으로 처리했어요. (' + (err && err.message || err) + ')';
-                $('#ic_enh_busy_text').text('해상도 개선 중…');
-                return runEnhanceJob(job).then(function(px) { return { pixels: px, w: job.tw, h: job.th }; });
-            })
-            : runEnhanceJob(job).then(function(px) { return { pixels: px, w: job.tw, h: job.th }; });
+        var work = runAiJob(job);
 
         work.then(function(res) {
             if (state.enhDirty) return; // 처리 중에 이미지가 바뀜 → 결과 폐기
@@ -279,7 +279,8 @@ $(function() {
             $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled', false);
             if (state.step === 2) layoutPreview();
         }).catch(function(err) {
-            if (!state.enhDirty && err.message !== 'cancelled') $('#ic_enh_error').text('복원 실패: ' + (err && err.message || err) + '. 다시 복원 버튼으로 재시도하세요.');
+            if(!state.enhDirty)$('#ic_enh_size').text('복원 결과 없음');
+            if (!state.enhDirty && err.message !== 'cancelled') $('#ic_enh_error').text('복원 실패: ' + (err && err.message || err) + '. 다시 복원하거나 아래 대체 추천을 선택하세요.');
         }).then(function() {
             enh.running = false;
             $('#ic_enh_apply').prop('disabled', false);
@@ -332,15 +333,14 @@ $(function() {
 
     function buildEnhanceJob() {
         var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight;
-        var want = +$('#ic_restore_scale').val() || 4;
+        var want = 4;
         var scale = Math.min(want,MAX_OUTPUT_SIDE/Math.max(sw,sh),Math.sqrt(MAX_OUTPUT_PIXELS/(sw*sh)));
         var src=document.createElement('canvas'); src.width=sw; src.height=sh;
         var ctx=src.getContext('2d',{willReadFrequently:true}); ctx.drawImage(img,0,0);
         return {sw:sw,sh:sh,tw:Math.max(1,Math.floor(sw*scale)),th:Math.max(1,Math.floor(sh*scale)),
             ai:!!window.wsAiUpscale, hasAlpha:state.hasAlpha,
             note:'기본 선명화 처리 · AI 복원 아님',pixels:ctx.getImageData(0,0,sw,sh).data,
-            options:{denoise:+$('#ic_restore_noise').val(),crisp:$('#ic_restore_preset').val()==='text'?0.4:0,
-                sharpen:+$('#ic_restore_sharp').val()/100,contrast:0}};
+            options:{denoise:1,crisp:0.2,sharpen:0.8,contrast:0}};
     }
 
     function runEnhanceJob(job) {
@@ -441,7 +441,7 @@ $(function() {
         ensureEnhanced().then(function() {
             if (!state.enhCanvas.width) return;
             var mm = +$('#ic_print_width').val();
-            var dpi = mm > 0 && Number.isFinite(mm) ? state.enhCanvas.width*25.4/mm : +$('#ic_print_dpi').val();
+            var dpi = mm > 0 && Number.isFinite(mm) ? state.enhCanvas.width*25.4/mm : 300;
             var filename = baseName() + '_복원_' + state.enhCanvas.width + 'x' + state.enhCanvas.height + '_' + Math.round(dpi) + 'ppi.png';
             state.enhCanvas.toBlob(async function(blob) {
                 try { if (blob) downloadBlob(await window.wsPrintPng(blob,dpi), filename);

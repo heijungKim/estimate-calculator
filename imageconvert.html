@@ -168,18 +168,18 @@
         <div class="ic-layout">
             <div class="ic-controls">
                 <div class="ic-auto-note">
-                    <strong>&#10024; AI 복원 (Real-ESRGAN)</strong>
+                    <strong>&#10024; 최고 품질 AI 복원</strong>
                     <p class="ic-hint">학습된 AI로 경계와 질감을 복원합니다. 이미지는 이 기기에서 처리하며, 첫 실행에는 모델 다운로드가 필요합니다. 이미지 크기와 기기에 따라 수 분 이상 걸릴 수 있습니다.</p>
                 </div>
-                <div class="ic-field"><label for="ic_restore_preset">이미지 종류</label><select id="ic_restore_preset"><option value="photo">사진 · 자연스러운 복원</option><option value="text">글자 · 로고 · 간판</option><option value="gentle">원본 질감 보존</option></select></div>
-                <div class="ic-field"><label for="ic_restore_scale">확대 배율</label><select id="ic_restore_scale"><option value="4">4배 · 세부 복원</option><option value="2">2배</option><option value="1">원본 크기 · 선명도 개선</option></select><span class="ic-hint">최대 2,000만 픽셀 / 긴 변 8,000px 안에서 자동 조절됩니다.</span></div>
-                <div class="ic-field"><label for="ic_restore_sharp">선명도 <output id="ic_sharp_value">40</output></label><input id="ic_restore_sharp" type="range" min="0" max="100" value="40" /></div>
-                <div class="ic-field"><label for="ic_restore_noise">잡티 정리 <output id="ic_noise_value">0</output></label><input id="ic_restore_noise" type="range" min="0" max="3" step="0.5" value="0" /></div>
-                <button type="button" class="ic-btn primary block" id="ic_enh_apply">설정으로 다시 복원</button>
+                <p class="ic-quality-badge">최고 품질 자동 적용 · AI 4배 복원</p>
+                <p class="ic-hint">선명도와 잡티 정리는 고정된 고품질 설정으로 처리합니다. 결과는 최대 2,000만 픽셀 / 긴 변 8,000px 안에서 자동 조절됩니다.</p>
+                <button type="button" class="ic-btn ghost block" id="ic_enh_apply">최고 품질로 다시 복원</button>
                 <p class="ic-error" id="ic_enh_error" role="status"></p>
+                <details class="ic-print-details"><summary>출력 크기 확인</summary>
                 <div class="ic-field"><label for="ic_print_width">출력 가로 크기 (mm)</label><input type="number" id="ic_print_width" min="1" max="100000" value="210" /></div>
-                <div class="ic-field"><label for="ic_print_dpi">목표 해상도</label><select id="ic_print_dpi"><option value="300">300 PPI</option><option value="150">150 PPI</option><option value="100">100 PPI</option></select></div>
+                <p class="ic-hint">출력 가능 크기는 300 PPI 기준으로 안내합니다.</p>
                 <p class="ic-print-report" id="ic_print_report" aria-live="polite">복원 후 출력 가능 크기를 확인할 수 있습니다.</p>
+                </details>
                 <p class="ic-hint">픽셀 수가 충분해도 원본에서 사라진 글자·세부 형태의 정확성은 보장되지 않습니다. 1:1 비교와 시험 출력으로 확인하세요.</p>
                 <div class="ic-result-size">
                     결과 크기 <strong id="ic_enh_size">-</strong>
@@ -202,11 +202,24 @@
             </div>
         </div>
 
+        <section class="ic-suggestions" id="ic_suggestions" hidden aria-labelledby="ic_suggestions_title">
+            <h3 id="ic_suggestions_title">복원이 부족하다면, 다른 방식으로 완성하세요</h3>
+            <p class="ic-hint">부족한 부분을 고르면 알맞은 대안을 먼저 보여드립니다. 아래 이미지는 빠른 비교용이며, 선택 후 원본 해상도를 기준으로 변환합니다.</p>
+            <div class="ic-suggestion-filters" id="ic_suggestion_filters" aria-label="대체할 부분">
+                <button type="button" data-kind="all" aria-pressed="true">전체 추천</button>
+                <button type="button" data-kind="text" aria-pressed="false">흐릿한 글자</button>
+                <button type="button" data-kind="logo" aria-pressed="false">로고 · 도형</button>
+                <button type="button" data-kind="photo" aria-pressed="false">사진 · 배경</button>
+            </div>
+            <div class="ic-suggestion-grid" id="ic_suggestion_grid"></div>
+            <p class="ic-hint">글자 교체는 선택한 글자에만 적용됩니다. 일러스트·벡터·흑백은 이미지 전체를 바꾸므로 미리보기를 확인하세요.</p>
+        </section>
+
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" data-goto="1">&#8592; 이전</button>
             <button type="button" class="ic-btn ghost" id="ic_dl_png_enh" disabled>개선 이미지 PNG 저장</button>
             <button type="button" class="ic-btn ghost" id="ic_enh_fonts" disabled>글자가 흐리면 폰트로 교체</button>
-            <button type="button" class="ic-btn primary" id="ic_to_step3" disabled>다음: 일러스트 · 벡터 변환 &#8594;</button>
+            <button type="button" class="ic-btn primary" id="ic_to_step3" disabled>대체 방법 추천 보기 &#8595;</button>
         </div>
     </section>
 
@@ -325,6 +338,7 @@
 <script src="imageconvert-text.js"></script>
 <script src="imageconvert-ai.js"></script>
 <script src="imageconvert-print.js"></script>
+<script src="imageconvert-suggestions.js"></script>
 <script src="imageconvert.js"></script>
 </body>
 </html>
