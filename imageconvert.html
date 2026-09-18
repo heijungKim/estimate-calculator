@@ -163,7 +163,10 @@
 
     <!-- ── 2단계: 해상도 개선 ── -->
     <section class="ic-card" id="ic_panel_2" hidden>
-        <div class="ic-card-title"><span class="title-bar"></span>2. AI 해상도 복원 미리보기</div>
+        <div class="ic-restore-nav">
+            <div class="ic-card-title"><span class="title-bar"></span>2. AI 해상도 복원 미리보기</div>
+            <button type="button" class="ic-btn primary ic-next-convert" id="ic_to_step3" disabled>다음: 변환 탭 &#8594;</button>
+        </div>
 
         <div class="ic-layout">
             <div class="ic-controls">
@@ -219,7 +222,8 @@
             <button type="button" class="ic-btn ghost" data-goto="1">&#8592; 이전</button>
             <button type="button" class="ic-btn ghost" id="ic_dl_png_enh" disabled>개선 이미지 PNG 저장</button>
             <button type="button" class="ic-btn ghost" id="ic_enh_fonts" disabled>글자가 흐리면 폰트로 교체</button>
-            <button type="button" class="ic-btn primary" id="ic_to_step3" disabled>대체 방법 추천 보기 &#8595;</button>
+            <button type="button" class="ic-btn ghost" id="ic_show_suggestions">대체 방법 추천 보기</button>
+            <button type="button" class="ic-btn primary ic-next-convert" id="ic_to_step3_bottom" disabled>다음: 변환 탭 &#8594;</button>
         </div>
     </section>
 

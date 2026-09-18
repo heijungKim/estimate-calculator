@@ -373,3 +373,8 @@
 
 .ic-svg-notice { color:#204568; background:#edf4ff; border-radius:8px; padding:12px 15px; font-size:13px; line-height:1.7; }
 .ic-svg-notice:empty { display:none; }
+
+.ic-restore-nav { display:flex; align-items:center; justify-content:space-between; gap:14px; position:sticky; top:8px; z-index:5; padding:14px 0; margin-bottom:14px; background:#fff; border-bottom:1px solid #e3eaf3; }
+.ic-restore-nav .ic-card-title { margin:0; }
+.ic-restore-nav .ic-next-convert { flex-shrink:0; }
+@media(max-width:600px){.ic-restore-nav{flex-direction:column;align-items:stretch;gap:10px;top:0;}.ic-restore-nav .ic-card-title{font-size:15px;}.ic-restore-nav .ic-next-convert{width:100%;}}

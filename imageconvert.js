@@ -81,10 +81,22 @@ $(function() {
         if (n === 3) enterStep3();
     }
 
-    $('#ic_stepper').on('click', '.ic-step.done', function() { gotoStep(+$(this).data('step')); });
+    $('#ic_stepper').on('click', '.ic-step.done', function() { var step=+$(this).data('step');if(step===3)goToConversion();else gotoStep(step); });
     $(document).on('click', '[data-goto]', function() { gotoStep(+$(this).data('goto')); });
     $('#ic_to_step2').on('click', function() { state.maxStep = Math.max(state.maxStep, 2); gotoStep(2); });
-    $('#ic_to_step3').on('click', function() { showSuggestions(); document.getElementById('ic_suggestions').scrollIntoView({behavior:'smooth',block:'start'}); });
+    $('.ic-next-convert').on('click',goToConversion);
+    $('#ic_show_suggestions').on('click',function(){showSuggestions();document.getElementById('ic_suggestions').scrollIntoView({behavior:'smooth',block:'start'});});
+    function goToConversion(){
+        if(!state.srcImg || enh.running)return;
+        enterFontMode(!state.enhCanvas.width,state.mode);
+    }
+    function updateConversionNavigation(){
+        var ready=!!state.srcImg && !enh.running && state.maxStep>=2;
+        $('.ic-next-convert').prop('disabled',!ready).text(enh.running?'복원 중… 완료 후 변환':state.enhCanvas.width?'다음: 변환 탭 →':'원본으로 변환 탭 →');
+        $('#ic_show_suggestions').prop('disabled',!ready);
+        if(ready)state.maxStep=Math.max(state.maxStep,3);
+        $('#ic_stepper [data-step="3"]').toggleClass('done',ready&&state.step!==3);
+    }
 
     $('#ic_direct_fonts').on('click', function() { enterFontMode(true); });
     $('#ic_enh_fonts').on('click', function() { enterFontMode(false); });
@@ -99,7 +111,7 @@ $(function() {
             state.enhAi=false;clearResults();
             $('#ic_enh_size').text(state.enhCanvas.width+' × '+state.enhCanvas.height+' px');
             $('#ic_enh_note').text('원본 이미지 · AI 복원 없이 대체 변환');
-            $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled',false);printReport();
+            $('#ic_dl_png_enh, .ic-next-convert, #ic_enh_fonts').prop('disabled',false);printReport();
         }
         state.mode=mode; $('#ic_mode button').removeClass('on').filter('[data-v="'+mode+'"]').addClass('on');
         state.maxStep=3;gotoStep(3);
@@ -161,7 +173,7 @@ $(function() {
             state.srcImg = img;
             state.hasAlpha = detectAlpha(img);
             state.enhDirty = true;
-            $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled', true);
+            $('#ic_dl_png_enh, .ic-next-convert, #ic_enh_fonts').prop('disabled', true);
             $('#ic_enh_error, #ic_enh_note').text('');
             state.enhCanvas.width = 0; // 이전 이미지의 개선 결과가 잠깐 보이지 않도록
             clearResults();
@@ -241,6 +253,7 @@ $(function() {
     function kickEnhance() {
         if (enh.running) return;
         if (!state.srcImg || !state.enhDirty) {
+            updateConversionNavigation();
             $('#ic_enh_busy').prop('hidden', true);
             var waiters = enh.waiters;
             enh.waiters = [];
@@ -250,12 +263,13 @@ $(function() {
 
         state.enhDirty = false;
         enh.running = true;
+        updateConversionNavigation();
         suggestions.reset();suggestionKey=null;$('#ic_suggestions').prop('hidden',true);
         $('#ic_enh_error, #ic_enh_note').text('');
         $('#ic_enh_size').text('처리 중');
         document.getElementById('ic_view_canvas').width=0;
         printReport();
-        $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts, #ic_enh_apply').prop('disabled', true);
+        $('#ic_dl_png_enh, .ic-next-convert, #ic_enh_fonts, #ic_enh_apply').prop('disabled', true);
         $('#ic_enh_busy').prop('hidden', false);
         $('#ic_enh_busy_text').text('AI 해상도 복원 준비 중…');
 
@@ -276,7 +290,7 @@ $(function() {
             $('#ic_enh_note').text(job.note);
             updateHeightMm();
             printReport();
-            $('#ic_dl_png_enh, #ic_to_step3, #ic_enh_fonts').prop('disabled', false);
+            $('#ic_dl_png_enh, .ic-next-convert, #ic_enh_fonts').prop('disabled', false);
             if (state.step === 2) layoutPreview();
         }).catch(function(err) {
             if(!state.enhDirty)$('#ic_enh_size').text('복원 결과 없음');
