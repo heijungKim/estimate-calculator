@@ -233,9 +233,9 @@
                     <label>변환 방식</label>
                     <div class="ic-seg" id="ic_mode">
                         <button type="button" data-v="raster">사진 유지 · 글자 교체</button>
-                        <button type="button" data-v="hybrid" class="on">원본 유지 (추천)</button>
+                        <button type="button" data-v="hybrid">사진 유지 (혼합)</button>
                         <button type="button" data-v="illust">일러스트</button>
-                        <button type="button" data-v="vector">벡터(정밀)</button>
+                        <button type="button" data-v="vector" class="on">개별 도형 (정밀 벡터)</button>
                         <button type="button" data-v="mono">흑백(커팅용)</button>
                     </div>
                     <span class="ic-hint" id="ic_mode_hint"></span>
@@ -313,10 +313,11 @@
             </div>
         </div>
 
+        <p class="ic-svg-notice" id="ic_svg_notice" role="status"></p>
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" data-goto="2">&#8592; 이전</button>
             <button type="button" class="ic-btn ghost" id="ic_dl_png" disabled>PNG 저장</button>
-            <button type="button" class="ic-btn primary" id="ic_dl_svg" disabled>SVG(벡터) 저장</button>
+            <button type="button" class="ic-btn primary" id="ic_dl_svg" disabled>SVG 개별 오브젝트 저장</button>
         </div>
     </section>
 
@@ -339,6 +340,7 @@
 <script src="imageconvert-ai.js"></script>
 <script src="imageconvert-print.js"></script>
 <script src="imageconvert-suggestions.js"></script>
+<script src="imageconvert-svg.js"></script>
 <script src="imageconvert.js"></script>
 </body>
 </html>

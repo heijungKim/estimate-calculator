@@ -17,7 +17,7 @@ $(function() {
 
     // 변환 방식별 최적값 (imageconvert-trace.js 의 옵션)
     var MODES = {
-        raster: { label: '사진 유지 · 글자 교체', hint: '사진은 그대로 유지합니다. 글자 한 줄을 직접 선택하고 비슷한 폰트로 교체하세요. SVG에는 사진과 교체한 벡터 글자가 함께 저장됩니다.' },
+        raster: { label: '사진 유지 · 글자 교체', hint: '사진은 그대로 유지합니다. 글자 한 줄을 직접 선택하고 비슷한 폰트로 교체하세요. 사진을 그대로 저장하려면 PNG를 사용하세요. SVG는 전체를 개별 벡터 도형으로 변환한 뒤 저장합니다.' },
         hybrid: { label: '원본유지', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17, hybrid: true,
                   hint: '글자·도형은 확대해도 깨지지 않는 벡터로, 사진·그라데이션은 선명하게 키운 원본 이미지를 그대로 넣습니다. 실사출력·현수막용으로 가장 원본에 가깝습니다.' },
         illust: { label: '일러스트', maxColors: 16, mergeDistance: 56, mergeDeltaE: 20,
@@ -38,7 +38,7 @@ $(function() {
         enhCanvas: document.getElementById('ic_enh_canvas'),
         enhDirty: true,
         enhAi: false,       // 개선 결과가 AI 복원인지 (원본 유지 모드의 사진 영역에 그대로 쓴다)
-        mode: 'hybrid',
+        mode: 'vector',
         results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode, overlay, index, palette }
         replacements: [],   // 글자 폰트 교체 목록 { id, text, font, colors, vec }
         resultUrl: null,
@@ -1009,6 +1009,10 @@ $(function() {
         $('#ic_st_time').text((r.ms / 1000).toFixed(1) + '초');
         $('#ic_stats').prop('hidden', false);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', false);
+        $('#ic_dl_svg').text(r.overlay ? 'SVG용 개별 도형으로 변환' : 'SVG 개별 오브젝트 저장');
+        $('#ic_svg_notice').text(r.overlay
+            ? '현재 결과에는 사진이 포함되어 있습니다. SVG용 도형으로 변환하면 사진도 벡터로 바뀝니다. 변환 결과를 확인한 뒤 저장하세요.'
+            : '각 도형을 개별 오브젝트로 저장합니다. 글자 안쪽의 빈 공간은 함께 유지합니다.');
         $('#ic_result_img').addClass('pickable');
         positionTextMark();
         if(r.mode==='raster'&&!editor)setTextSelection(true);
@@ -1026,18 +1030,32 @@ $(function() {
         $('#ic_result_img').removeAttr('src');
         $('#ic_stats, #ic_retry').prop('hidden', true);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', true);
-        $('#ic_trace_error').text('');
+        $('#ic_trace_error, #ic_svg_notice').text('');
     }
 
     function currentResult() {
         return state.resultSvg ? state.results[state.mode] : null;
     }
 
-    $('#ic_dl_svg').on('click', function() {
-        var r = currentResult();
-        if (!r) return;
-        var svg = '<?xml version="1.0" encoding="UTF-8"?>\n' + state.resultSvg;
-        downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), baseName() + '_' + MODES[r.mode].label + '.svg');
+    $('#ic_dl_svg').on('click', async function() {
+        var r=currentResult();if(!r)return;
+        if(r.overlay){
+            closeTextEditor();setTextSelection(false);
+            state.mode='vector';$('#ic_mode button').removeClass('on').filter('[data-v="vector"]').addClass('on');
+            $('#ic_mode_hint').text(MODES.vector.hint);convertCurrent();return;
+        }
+        var snapshot=state.resultSvg, filename=baseName()+'_개별오브젝트.svg';
+        $('#ic_dl_svg').prop('disabled',true);$('#ic_svg_notice').text('개별 오브젝트를 준비하는 중…');
+        try{
+            var result=await window.wsSvgObjects.export(snapshot,function(count){
+                if(state.resultSvg===snapshot)$('#ic_svg_notice').text(count.toLocaleString()+'개 오브젝트 준비 중…');
+            });
+            if(state.resultSvg!==snapshot)return;
+            downloadBlob(new Blob([result.svg],{type:'image/svg+xml'}),filename);
+            $('#ic_svg_notice').text(result.objects.toLocaleString()+'개 개별 오브젝트 저장 완료 · 편집 프로그램에서 파일을 직접 열어 편집하세요.');
+            $('#ic_st_paths').text(result.objects.toLocaleString()+'개');
+        }catch(error){if(state.resultSvg===snapshot)$('#ic_svg_notice').text('SVG 저장 실패: '+error.message);}
+        finally{if(state.resultSvg===snapshot)$('#ic_dl_svg').prop('disabled',false);}
     });
 
     $('#ic_dl_png').on('click', function() {

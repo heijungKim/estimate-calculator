@@ -370,3 +370,6 @@
 .ic-suggestion-scope { color:#285681; font-size:11px; font-weight:600; }
 .ic-suggestion-card .ic-btn { white-space:normal; padding:11px 7px; font-size:12px; }
 @media(max-width:600px){.ic-suggestion-grid{grid-template-columns:1fr;}.ic-suggestion-card img{height:160px;}}
+
+.ic-svg-notice { color:#204568; background:#edf4ff; border-radius:8px; padding:12px 15px; font-size:13px; line-height:1.7; }
+.ic-svg-notice:empty { display:none; }
