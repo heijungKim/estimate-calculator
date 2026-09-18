@@ -808,7 +808,7 @@
             for (p = 0; p < n; p++) { a[p] = orig[p * 4 + c]; b[p] = flat[p * 4 + c]; }
             a = blurChannel(a, w, h, fine, 2);
             b = blurChannel(b, w, h, fine, 2);
-            for (p = 0; p < n; p++) { var dv = a[p] - b[p]; diff[p] += dv < 0 ? -dv : dv; }
+            for (p = 0; p < n; p++) { var dv = a[p] - b[p]; diff[p] += (dv < 0 ? -dv : dv) + 0.4 * Math.abs(orig[p * 4 + c] - flat[p * 4 + c]); }
         }
         for (p = 0; p < n; p++) diff[p] = orig[p * 4 + 3] < 128 ? 0 : diff[p] / 3;
         diff = blurChannel(diff, w, h, wide, 2);
@@ -845,7 +845,7 @@
         }
         return any ? mask : null;
     }
-    var MASK_LOW = 9, MASK_HIGH = 16;
+    var MASK_LOW = 3, MASK_HIGH = 7; // Preserve subtle photo texture and gradients before posterization becomes visible.
 
     function wsTraceImage(imgd, p) {
         return ensureVTracer().then(function() {

@@ -2,9 +2,7 @@
 (function(root){
     'use strict';
     var CHOICES=[
-        {mode:'raster',title:'비슷한 폰트로 교체',scope:'선택한 글자만',description:'글자 한 줄을 선택하면 29가지 폰트 중 모양이 비슷한 후보를 추천합니다.',kinds:['text'],action:'글자 선택 · 폰트 추천'},
-        {mode:'hybrid',title:'사진과 글자를 함께 정리',scope:'전체 이미지',description:'사진 질감은 남기고 글자·도형의 경계를 정리합니다. 사진과 문구가 섞인 간판에 적합합니다.',kinds:['text','photo'],action:'혼합 방식으로 변환'},
-        {mode:'vector',title:'정밀 벡터로 변환',scope:'전체 이미지',description:'로고·도형을 확대 가능한 윤곽으로 바꿉니다. 세부 색과 모양은 달라질 수 있습니다.',kinds:['logo','text'],action:'정밀 벡터로 변환'},
+        {mode:'hybrid',title:'선명도 유지 · 글자/도형 편집',scope:'고해상도 사진 + 개별 벡터',description:'복원한 사진의 해상도를 유지합니다. 글자는 유사 폰트로 교체하고 도형은 각각 편집해 함께 저장하세요.',kinds:['text','logo','photo'],action:'통합 방식으로 편집'},
         {mode:'illust',title:'일러스트로 단순화',scope:'전체 이미지',description:'뭉개진 질감과 잡티를 단순한 색면으로 바꿉니다. 원본의 사진 느낌은 줄어듭니다.',kinds:['photo','logo'],action:'일러스트로 변환'},
         {mode:'mono',title:'흑백 윤곽으로 정리',scope:'전체 이미지',description:'색을 없애 형태를 또렷하게 정리합니다. 단색 로고·커팅용 도안에 적합합니다.',kinds:['logo'],action:'흑백으로 변환'}
     ];

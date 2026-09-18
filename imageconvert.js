@@ -18,8 +18,8 @@ $(function() {
     // 변환 방식별 최적값 (imageconvert-trace.js 의 옵션)
     var MODES = {
         raster: { label: '사진 유지 · 글자 교체', hint: '사진은 그대로 유지합니다. 글자 한 줄을 직접 선택하고 비슷한 폰트로 교체하세요. 사진을 그대로 저장하려면 PNG를 사용하세요. SVG는 전체를 개별 벡터 도형으로 변환한 뒤 저장합니다.' },
-        hybrid: { label: '원본유지', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17, hybrid: true,
-                  hint: '글자·도형은 확대해도 깨지지 않는 벡터로, 사진·그라데이션은 선명하게 키운 원본 이미지를 그대로 넣습니다. 실사출력·현수막용으로 가장 원본에 가깝습니다.' },
+        hybrid: { label: '선명도 유지 · 글자/도형 편집', maxColors: 32, mergeDistance: 24, mergeDeltaE: 8, hybrid: true,
+                  hint: 'AI로 복원한 사진의 해상도와 질감을 유지하며 글자·도형을 함께 편집합니다. SVG에는 고해상도 사진 오브젝트와 개별 벡터 도형이 함께 저장됩니다. 흐린 글자는 영역을 선택해 비슷한 폰트로 바꿀 수 있습니다.' },
         illust: { label: '일러스트', maxColors: 16, mergeDistance: 56, mergeDeltaE: 20,
                   hint: '비슷한 색을 합쳐 단순하고 깔끔한 단색 면으로 만듭니다. 확대해도 경계가 깨지지 않아요.' },
         vector: { label: '벡터', maxColors: 20, mergeDistance: 48, mergeDeltaE: 17,
@@ -38,7 +38,7 @@ $(function() {
         enhCanvas: document.getElementById('ic_enh_canvas'),
         enhDirty: true,
         enhAi: false,       // 개선 결과가 AI 복원인지 (원본 유지 모드의 사진 영역에 그대로 쓴다)
-        mode: 'vector',
+        mode: 'hybrid',
         results: {},        // 변환 방식별 결과 캐시 { body, paths, width, height, ms, mode, overlay, index, palette }
         replacements: [],   // 글자 폰트 교체 목록 { id, text, font, colors, vec }
         resultUrl: null,
@@ -98,10 +98,11 @@ $(function() {
         $('#ic_stepper [data-step="3"]').toggleClass('done',ready&&state.step!==3);
     }
 
-    $('#ic_direct_fonts').on('click', function() { enterFontMode(true); });
+    $('#ic_direct_fonts').on('click', function() { $('#ic_to_step2').trigger('click'); });
     $('#ic_enh_fonts').on('click', function() { enterFontMode(false); });
     function enterFontMode(original,mode) {
-        mode=mode||'raster';
+        mode=mode||'hybrid';
+        if(mode==='raster'||mode==='vector')mode='hybrid';
         if (!state.srcImg) return;
         if (original) {
             cancelAi();
@@ -847,6 +848,14 @@ $(function() {
             var ready = result.mask ? buildPhotoOverlay(result, w, h) : Promise.resolve();
             ready.then(function() {
                 if (id !== state.jobId) return;
+                if(mode==='hybrid'){
+                    if(!state.hasAlpha)result.body='<rect width="'+w+'" height="'+h+'" fill="rgb('+imgd.data[0]+','+imgd.data[1]+','+imgd.data[2]+')"/>'+result.body;
+                    if(w!==cv.width||h!==cv.height){
+                        result.body='<g transform="scale('+(cv.width/w)+' '+(cv.height/h)+')">'+result.body+'</g>';
+                        result.index=null;
+                    }
+                    result.width=cv.width;result.height=cv.height;
+                }
                 finishJob();
                 result.ms = Date.now() - started;
                 result.mask = null;
@@ -950,40 +959,22 @@ $(function() {
     // AI 복원 결과가 있으면 그대로 쓰고, 기본 방식이면 사진용 설정으로 다시 키운다
     // (글자 경계 선명화는 사진에 자글자글한 흰 점을 만든다).
     function buildPhotoOverlay(result, w, h) {
-        var img = state.srcImg, sw = img.naturalWidth, sh = img.naturalHeight, ready;
-        if (state.enhAi) {
-            var scaled = document.createElement('canvas');
-            drawScaled(state.enhCanvas, scaled, w, h);
-            ready = Promise.resolve(scaled.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data);
-        } else {
-            var src = document.createElement('canvas');
-            src.width = sw; src.height = sh;
-            var sctx = src.getContext('2d', { willReadFrequently: true });
-            sctx.drawImage(img, 0, 0);
-            ready = runEnhanceJob({ sw: sw, sh: sh, tw: w, th: h, pixels: sctx.getImageData(0, 0, sw, sh).data, options: PHOTO_ENHANCE_OPTIONS });
-        }
-        return ready.then(function(pixels) {
-            var mask = result.mask;
-            for (var p = 0, i = 0; p < mask.length; p++, i += 4) {
-                var a = mask[p];
-                if (a === 0) { pixels[i] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = 0; continue; }
-                pixels[i + 3] = Math.round(pixels[i + 3] * a / 255);
-            }
-            var c = document.createElement('canvas');
-            c.width = w; c.height = h;
-            var ctx = c.getContext('2d');
-            var id = ctx.createImageData(w, h);
-            id.data.set(pixels);
-            ctx.putImageData(id, 0, 0);
-            return new Promise(function(resolve, reject) {
-                c.toBlob(function(blob) {
-                    if (!blob) { reject(new Error('사진 영역 이미지를 만들지 못했습니다.')); return; }
-                    var reader = new FileReader();
-                    reader.onload = function() { result.overlay = reader.result; resolve(); };
-                    reader.onerror = function() { reject(new Error('사진 영역 이미지를 읽지 못했습니다.')); };
-                    reader.readAsDataURL(blob);
-                }, 'image/png');
-            });
+        // Only the segmentation mask is scaled. Photo pixels retain the complete AI output resolution.
+        var source=state.enhCanvas, photo=document.createElement('canvas');
+        photo.width=source.width;photo.height=source.height;
+        var ctx=photo.getContext('2d');ctx.drawImage(source,0,0);
+        var mask=document.createElement('canvas');mask.width=w;mask.height=h;
+        var mc=mask.getContext('2d'),id=mc.createImageData(w,h);
+        for(var p=0;p<result.mask.length;p++)id.data[p*4+3]=result.mask[p];
+        mc.putImageData(id,0,0);
+        ctx.globalCompositeOperation='destination-in';ctx.imageSmoothingQuality='high';
+        ctx.drawImage(mask,0,0,photo.width,photo.height);ctx.globalCompositeOperation='source-over';
+        return new Promise(function(resolve,reject){
+            photo.toBlob(function(blob){
+                if(!blob){reject(new Error('사진 영역 저장 실패'));return;}
+                var reader=new FileReader();reader.onload=function(){result.overlay=reader.result;resolve();};
+                reader.onerror=function(){reject(new Error('사진 영역 읽기 실패'));};reader.readAsDataURL(blob);
+            },'image/png');
         });
     }
 
@@ -1023,13 +1014,13 @@ $(function() {
         $('#ic_st_time').text((r.ms / 1000).toFixed(1) + '초');
         $('#ic_stats').prop('hidden', false);
         $('#ic_dl_svg, #ic_dl_png').prop('disabled', false);
-        $('#ic_dl_svg').text(r.overlay ? 'SVG용 개별 도형으로 변환' : 'SVG 개별 오브젝트 저장');
+        $('#ic_dl_svg').text(r.overlay ? 'SVG 사진·개별 도형 저장' : 'SVG 개별 오브젝트 저장');
         $('#ic_svg_notice').text(r.overlay
-            ? '현재 결과에는 사진이 포함되어 있습니다. SVG용 도형으로 변환하면 사진도 벡터로 바뀝니다. 변환 결과를 확인한 뒤 저장하세요.'
+            ? '선명도를 유지한 사진 오브젝트와 개별 벡터 도형을 함께 저장합니다. 저장할 때 전체를 다시 벡터화하지 않습니다. 사진 영역 자체는 이미지 오브젝트로 편집됩니다.'
             : '각 도형을 개별 오브젝트로 저장합니다. 글자 안쪽의 빈 공간은 함께 유지합니다.');
         $('#ic_result_img').addClass('pickable');
         positionTextMark();
-        if(r.mode==='raster'&&!editor)setTextSelection(true);
+        if((r.mode==='hybrid'||r.mode==='raster')&&!editor)setTextSelection(true);
         if (r.paths === 0 && r.mode !== 'raster') $('#ic_trace_error').text('변환할 도형을 찾지 못했습니다. 다른 변환 방식을 선택해 보세요.');
     }
 
@@ -1053,20 +1044,15 @@ $(function() {
 
     $('#ic_dl_svg').on('click', async function() {
         var r=currentResult();if(!r)return;
-        if(r.overlay){
-            closeTextEditor();setTextSelection(false);
-            state.mode='vector';$('#ic_mode button').removeClass('on').filter('[data-v="vector"]').addClass('on');
-            $('#ic_mode_hint').text(MODES.vector.hint);convertCurrent();return;
-        }
         var snapshot=state.resultSvg, filename=baseName()+'_개별오브젝트.svg';
         $('#ic_dl_svg').prop('disabled',true);$('#ic_svg_notice').text('개별 오브젝트를 준비하는 중…');
         try{
             var result=await window.wsSvgObjects.export(snapshot,function(count){
                 if(state.resultSvg===snapshot)$('#ic_svg_notice').text(count.toLocaleString()+'개 오브젝트 준비 중…');
-            });
+            },{allowImages:!!r.overlay});
             if(state.resultSvg!==snapshot)return;
             downloadBlob(new Blob([result.svg],{type:'image/svg+xml'}),filename);
-            $('#ic_svg_notice').text(result.objects.toLocaleString()+'개 개별 오브젝트 저장 완료 · 편집 프로그램에서 파일을 직접 열어 편집하세요.');
+            $('#ic_svg_notice').text('사진 '+result.imageObjects+'개 · 벡터 도형 '+result.vectorObjects.toLocaleString()+'개 저장 완료 · 편집 프로그램에서 파일을 직접 열어 편집하세요.');
             $('#ic_st_paths').text(result.objects.toLocaleString()+'개');
         }catch(error){if(state.resultSvg===snapshot)$('#ic_svg_notice').text('SVG 저장 실패: '+error.message);}
         finally{if(state.resultSvg===snapshot)$('#ic_dl_svg').prop('disabled',false);}

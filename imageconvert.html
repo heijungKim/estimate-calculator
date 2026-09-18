@@ -156,7 +156,7 @@
 
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" id="ic_reset" hidden>다른 이미지 선택</button>
-            <button type="button" class="ic-btn ghost" id="ic_direct_fonts" disabled>복원 없이 글자 폰트 교체</button>
+            <button type="button" class="ic-btn ghost" id="ic_direct_fonts" disabled>복원 후 글자·도형 편집</button>
             <button type="button" class="ic-btn primary" id="ic_to_step2" disabled>다음: 해상도 개선 &#8594;</button>
         </div>
     </section>
@@ -215,13 +215,13 @@
                 <button type="button" data-kind="photo" aria-pressed="false">사진 · 배경</button>
             </div>
             <div class="ic-suggestion-grid" id="ic_suggestion_grid"></div>
-            <p class="ic-hint">글자 교체는 선택한 글자에만 적용됩니다. 일러스트·벡터·흑백은 이미지 전체를 바꾸므로 미리보기를 확인하세요.</p>
+            <p class="ic-hint">글자 교체는 선택한 글자에만 적용됩니다. 통합 방식은 사진의 해상도를 유지합니다. 일러스트·흑백은 이미지 전체의 표현을 바꾸므로 미리보기를 확인하세요.</p>
         </section>
 
         <div class="ic-actions">
             <button type="button" class="ic-btn ghost" data-goto="1">&#8592; 이전</button>
             <button type="button" class="ic-btn ghost" id="ic_dl_png_enh" disabled>개선 이미지 PNG 저장</button>
-            <button type="button" class="ic-btn ghost" id="ic_enh_fonts" disabled>글자가 흐리면 폰트로 교체</button>
+            <button type="button" class="ic-btn ghost" id="ic_enh_fonts" disabled>글자·도형 함께 편집</button>
             <button type="button" class="ic-btn ghost" id="ic_show_suggestions">대체 방법 추천 보기</button>
             <button type="button" class="ic-btn primary ic-next-convert" id="ic_to_step3_bottom" disabled>다음: 변환 탭 &#8594;</button>
         </div>
@@ -236,10 +236,8 @@
                 <div class="ic-field">
                     <label>변환 방식</label>
                     <div class="ic-seg" id="ic_mode">
-                        <button type="button" data-v="raster">사진 유지 · 글자 교체</button>
-                        <button type="button" data-v="hybrid">사진 유지 (혼합)</button>
+                        <button type="button" data-v="hybrid" class="on">선명도 유지 · 글자/도형 편집</button>
                         <button type="button" data-v="illust">일러스트</button>
-                        <button type="button" data-v="vector" class="on">개별 도형 (정밀 벡터)</button>
                         <button type="button" data-v="mono">흑백(커팅용)</button>
                     </div>
                     <span class="ic-hint" id="ic_mode_hint"></span>
@@ -253,7 +251,7 @@
                 </div>
                 <div class="ic-auto-note">
                     <strong>&#10024; 자동 변환</strong>
-                    <p class="ic-hint">변환 방식을 선택하면 결과를 미리 볼 수 있습니다. 사진을 유지하려면 사진 유지 · 글자 교체를 선택하세요.</p>
+                    <p class="ic-hint">변환 방식을 선택하면 결과를 미리 볼 수 있습니다. 기본 통합 방식은 복원된 사진과 개별 도형을 함께 유지합니다.</p>
                 </div>
 
                 <p class="ic-error" id="ic_trace_error"></p>
@@ -310,7 +308,7 @@
                 </div>
                 <div class="ic-stats" id="ic_stats" hidden>
                     <span>크기 <strong id="ic_st_size">-</strong></span>
-                    <span>도형 <strong id="ic_st_paths">-</strong></span>
+                    <span>오브젝트 <strong id="ic_st_paths">-</strong></span>
                     <span>파일 <strong id="ic_st_bytes">-</strong></span>
                     <span>소요 <strong id="ic_st_time">-</strong></span>
                 </div>
