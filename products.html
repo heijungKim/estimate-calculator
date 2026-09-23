@@ -142,6 +142,7 @@
     <!-- ── 입찰참가 등록물품 ── -->
     <div class="prod-section">
         <div class="prod-section-head">
+            <button type="button" class="prod-add-btn" data-add="product">&#43; 품목 추가</button>
             <h3>입찰참가 등록물품</h3>
             <p>
                 등록유효기간이 지나면 그 품명으로는 입찰에 참여할 수 없습니다
@@ -162,7 +163,7 @@
                         <th style="width:168px">등록 유효기간</th>
                         <th style="width:96px">제조공장</th>
                         <th style="width:124px">상태</th>
-                        <th style="width:74px">관리</th>
+                        <th style="width:112px">관리</th>
                     </tr>
                 </thead>
                 <tbody id="prod_tbody"></tbody>
@@ -173,6 +174,7 @@
     <!-- ── 인증·가산점 ── -->
     <div class="prod-section">
         <div class="prod-section-head">
+            <button type="button" class="prod-add-btn" data-add="cert">&#43; 인증 추가</button>
             <h3>인증 · 적격심사 가산점</h3>
             <p>
                 자격이 있어도 <strong>확인서를 제출해야</strong> 신인도 점수가 붙습니다.
@@ -189,10 +191,38 @@
                         <th style="width:168px">유효기간</th>
                         <th style="width:124px">상태</th>
                         <th>비고</th>
-                        <th style="width:74px">관리</th>
+                        <th style="width:112px">관리</th>
                     </tr>
                 </thead>
                 <tbody id="cert_tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── 종합쇼핑몰 계약 ── -->
+    <div class="prod-section">
+        <div class="prod-section-head">
+            <button type="button" class="prod-add-btn" data-add="mall">&#43; 계약 추가</button>
+            <h3>나라장터 종합쇼핑몰 계약</h3>
+            <p>
+                계약이 끝나면 쇼핑몰에서 상품이 내려갑니다. 재계약 심사에 시간이 걸리니
+                <strong>만료 3개월 전</strong>부터 알려드립니다.
+            </p>
+        </div>
+        <div class="prod-table-wrap">
+            <table class="prod-table" id="mall_table">
+                <thead>
+                    <tr>
+                        <th style="width:150px">계약번호</th>
+                        <th>계약 품명</th>
+                        <th style="width:150px">계약방식</th>
+                        <th style="width:168px">계약기간</th>
+                        <th style="width:124px">상태</th>
+                        <th>비고</th>
+                        <th style="width:112px">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="mall_tbody"></tbody>
             </table>
         </div>
     </div>
@@ -238,6 +268,132 @@
         <div class="modal_footer">
             <button type="button" id="renew_cancel" class="modal_cancel_btn">취소</button>
             <button type="button" id="renew_confirm" class="modal_save_btn">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── 항목 추가 모달 ── -->
+<div class="modal_overlay" id="add_modal">
+    <div class="modal_box add_box">
+        <div class="modal_header">
+            <h3 id="add_title">항목 추가</h3>
+            <button type="button" class="modal_close" id="add_close">&#215;</button>
+        </div>
+        <div class="modal_body">
+
+            <!-- 등록물품 -->
+            <div id="add_product_fields">
+                <div class="add_row">
+                    <div class="modal_field">
+                        <label for="add_code">세부품명번호 <span class="req">*</span></label>
+                        <input type="text" id="add_code" placeholder="5512190401" maxlength="10" inputmode="numeric" />
+                        <p class="add_hint">나라장터 등록증의 10자리 번호. 이 번호로 공고를 가려냅니다.</p>
+                    </div>
+                    <div class="modal_field">
+                        <label for="add_pname">세부품명 <span class="req">*</span></label>
+                        <input type="text" id="add_pname" placeholder="예: 간판" />
+                    </div>
+                </div>
+                <div class="add_row">
+                    <div class="modal_field">
+                        <label for="add_regdate">등록일</label>
+                        <input type="date" id="add_regdate" />
+                    </div>
+                    <div class="modal_field">
+                        <label for="add_certdoc">증명서류</label>
+                        <input type="text" id="add_certdoc" value="직접생산증명서" />
+                    </div>
+                </div>
+                <div class="add_row">
+                    <div class="modal_field">
+                        <label for="add_factory">제조공장</label>
+                        <input type="text" id="add_factory" placeholder="우성디지탈" />
+                    </div>
+                    <div class="modal_field">
+                        <label>&nbsp;</label>
+                        <label class="add_check"><input type="checkbox" id="add_made" checked /> 직접 제조 (제조 Y)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 인증 -->
+            <div id="add_cert_fields">
+                <div class="modal_field">
+                    <label for="add_cname">인증명 <span class="req">*</span></label>
+                    <input type="text" id="add_cname" placeholder="예: 여성기업, 사회적기업, ISO 9001" />
+                </div>
+                <div class="add_row">
+                    <div class="modal_field">
+                        <label for="add_cdoc">제출 서류</label>
+                        <input type="text" id="add_cdoc" placeholder="예: 여성기업 확인서" />
+                    </div>
+                    <div class="modal_field">
+                        <label for="add_cissuer">발급기관</label>
+                        <input type="text" id="add_cissuer" placeholder="예: 중소벤처기업부" />
+                    </div>
+                </div>
+                <div class="modal_field">
+                    <label for="add_cnote">비고</label>
+                    <input type="text" id="add_cnote" placeholder="예: 신인도 가산" />
+                </div>
+            </div>
+
+            <!-- 쇼핑몰 계약 -->
+            <div id="add_mall_fields">
+                <div class="add_row">
+                    <div class="modal_field">
+                        <label for="add_mname">계약 품명 <span class="req">*</span></label>
+                        <input type="text" id="add_mname" placeholder="예: 간판(다수공급자계약)" />
+                    </div>
+                    <div class="modal_field">
+                        <label for="add_mno">계약번호</label>
+                        <input type="text" id="add_mno" placeholder="예: 00000000-00000000" />
+                    </div>
+                </div>
+                <div class="add_row">
+                    <div class="modal_field">
+                        <label for="add_mkind">계약방식</label>
+                        <select id="add_mkind">
+                            <option>다수공급자계약(MAS)</option>
+                            <option>우수조달물품</option>
+                            <option>제3자단가계약</option>
+                            <option>총액계약</option>
+                            <option>기타</option>
+                        </select>
+                    </div>
+                    <div class="modal_field">
+                        <label for="add_mnote">비고</label>
+                        <input type="text" id="add_mnote" placeholder="예: 2단계경쟁 대상" />
+                    </div>
+                </div>
+            </div>
+
+            <hr class="add_sep" />
+
+            <div class="add_row">
+                <div class="modal_field">
+                    <label for="add_issued">발급일 (시작일자)</label>
+                    <input type="date" id="add_issued" />
+                </div>
+                <div class="modal_field">
+                    <label for="add_term">유효기간</label>
+                    <select id="add_term">
+                        <option value="12">1년</option>
+                        <option value="24" selected>2년</option>
+                        <option value="36">3년</option>
+                        <option value="48">4년</option>
+                        <option value="60">5년</option>
+                        <option value="">유효기간 없음</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="renew_preview" id="add_preview"></div>
+            <p class="renew_error" id="add_error"></p>
+        </div>
+        <div class="modal_footer">
+            <button type="button" id="add_cancel" class="modal_cancel_btn">취소</button>
+            <button type="button" id="add_confirm" class="modal_save_btn">추가하기</button>
         </div>
     </div>
 </div>

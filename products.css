@@ -188,6 +188,89 @@
 }
 .prod-renew-btn.urgent:hover { background: #d63652; border-color: #d63652; color: #fff; }
 
+/* 항목 추가 */
+.prod-section-head { position: relative; }
+.prod-add-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    height: 30px;
+    padding: 0 13px;
+    border-radius: 7px;
+    border: 1.5px solid #dde1e9;
+    background: #fff;
+    color: #4a5568;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s;
+}
+.prod-add-btn:hover { border-color: #e94560; color: #e94560; }
+
+.prod-del-btn {
+    margin-left: 5px;
+    height: 28px;
+    width: 28px;
+    border-radius: 7px;
+    border: 1.5px solid #f0d4d0;
+    background: #fff;
+    color: #c62828;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.prod-del-btn:hover { background: #fdecea; }
+
+/* 직접 넣은 항목 표시 — 등록증에 없던 것이라 구분이 필요하다 */
+.prod-custom {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: #eef2ff;
+    color: #4a6fa5;
+    font-size: 10px;
+    font-weight: 700;
+    vertical-align: 1px;
+}
+
+.add_box { width: 620px; max-width: calc(100vw - 32px); }
+.add_row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.add_row .modal_field { min-width: 0; }
+.add_hint {
+    margin: 5px 0 0;
+    font-size: 11.5px;
+    color: #8892a4;
+    line-height: 1.5;
+}
+.add_check {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 40px;
+    font-size: 13px;
+    color: #4a5568;
+    cursor: pointer;
+}
+.add_check input { accent-color: #e94560; width: 15px; height: 15px; }
+.add_sep {
+    border: none;
+    border-top: 1px solid #f0f2f5;
+    margin: 18px 0;
+}
+.req { color: #e94560; }
+
+@media (max-width: 560px) {
+    .add_row { grid-template-columns: 1fr; }
+}
+
 .prod-note {
     font-size: 12px;
     color: #8892a4;

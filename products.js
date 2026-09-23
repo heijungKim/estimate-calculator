@@ -13,6 +13,7 @@ var SOON_DAYS = 60;           // 이 안쪽이면 '곧 만료'
 var _company = null;
 var _products = [];    // company.json + 갱신분
 var _certs = [];
+var _mall = [];        // 종합쇼핑몰 계약
 var _db = null;
 var _renewTarget = null;   // { type: 'product'|'cert', id }
 
@@ -41,6 +42,15 @@ function bindEvents() {
     $(document).on('click', '.prod-renew-btn', function() {
         openRenew($(this).data('type'), String($(this).data('id')));
     });
+    $(document).on('click', '.prod-del-btn', function() {
+        removeItem($(this).data('type'), String($(this).data('id')), $(this).data('name'));
+    });
+
+    $('.prod-add-btn').click(function() { openAdd($(this).data('add')); });
+    $('#add_close, #add_cancel').click(closeAdd);
+    $('#add_modal').click(function(e) { if (e.target === this) closeAdd(); });
+    $('#add_confirm').click(saveAdd);
+    $('#add_issued, #add_term').on('change input', updateAddPreview);
 }
 
 /* ── 불러오기 ────────────────────────────────────────────────── */
@@ -63,6 +73,29 @@ function load() {
             _certs = (_company.certifications || []).map(function(c) {
                 return $.extend({}, c, over.certs[c.key] || {});
             });
+
+            // company.json 에 없는 저장분 = 이 화면에서 직접 넣은 항목.
+            // 품명을 새로 등록하거나 인증을 하나 더 받았을 때 코드를 고쳐야
+            // 한다면 결국 아무도 안 고친다.
+            Object.keys(over.products).forEach(function(code) {
+                if (!_products.some(function(p) { return p.code === code; })) {
+                    _products.push($.extend({ code: code, custom: true }, over.products[code]));
+                }
+            });
+            Object.keys(over.certs).forEach(function(key) {
+                if (!_certs.some(function(c) { return c.key === key; })) {
+                    _certs.push($.extend({ key: key, custom: true }, over.certs[key]));
+                }
+            });
+
+            _mall = (_company.shoppingMall || []).map(function(m) {
+                return $.extend({}, m, over.mall[m.id] || {});
+            });
+            Object.keys(over.mall).forEach(function(id) {
+                if (!_mall.some(function(m) { return m.id === id; })) {
+                    _mall.push($.extend({ id: id, custom: true }, over.mall[id]));
+                }
+            });
             renderAll();
         })
         .catch(function(err) {
@@ -74,7 +107,7 @@ function load() {
 
 /* 갱신분. Firestore 를 못 쓰면 이 브라우저에만 남긴다. */
 function loadOverrides() {
-    var empty = { products: {}, certs: {} };
+    var empty = { products: {}, certs: {}, mall: {} };
 
     if (!_db) {
         try {
@@ -91,10 +124,12 @@ function loadOverrides() {
     Promise.all([
         _db.collection('bid_products').get(),
         _db.collection('bid_certifications').get(),
+        _db.collection('bid_mall').get(),
     ]).then(function(snaps) {
-        var out = { products: {}, certs: {} };
+        var out = { products: {}, certs: {}, mall: {} };
         snaps[0].forEach(function(doc) { out.products[doc.id] = doc.data(); });
         snaps[1].forEach(function(doc) { out.certs[doc.id] = doc.data(); });
+        snaps[2].forEach(function(doc) { out.mall[doc.id] = doc.data(); });
         d.resolve(out);
     }).catch(function(err) {
         console.error('갱신 내역 로드 실패:', err);
@@ -109,6 +144,7 @@ function renderAll() {
     renderCompany();
     renderProducts();
     renderCerts();
+    renderMall();
     renderSummary();
 }
 
@@ -141,14 +177,18 @@ function renderProducts() {
 
         $tr.append($('<td class="mono">').text(dash(p.registeredAt)));
         $tr.append($('<td class="mono">').text(p.code));
-        $tr.append($('<td>').append($('<div class="prod-name">').text(p.name)));
+        var $nm = $('<div class="prod-name">').text(p.name);
+        if (p.custom) $nm.append($('<span class="prod-custom">').text('직접추가'));
+        $tr.append($('<td>').append($nm));
         $tr.append($('<td>').text(p.made ? 'Y' : 'N'));
         $tr.append($('<td>').css('font-size', '12px').text(p.certDoc || '—'));
         $tr.append($('<td>').append(periodCell(p.certStart, p.certEnd)));
         $tr.append($('<td>').append(periodCell(p.regStart, p.regEnd)));
         $tr.append($('<td>').css('font-size', '12px').text(p.factory || '—'));
         $tr.append($('<td>').append(statusCell(st)));
-        $tr.append($('<td>').append(renewBtn('product', p.code, st)));
+        $tr.append($('<td>')
+            .append(renewBtn('product', p.code, st))
+            .append(p.custom ? delBtn('product', p.code, p.name) : ''));
 
         $tb.append($tr);
     });
@@ -168,15 +208,43 @@ function renderCerts() {
             : statusOf(c.until);
 
         var $tr = $('<tr>');
-        $tr.append($('<td>')
-            .append($('<div class="prod-name">').text(c.name)));
+        var $cn = $('<div class="prod-name">').text(c.name);
+        if (c.custom) $cn.append($('<span class="prod-custom">').text('직접추가'));
+        $tr.append($('<td>').append($cn));
         $tr.append($('<td>').css('font-size', '12.5px').text(c.doc || '—'));
         $tr.append($('<td>').css('font-size', '12.5px').text(c.issuer || '—'));
         $tr.append($('<td>').append(periodCell(c.issuedAt, c.until)));
         $tr.append($('<td>').append(statusCell(st)));
         $tr.append($('<td>').append($('<div class="prod-sub">').text(c.note || '')));
-        $tr.append($('<td>').append(renewBtn('cert', c.key, st)));
+        $tr.append($('<td>')
+            .append(renewBtn('cert', c.key, st))
+            .append(c.custom ? delBtn('cert', c.key, c.name) : ''));
 
+        $tb.append($tr);
+    });
+}
+
+function renderMall() {
+    var $tb = $('#mall_tbody').empty();
+    if (!_mall.length) {
+        $tb.html('<tr><td colspan="7" class="prod-empty">' +
+            '등록된 쇼핑몰 계약이 없습니다. 계약이 있으시면 <b>계약 추가</b>로 넣어주세요.</td></tr>');
+        return;
+    }
+    _mall.forEach(function(m) {
+        var st = statusOf(m.until);
+        var $tr = $('<tr>');
+        $tr.append($('<td class="mono">').text(m.contractNo || '—'));
+        var $nm = $('<div class="prod-name">').text(m.name || '');
+        if (m.custom) $nm.append($('<span class="prod-custom">').text('직접추가'));
+        $tr.append($('<td>').append($nm));
+        $tr.append($('<td>').css('font-size', '12.5px').text(m.kind || '—'));
+        $tr.append($('<td>').append(periodCell(m.issuedAt, m.until)));
+        $tr.append($('<td>').append(statusCell(st)));
+        $tr.append($('<td>').append($('<div class="prod-sub">').text(m.note || '')));
+        $tr.append($('<td>')
+            .append(renewBtn('mall', m.id, st))
+            .append(m.custom ? delBtn('mall', m.id, m.name) : ''));
         $tb.append($tr);
     });
 }
@@ -224,6 +292,8 @@ function renderSummary() {
         if (c.termMonths === null && !c.until) return;   // 유효기간 없는 인증은 제외
         rows.push({ name: c.name, end: c.until, what: '인증' });
     });
+    // 쇼핑몰 계약은 재계약 절차가 길어 90일 기준으로 따로 본다
+    _mall.forEach(function(m) { rows.push({ name: m.name, end: m.until, what: '쇼핑몰', mall: true }); });
 
     var dead = rows.filter(function(r) { return r.end && daysUntil(r.end) < 0; });
     var renew = rows.filter(function(r) {
@@ -280,25 +350,185 @@ function namesWithDays(rows) {
     }).join(', ');
 }
 
+function delBtn(type, id, name) {
+    return $('<button type="button" class="prod-del-btn" title="삭제">')
+        .attr('data-type', type).attr('data-id', id).attr('data-name', name)
+        .html('&#128465;');
+}
+
+/* ── 항목 추가 ───────────────────────────────────────────────── */
+var _addType = null;
+
+function openAdd(type) {
+    _addType = type;
+    $('#add_title').text(
+        type === 'product' ? '등록물품 추가' : (type === 'mall' ? '쇼핑몰 계약 추가' : '인증 추가'));
+    $('#add_product_fields').toggle(type === 'product');
+    $('#add_cert_fields').toggle(type === 'cert');
+    $('#add_mall_fields').toggle(type === 'mall');
+    $('#add_mname, #add_mno, #add_mnote').val('');
+
+    $('#add_code, #add_pname, #add_factory, #add_cname, #add_cdoc, #add_cissuer, #add_cnote').val('');
+    $('#add_certdoc').val('직접생산증명서');
+    $('#add_made').prop('checked', true);
+    $('#add_regdate').val(toInputDate(new Date()));
+    $('#add_issued').val(toInputDate(new Date()));
+    $('#add_term').val(String(
+        type === 'product' ? (_company.productTermMonths || 24)
+            : type === 'mall' ? (_company.mallTermMonths || 24) : 24));
+    $('#add_error').text('');
+    if (_company && _company.name) $('#add_factory').attr('placeholder', _company.name);
+
+    updateAddPreview();
+    $('#add_modal').css('display', 'flex');
+}
+
+function closeAdd() { $('#add_modal').hide(); _addType = null; }
+
+function updateAddPreview() {
+    var termRaw = $('#add_term').val();
+    var p = computePeriod($('#add_issued').val(), termRaw === '' ? null : Number(termRaw));
+    var $box = $('#add_preview').empty();
+    if (!p) { $box.append($('<span class="muted">').text('발급일을 선택하세요.')); return; }
+    if (!p.end) {
+        $box.append(document.createTextNode('시작일자 ')).append($('<b>').text(p.start))
+            .append($('<br>')).append($('<span class="muted">').text('유효기간 없음으로 저장됩니다.'));
+        return;
+    }
+    $box.append(document.createTextNode('시작일자 ')).append($('<b>').text(p.start))
+        .append(document.createTextNode('  →  종료일자 ')).append($('<b>').text(p.end));
+}
+
+function saveAdd() {
+    if (!_addType) return;
+    var termRaw = $('#add_term').val();
+    var months = termRaw === '' ? null : Number(termRaw);
+    var period = computePeriod($('#add_issued').val(), months);
+    if (!period) { $('#add_error').text('발급일을 선택하세요.'); return; }
+
+    var id, patch;
+
+    if (_addType === 'product') {
+        var code = $('#add_code').val().replace(/\D/g, '');
+        var name = $('#add_pname').val().trim();
+        if (code.length !== 10) { $('#add_error').text('세부품명번호는 숫자 10자리입니다.'); return; }
+        if (!name) { $('#add_error').text('세부품명을 입력하세요.'); return; }
+        if (_products.some(function(p) { return p.code === code; })) {
+            $('#add_error').text('이미 있는 품명번호입니다.'); return;
+        }
+        id = code;
+        patch = {
+            custom: true, code: code, name: name,
+            registeredAt: $('#add_regdate').val() || period.start,
+            made: $('#add_made').is(':checked'),
+            certDoc: $('#add_certdoc').val().trim(),
+            factory: $('#add_factory').val().trim() || (_company.name || ''),
+            certStart: period.start, certEnd: period.end,
+            regStart: period.start, regEnd: period.end,
+            renewedAt: period.start,
+        };
+    } else if (_addType === 'mall') {
+        var mname = $('#add_mname').val().trim();
+        if (!mname) { $('#add_error').text('계약 품명을 입력하세요.'); return; }
+        id = 'mall_' + Date.now().toString(36);
+        patch = {
+            custom: true, id: id, name: mname,
+            contractNo: $('#add_mno').val().trim(),
+            kind: $('#add_mkind').val(),
+            note: $('#add_mnote').val().trim(),
+            termMonths: months,
+            issuedAt: period.start, until: period.end,
+            renewedAt: period.start,
+        };
+    } else {
+        var cname = $('#add_cname').val().trim();
+        if (!cname) { $('#add_error').text('인증명을 입력하세요.'); return; }
+        // 이름이 바뀌어도 문서가 갈라지지 않도록 한 번 만든 id 를 그대로 쓴다
+        id = 'custom_' + Date.now().toString(36);
+        patch = {
+            custom: true, key: id, name: cname,
+            doc: $('#add_cdoc').val().trim(),
+            issuer: $('#add_cissuer').val().trim(),
+            note: $('#add_cnote').val().trim(),
+            termMonths: months,
+            issuedAt: period.start, until: period.end,
+            renewedAt: period.start,
+        };
+    }
+
+    $('#add_confirm').prop('disabled', true);
+    persist(_addType, id, patch)
+        .then(function() {
+            if (_addType === 'product') _products.push(patch);
+            else if (_addType === 'mall') _mall.push(patch);
+            else _certs.push(patch);
+            renderAll();
+            closeAdd();
+        })
+        .catch(function(err) {
+            console.error(err);
+            $('#add_error').text('저장하지 못했습니다: ' + err.message);
+        })
+        .then(function() { $('#add_confirm').prop('disabled', false); });
+}
+
+/* company.json 에 있는 항목은 지워도 다시 살아나므로 직접 넣은 것만 지운다. */
+function removeItem(type, id, name) {
+    if (!window.confirm('\u2018' + name + '\u2019 항목을 삭제할까요?')) return;
+
+    var coll = type === 'product' ? 'bid_products'
+        : type === 'mall' ? 'bid_mall' : 'bid_certifications';
+    var after = function() {
+        if (type === 'product') {
+            _products = _products.filter(function(p) { return p.code !== id; });
+        } else if (type === 'mall') {
+            _mall = _mall.filter(function(m) { return m.id !== id; });
+        } else {
+            _certs = _certs.filter(function(c) { return c.key !== id; });
+        }
+        renderAll();
+    };
+
+    if (!_db) {
+        try {
+            var all = JSON.parse(localStorage.getItem(LS_OVERRIDE) || '{}');
+            var bucket = type === 'product' ? 'products' : (type === 'mall' ? 'mall' : 'certs');
+            if (all[bucket]) delete all[bucket][id];
+            localStorage.setItem(LS_OVERRIDE, JSON.stringify(all));
+        } catch (e) {}
+        after();
+        return;
+    }
+    _db.collection(coll).doc(id).delete().then(after).catch(function(err) {
+        console.error(err);
+        window.alert('삭제하지 못했습니다: ' + err.message);
+    });
+}
+
 /* ── 갱신 ────────────────────────────────────────────────────── */
 function openRenew(type, id) {
     var item = (type === 'product')
         ? _products.filter(function(p) { return p.code === id; })[0]
-        : _certs.filter(function(c) { return c.key === id; })[0];
+        : (type === 'mall')
+            ? _mall.filter(function(m) { return m.id === id; })[0]
+            : _certs.filter(function(c) { return c.key === id; })[0];
     if (!item) return;
 
     _renewTarget = { type: type, id: id, item: item };
 
-    $('#renew_title').text(type === 'product' ? '등록물품 갱신' : '인증 갱신');
+    $('#renew_title').text(
+        type === 'product' ? '등록물품 갱신' : (type === 'mall' ? '쇼핑몰 계약 갱신' : '인증 갱신'));
     $('#renew_target').html('')
         .append($('<b>').text(item.name))
         .append($('<span class="code">').text(
-            type === 'product' ? '세부품명번호 ' + item.code : (item.doc || '')));
+            type === 'product' ? '세부품명번호 ' + item.code
+                : type === 'mall' ? (item.contractNo ? '계약번호 ' + item.contractNo : (item.kind || ''))
+                : (item.doc || '')));
 
     // 재발급일 기본값은 오늘. 유효기간은 항목에 정해진 값을 먼저 쓴다.
     $('#renew_date').val(toInputDate(new Date()));
-    var term = (type === 'product')
-        ? (_company.productTermMonths || 24)
+    var term = (type === 'product') ? (_company.productTermMonths || 24)
+        : (type === 'mall') ? (item.termMonths || _company.mallTermMonths || 24)
         : item.termMonths;
     $('#renew_term').val(term === null || term === undefined ? '' : String(term));
 
@@ -380,6 +610,7 @@ function saveRenew() {
             renewedAt: issued,
         };
     } else {
+        // 인증과 쇼핑몰 계약은 기간 한 쌍만 쓴다
         patch = { issuedAt: p.start, until: p.end, termMonths: months, renewedAt: issued };
     }
 
@@ -387,8 +618,8 @@ function saveRenew() {
     persist(type, id, patch)
         .then(function() {
             // 화면 쪽도 바로 반영
-            var list = type === 'product' ? _products : _certs;
-            var key = type === 'product' ? 'code' : 'key';
+            var list = type === 'product' ? _products : (type === 'mall' ? _mall : _certs);
+            var key = type === 'product' ? 'code' : (type === 'mall' ? 'id' : 'key');
             list.forEach(function(x) { if (x[key] === id) $.extend(x, patch); });
             renderAll();
             closeRenew();
@@ -403,13 +634,14 @@ function saveRenew() {
 }
 
 function persist(type, id, patch) {
-    var coll = type === 'product' ? 'bid_products' : 'bid_certifications';
+    var coll = type === 'product' ? 'bid_products'
+        : type === 'mall' ? 'bid_mall' : 'bid_certifications';
 
     if (!_db) {
         return new Promise(function(resolve, reject) {
             try {
                 var all = JSON.parse(localStorage.getItem(LS_OVERRIDE) || '{}');
-                var bucket = type === 'product' ? 'products' : 'certs';
+                var bucket = type === 'product' ? 'products' : (type === 'mall' ? 'mall' : 'certs');
                 if (!all[bucket]) all[bucket] = {};
                 all[bucket][id] = $.extend({}, all[bucket][id], patch);
                 localStorage.setItem(LS_OVERRIDE, JSON.stringify(all));
