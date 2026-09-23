@@ -37,7 +37,7 @@ $(function() {
 
     if (!proxyBase() && !dataUrl()) $('#bid_setup').show();
 
-    loadFavs().always(function() {
+    $.when(loadFavs(), loadAllChecks()).always(function() {
         loadBids();
     });
 });
@@ -496,8 +496,26 @@ function buildRow(r, now) {
     $tr.append($('<td>').append(
         $('<span class="bid-dday">').addClass('bid-dday-' + dd.level).text(dd.text)
     ));
+    $tr.append($('<td class="bid-prog-cell">').append(progressBadge(r)));
 
     return $tr;
+}
+
+/* 서류를 몇 개나 챙겼는지. 목록에서 바로 보여야 어디까지 했는지 안다. */
+function progressBadge(r) {
+    var docs = (typeof bidDocsFor === 'function') ? bidDocsFor(r) : [];
+    if (!docs.length) return $('<span class="bid-prog none">').text('—');
+    var checks = loadChecks(r.id);
+    var done = docs.filter(function(d) { return checks[d.key]; }).length;
+    var cls = done === 0 ? 'none' : (done === docs.length ? 'full' : 'part');
+    return $('<span class="bid-prog">').addClass(cls).text(done + '/' + docs.length);
+}
+
+function updateRowProgress(id) {
+    var r = findItem(id);
+    if (!r) return;
+    var $cell = $('#bid_tbody tr[data-id="' + cssEscape(id) + '"] .bid-prog-cell');
+    if ($cell.length) $cell.empty().append(progressBadge(r));
 }
 
 function instLine(r) {
@@ -663,6 +681,7 @@ function buildSteps(r) {
             .append($('<span class="bid-step-title">').text(step.title))
             .append($('<span class="bid-step-count">').text(doneCount + '/' + step.items.length));
         $step.append($head);
+        if (step.note) $step.append($('<p class="bid-step-note">').text(step.note));
         if (doneCount === step.items.length) $step.addClass('done');
 
         step.items.forEach(function(it) {
@@ -672,8 +691,18 @@ function buildSteps(r) {
                 .attr('data-k', it.k);
             var $txt = $('<span>');
 
-            // 링크가 붙는 항목은 텍스트를 쪼개 넣는다
-            if (it.link) {
+            if (it.sub !== undefined) {
+                // 서류 항목 — 이름, 설명, 발급처 링크를 줄로 나눈다
+                var $nm = $('<span class="bid-doc-name">').text(it.t);
+                if (it.gain) $nm.append($('<span class="bid-doc-gain">').text('가점'));
+                $txt.append($nm);
+                if (it.sub) $txt.append($('<span class="bid-doc-note">').text(it.sub));
+                if (it.link) {
+                    $txt.append($('<a class="bid-doc-src" target="_blank" rel="noopener">')
+                        .attr('href', it.link).text(it.linkText));
+                }
+            } else if (it.link) {
+                // 링크가 붙는 일반 항목은 텍스트를 쪼개 넣는다
                 $txt.append(document.createTextNode(it.t + ' '))
                     .append($('<a>').attr('href', it.link).attr('target', '_blank').text(it.linkText || '열기 →'));
             } else {
@@ -804,30 +833,31 @@ function prepSteps(r) {
     s4.items.push({ k: 'hist', t: '비슷한 공고의 지난 낙찰률과 비교' });
     steps.push(s4);
 
-    /* 5 ─ 서류 */
-    var s5 = { title: '서류 준비', items: [] };
-    s5.items.push({ k: 'd_apply', t: '입찰참가신청서' });
-    if (isCnstwk) {
-        s5.items.push({ k: 'd_calc', t: '산출내역서 — 공사는 미제출 시 무효인 경우가 많습니다' });
-    }
-    s5.items.push({ k: 'd_clean', t: '청렴계약 이행서약서' });
-    s5.items.push({ k: 'd_seal', t: '사용인감계·위임장 (필요한 경우)' });
-    s5.items.push({ k: 'd_bond', t: '입찰보증금 또는 보증보험증권 — 납부 기한이 마감보다 이른 경우가 있습니다' });
-    s5.items.push({ k: 'd_perf', t: '실적증명서·자격 증빙 (적격심사 대상이면)' });
+    /* 5 ─ 서류. 목록과 발급처는 bid-docs.js 에 있다.
+     * 공고 성격에 맞는 것만 추려 넣는다 — 필요 없는 것까지 늘어놓으면
+     * 목록 자체를 안 보게 된다. */
+    var docs = (typeof bidDocsFor === 'function') ? bidDocsFor(r) : [];
+    var byStage = {};
+    docs.forEach(function(d) { (byStage[d.stage] = byStage[d.stage] || []).push(d); });
 
-    // 가산점은 자격이 있어도 확인서를 붙여야 점수가 붙는다. 빠뜨리면 그냥 0점이다.
-    var certs = (_company && _company.certifications) || [];
-    certs.forEach(function(c) {
-        var until = c.until ? ' (유효 ' + c.until + '까지)' : '';
-        s5.items.push({ k: 'cert_' + c.key,
-            t: c.doc + ' 첨부 — ' + c.name + ' 신인도 가산' + until });
+    (typeof BID_STAGES !== 'undefined' ? BID_STAGES : []).forEach(function(st) {
+        var list = byStage[st.key];
+        if (!list || !list.length) return;
+        var step = { title: '서류 · ' + st.title, note: st.note, docs: true, items: [] };
+        list.forEach(function(d) {
+            var src = bidDocSource(d);
+            step.items.push({
+                k: d.key,
+                t: d.name,
+                sub: d.note || '',
+                gain: !!d.gain,
+                link: src ? src.url : null,
+                linkText: src ? src.name + ' →' : null,
+                external: true,
+            });
+        });
+        steps.push(step);
     });
-    if (certs.length) {
-        s5.items.push({ k: 'cert_valid', link: 'products.html', linkText: '유효기간 확인 →',
-            t: '확인서 유효기간이 살아 있는지 확인 — 지난 확인서는 점수가 인정되지 않습니다.' });
-    }
-
-    steps.push(s5);
 
     /* 6 ─ 투찰 */
     var s6 = { title: '투찰', items: [] };
@@ -846,21 +876,50 @@ function prepSteps(r) {
  * 창을 닫을 때마다 초기화되면 체크 자체를 안 하게 된다.
  */
 var LS_CHECKS = 'bid_checklist_v1';
+var _checks = {};   // { [공고id]: { [항목키]: 1 } }
 
-function loadChecks(id) {
-    try {
-        return (JSON.parse(localStorage.getItem(LS_CHECKS) || '{}'))[id] || {};
-    } catch (e) { return {}; }
+/* 준비는 며칠에 걸쳐 하고 담당자가 바뀌기도 한다. 브라우저에만 두면
+ * 다른 PC 에서 열었을 때 아무것도 안 보인다. Firestore 에 둔다. */
+function loadAllChecks() {
+    if (!_db) {
+        try { _checks = JSON.parse(localStorage.getItem(LS_CHECKS) || '{}'); }
+        catch (e) { _checks = {}; }
+        return $.Deferred().resolve().promise();
+    }
+    var d = $.Deferred();
+    _db.collection('bid_checklists').get()
+        .then(function(snap) {
+            _checks = {};
+            snap.forEach(function(doc) { _checks[doc.id] = doc.data() || {}; });
+            d.resolve();
+        })
+        .catch(function(err) {
+            console.error('준비 현황 로드 실패:', err);
+            d.resolve();
+        });
+    return d.promise();
 }
 
+function loadChecks(id) { return _checks[id] || {}; }
+
 function saveCheck(id, key, on) {
-    try {
-        var all = JSON.parse(localStorage.getItem(LS_CHECKS) || '{}');
-        if (!all[id]) all[id] = {};
-        if (on) all[id][key] = 1; else delete all[id][key];
-        if (!Object.keys(all[id]).length) delete all[id];
-        localStorage.setItem(LS_CHECKS, JSON.stringify(all));
-    } catch (e) {}
+    if (!_checks[id]) _checks[id] = {};
+    if (on) _checks[id][key] = 1; else delete _checks[id][key];
+
+    if (!_db) {
+        try {
+            if (!Object.keys(_checks[id]).length) delete _checks[id];
+            localStorage.setItem(LS_CHECKS, JSON.stringify(_checks));
+        } catch (e) {}
+        updateRowProgress(id);
+        return;
+    }
+
+    var patch = {};
+    patch[key] = on ? 1 : firebase.firestore.FieldValue.delete();
+    _db.collection('bid_checklists').doc(id).set(patch, { merge: true })
+        .catch(function(err) { console.error('준비 현황 저장 실패:', err); });
+    updateRowProgress(id);
 }
 function findItem(id) {
     for (var i = 0; i < _items.length; i++) {

@@ -451,3 +451,85 @@ test('products.html 이 참조하는 로컬 파일이 모두 있다', async () =
     }
     assert.ok(checked >= 5, '검사된 로컬 참조가 너무 적다: ' + checked);
 });
+
+/* ── 서류 목록 (bid-docs.js) ──────────────────────────────────
+ * 브라우저용 스크립트라 eval 로 올려 쓴다. */
+const DOCS_SRC = await (async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const url = await import('node:url');
+    const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
+    return fs.readFileSync(path.join(root, 'bid-docs.js'), 'utf8');
+})();
+
+const docsEnv = {};
+new Function('g', DOCS_SRC + `
+    g.BID_DOCUMENTS = BID_DOCUMENTS;
+    g.BID_DOC_SOURCES = BID_DOC_SOURCES;
+    g.BID_STAGES = BID_STAGES;
+    g.bidDocsFor = bidDocsFor;
+    g.bidDocSource = bidDocSource;
+`)(docsEnv);
+
+test('적격심사 공고는 적격심사 서류가 붙는다', () => {
+    const docs = docsEnv.bidDocsFor({ kind: 'thng', bidMethod: '적격심사' });
+    const names = docs.map(d => d.name);
+    assert.ok(names.includes('적격심사 신청서'));
+    assert.ok(names.includes('신용평가등급확인서'));
+    assert.ok(names.includes('여성기업 확인서'), '가점 서류도 포함');
+});
+
+test('수의계약 공고는 적격심사 서류를 빼고 준다', () => {
+    // 필요 없는 서류까지 늘어놓으면 목록 자체를 안 보게 된다
+    const docs = docsEnv.bidDocsFor({ kind: 'thng', bidMethod: '수의시담' });
+    const names = docs.map(d => d.name);
+    assert.ok(!names.includes('적격심사 신청서'));
+    assert.ok(!names.includes('신용평가등급확인서'));
+    assert.ok(names.includes('입찰서'), '투찰 서류는 그대로');
+});
+
+test('산출내역서는 공사에만 붙는다', () => {
+    const thng = docsEnv.bidDocsFor({ kind: 'thng', bidMethod: '적격심사' }).map(d => d.name);
+    const cnst = docsEnv.bidDocsFor({ kind: 'cnstwk', bidMethod: '적격심사' }).map(d => d.name);
+    assert.ok(!thng.includes('산출내역서'));
+    assert.ok(cnst.includes('산출내역서'));
+});
+
+test('직접생산확인증명서는 물품에만 붙는다', () => {
+    const thng = docsEnv.bidDocsFor({ kind: 'thng', bidMethod: '적격심사' }).map(d => d.name);
+    const servc = docsEnv.bidDocsFor({ kind: 'servc', bidMethod: '적격심사' }).map(d => d.name);
+    assert.ok(thng.includes('직접생산확인증명서'));
+    assert.ok(!servc.includes('직접생산확인증명서'));
+});
+
+test('모든 서류의 발급처가 실재하고 주소가 https 다', () => {
+    for (const d of docsEnv.BID_DOCUMENTS) {
+        assert.ok(d.key && d.name && d.stage, '서류에 key/name/stage 필요: ' + d.name);
+        assert.ok(docsEnv.BID_STAGES.some(s => s.key === d.stage), d.name + ' 의 stage 가 이상함');
+        if (!d.source) continue;
+        const src = docsEnv.BID_DOC_SOURCES[d.source];
+        assert.ok(src, d.name + ' 의 발급처 키가 없음: ' + d.source);
+        assert.match(src.url, /^https:\/\//, src.name + ' 주소');
+    }
+});
+
+test('서류 키가 겹치지 않는다', () => {
+    // 키가 겹치면 체크 상태가 서로 덮어쓴다
+    const keys = docsEnv.BID_DOCUMENTS.map(d => d.key);
+    assert.equal(new Set(keys).size, keys.length);
+});
+
+test('guide.html 이 참조하는 로컬 파일이 모두 있다', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const url = await import('node:url');
+    const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
+    const html = fs.readFileSync(path.join(root, 'guide.html'), 'utf8');
+    let checked = 0;
+    for (const m of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
+        if (/^https?:/.test(m[1])) continue;
+        assert.ok(fs.existsSync(path.join(root, m[1])), m[1] + ' 없음');
+        checked++;
+    }
+    assert.ok(checked >= 5, '검사된 로컬 참조가 너무 적다: ' + checked);
+});

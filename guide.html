@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>입찰 가이드 - 우성디지탈 관리 시스템</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="guide.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <a href="index.html" class="sidebar-brand" style="text-decoration:none">
+        <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
+        <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
+    </a>
+            <nav class="sidebar-nav">
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128203;</span>
+                <span class="nav-cat-label">견적</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="index.html" class="nav-item">
+                    <span class="nav-icon">&#9998;</span>
+                    <span>견적 계산기</span>
+                </a>
+                <a href="estimates.html" class="nav-item">
+                    <span class="nav-icon">&#128196;</span>
+                    <span>견적서 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#9881;</span>
+                <span class="nav-cat-label">관리</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="price.html" class="nav-item">
+                    <span class="nav-icon">&#128176;</span>
+                    <span>단가 설정표</span>
+                </a>
+                <a href="materials.html" class="nav-item">
+                    <span class="nav-icon">&#128230;</span>
+                    <span>자재 관리</span>
+                </a>
+                <a href="vendor.html" class="nav-item">
+                    <span class="nav-icon">&#9679;</span>
+                    <span>업체 관리</span>
+                </a>
+                <a href="print_history.html" class="nav-item">
+                    <span class="nav-icon">&#128424;</span>
+                    <span>출력 내역</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128101;</span>
+                <span class="nav-cat-label">인사/급여</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="employees.html" class="nav-item">
+                    <span class="nav-icon">&#128100;</span>
+                    <span>직원 관리</span>
+                </a>
+                <a href="leave.html" class="nav-item">
+                    <span class="nav-icon">&#128197;</span>
+                    <span>연차 관리</span>
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">&#127761;</span><span>야간 수당 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#127912;</span>
+                <span class="nav-cat-label">도구</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="imageconvert.html" class="nav-item">
+                    <span class="nav-icon">&#128444;</span>
+                    <span>이미지 변환</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <button type="button" class="nav-logout" onclick="wsLogout()">
+        <span class="nav-icon">&#9711;</span>
+        <span>로그아웃</span>
+    </button>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="logo.svg" class="logo-img" alt="우성디지탈" />
+            <span class="logo-text">우성디지탈 관리 시스템</span>
+        </div>
+        <p class="header-sub">나라장터 입찰 절차와 서류를 한눈에</p>
+        <div class="hdr-bid" id="hdr_bid">
+            <button type="button" class="hdr-bid-btn active">
+                <span class="hdr-bid-icon">&#128188;</span>
+                <span>입찰</span>
+                <span class="hdr-bid-caret">&#9662;</span>
+            </button>
+            <div class="hdr-bid-menu">
+                <a href="bid.html"><span class="hdr-bid-mi">&#127963;</span>나라장터 공고</a>
+                <a href="products.html"><span class="hdr-bid-mi">&#128203;</span>등록 품목·인증</a>
+                <a href="guide.html" class="on"><span class="hdr-bid-mi">&#128218;</span>입찰 가이드</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="gd-wrap">
+
+    <div class="gd-page-header">
+        <h2 class="gd-page-title">
+            <span class="title-bar"></span>
+            나라장터 입찰 가이드
+        </h2>
+        <a href="bid.html" class="gd-top-link">공고 보러 가기 &rarr;</a>
+    </div>
+
+    <!-- ── 전체 흐름 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">전체 흐름</h3>
+        <div class="gd-flow">
+            <div class="gd-flow-row">
+                <span class="gd-flow-label">한 번만</span>
+                <div class="gd-flow-steps">
+                    <span class="gd-chip">인증서</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip">입찰참가자격 등록</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip">직접생산확인</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip">보안모듈 설치</span>
+                </div>
+            </div>
+            <div class="gd-flow-row">
+                <span class="gd-flow-label gd-flow-label-hot">공고마다</span>
+                <div class="gd-flow-steps">
+                    <span class="gd-chip gd-chip-hot">공고 확인</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip gd-chip-hot">현장설명회</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip gd-chip-hot">투찰</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip gd-chip-hot">개찰</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip gd-chip-hot">적격심사</span>
+                    <span class="gd-arrow">&rarr;</span>
+                    <span class="gd-chip gd-chip-hot">계약</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 사전 준비 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">1. 사전 준비 <span class="gd-h-sub">한 번 해두면 됩니다</span></h3>
+        <div class="gd-table-wrap">
+            <table class="gd-table" id="gd_ready_table">
+                <thead>
+                    <tr>
+                        <th style="width:220px">항목</th>
+                        <th style="width:260px">발급처</th>
+                        <th>현재 상태</th>
+                    </tr>
+                </thead>
+                <tbody id="gd_ready"></tbody>
+            </table>
+        </div>
+        <p class="gd-note">
+            2024년 1월부터 지문보안토큰 의무가 폐지되어,
+            <strong>사업자용 인증서 + 개인용 인증서</strong> 조합으로 투찰합니다.
+        </p>
+    </section>
+
+    <!-- ── 투찰 순서 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">2. 공고 하나를 진행하는 순서</h3>
+
+        <ol class="gd-steps">
+            <li>
+                <b>공고 확인</b>
+                <p>참가자격(지역제한·업종제한·등록물품), 마감일시, 낙찰자 결정방법, 규격서를 봅니다.
+                   공고 목록에서 <span class="gd-tag">투찰가능</span> 배지가 붙은 건이 우리 등록물품과 품명번호가 맞는 공고입니다.</p>
+            </li>
+            <li>
+                <b>현장설명회</b>
+                <p>참석이 의무인 공고는 빠지면 <strong>입찰 자체가 무효</strong>입니다. 공고 상세에 일시·장소가 표시됩니다.</p>
+            </li>
+            <li>
+                <b>투찰</b>
+                <p>나라장터 로그인 → 보안모듈 → 투찰금액 입력 → 제출.
+                   <strong>제출하면 수정할 수 없습니다.</strong> 인증서 로그인에 시간이 걸리니 마감 30분 전에는 접속하세요.</p>
+            </li>
+            <li>
+                <b>개찰</b>
+                <p>여기서 예정가격이 정해집니다. 아래 설명을 보세요.</p>
+            </li>
+            <li>
+                <b>적격심사</b>
+                <p>최저가 순으로 낙찰후보자가 되면 서류를 냅니다. 보통 통보일부터 7일 이내이나 공고마다 다릅니다.</p>
+            </li>
+            <li>
+                <b>낙찰 &rarr; 계약</b>
+                <p>계약보증금과 서류를 준비해 계약을 체결합니다.</p>
+            </li>
+        </ol>
+    </section>
+
+    <!-- ── 예정가격 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">3. 투찰금액을 어떻게 정하나</h3>
+        <div class="gd-formula">
+            <p class="gd-formula-lead">
+                발주기관이 기초금액 ±2~3% 범위로 <b>복수예비가격 15개</b>를 만들어 둡니다.
+                입찰자들이 투찰할 때 2개씩 추첨하고, 가장 많이 뽑힌 <b>4개의 평균</b>이 예정가격이 됩니다.
+            </p>
+            <div class="gd-formula-box">
+                낙찰하한가 = 예정가격 &times; 낙찰하한율
+            </div>
+            <p class="gd-formula-note">
+                물품 적격심사는 보통 <b>87.995%</b>입니다. 이 금액 아래로 쓰면 무효입니다.
+                개찰 전에는 예정가격을 알 수 없으므로, 기초금액을 기준으로 구간을 잡습니다.
+            </p>
+            <p class="gd-formula-note">
+                아래가 <b>우리 원가</b>입니다. <a href="index.html">견적 계산기</a>로 제작원가를 뽑아
+                그 아래로는 쓰지 않도록 선을 그어두세요. 낙찰받고 적자를 보는 것이 제일 나쁩니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- ── 서류 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">4. 서류와 발급처</h3>
+        <p class="gd-lead">
+            공고별 제출 여부는 <a href="bid.html">공고 상세</a>에서 체크해 관리합니다.
+            여기서는 어떤 서류를 어디서 받는지 정리합니다.
+        </p>
+        <div id="gd_docs"></div>
+    </section>
+
+    <!-- ── 무효 사유 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">5. 무효가 되는 흔한 이유</h3>
+        <ul class="gd-bad">
+            <li><b>마감시각 초과</b> — 인증서 로그인과 보안모듈에서 시간을 까먹습니다</li>
+            <li><b>낙찰하한가 미만 투찰</b></li>
+            <li><b>등록유효기간 만료</b> — 그 품명으로는 참여할 수 없습니다</li>
+            <li><b>참가자격 미달</b> — 지역제한·업종제한, 등록물품이 아닌 품명</li>
+            <li><b>적격심사 서류 기한 내 미제출</b></li>
+            <li><b>현장설명회 미참석</b> (의무인 공고)</li>
+        </ul>
+    </section>
+
+    <!-- ── 우리 회사 ── -->
+    <section class="gd-section">
+        <h3 class="gd-h">6. 우성디지탈에 해당하는 것</h3>
+        <div id="gd_ours"></div>
+    </section>
+
+    <p class="gd-footer">
+        배점표는 공고마다 <b>적격심사 세부기준</b>이 첨부되니 그것이 우선합니다.
+        근거 규정은
+        <a href="https://www.law.go.kr/%ED%96%89%EC%A0%95%EA%B7%9C%EC%B9%99/%EC%A1%B0%EB%8B%AC%EC%B2%AD%EB%AC%BC%ED%92%88%EA%B5%AC%EB%A7%A4%EC%A0%81%EA%B2%A9%EC%8B%AC%EC%82%AC%EC%84%B8%EB%B6%80%EA%B8%B0%EC%A4%80"
+           target="_blank" rel="noopener">조달청 물품구매적격심사 세부기준</a>
+        (조달청지침 제524호, 2026-01-26 시행)입니다.
+    </p>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="nav.js"></script>
+<script src="auth.js"></script>
+<script src="bid-docs.js"></script>
+<script src="guide.js"></script>
+</body>
+</html>

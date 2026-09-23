@@ -426,6 +426,66 @@
 .bid-star:hover { transform: scale(1.18); }
 .bid-star.on { color: #f59e0b; }
 
+/* ── 서류 항목 ── */
+.bid-doc-name {
+    display: block;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+.bid-check-item input:checked + span .bid-doc-name {
+    color: #aab0bb;
+    text-decoration: line-through;
+}
+.bid-doc-gain {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 10px;
+    font-weight: 700;
+    vertical-align: 1px;
+    text-decoration: none;
+}
+.bid-doc-note {
+    display: block;
+    font-size: 11.5px;
+    color: #8892a4;
+    line-height: 1.5;
+    margin-top: 2px;
+}
+.bid-doc-src {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 11.5px;
+    color: #0f3460;
+    font-weight: 600;
+}
+.bid-doc-src:hover { color: #e94560; }
+
+.bid-step-note {
+    margin: -2px 0 8px 29px;
+    font-size: 11.5px;
+    color: #8892a4;
+    line-height: 1.5;
+}
+
+/* 목록의 서류 진행률 */
+.bid-prog {
+    display: inline-block;
+    min-width: 38px;
+    padding: 2px 7px;
+    border-radius: 11px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.bid-prog.none { background: #f0f2f5; color: #aab0bb; }
+.bid-prog.part { background: #fff4e0; color: #b57400; }
+.bid-prog.full { background: #e8f5e9; color: #2e7d32; }
+
 /* ── 상태 표시 ── */
 .bid-state {
     padding: 56px 24px;
