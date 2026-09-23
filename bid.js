@@ -670,11 +670,22 @@ function buildInfoGrid(r) {
  */
 function buildSteps(r) {
     var checks = loadChecks(r.id);
+    var auto = autoChecks(r);
     var $box = $('<div class="bid-steps">');
+
+    $box.append(autoSummary(r, auto));
 
     prepSteps(r).forEach(function(step, si) {
         var $step = $('<div class="bid-step">');
-        var doneCount = step.items.filter(function(it) { return checks[it.k]; }).length;
+
+        // 서류는 '보유'만 자동 판정하고 제출 체크는 사람이 한다.
+        // 나머지는 자동 확인된 것을 완료로 친다.
+        var isAuto = function(it) {
+            return !step.docs && auto[it.k] && auto[it.k].state === 'ok';
+        };
+        var doneCount = step.items.filter(function(it) {
+            return isAuto(it) || checks[it.k];
+        }).length;
 
         var $head = $('<div class="bid-step-head">')
             .append($('<span class="bid-step-no">').text(si + 1))
@@ -685,10 +696,26 @@ function buildSteps(r) {
         if (doneCount === step.items.length) $step.addClass('done');
 
         step.items.forEach(function(it) {
-            var $label = $('<label class="bid-check-item">').toggleClass('warn', !!it.warn);
-            var $cb = $('<input type="checkbox">')
-                .prop('checked', !!checks[it.k])
-                .attr('data-k', it.k);
+            var au = auto[it.k];
+            var autoDone = isAuto(it);
+
+            var $label = $('<label class="bid-check-item">')
+                .toggleClass('warn', !!it.warn || (au && au.state === 'warn'))
+                .toggleClass('auto-ok', !!autoDone)
+                .toggleClass('auto-fail', !!(au && au.state === 'fail'));
+
+            // 자동으로 확정된 항목은 체크박스를 주지 않는다. 눌러야 할 것처럼
+            // 보이면 사람이 또 확인하게 된다.
+            var $cb;
+            if (autoDone) {
+                $cb = $('<span class="bid-auto-mark ok">').html('&#10003;');
+            } else if (au && au.state === 'fail') {
+                $cb = $('<span class="bid-auto-mark fail">').html('&#10007;');
+            } else {
+                $cb = $('<input type="checkbox">')
+                    .prop('checked', !!checks[it.k])
+                    .attr('data-k', it.k);
+            }
             var $txt = $('<span>');
 
             if (it.sub !== undefined) {
@@ -709,10 +736,18 @@ function buildSteps(r) {
                 $txt.text(it.t);
             }
 
-            $cb.on('change', function() {
-                saveCheck(r.id, it.k, this.checked);
-                refreshStepCount($(this).closest('.bid-step'));
-            });
+            // 판정 근거를 붙인다. 왜 통과인지 안 보이면 믿지 못한다.
+            if (au) {
+                $txt.append($('<span class="bid-auto-why">')
+                    .addClass(au.state).text(au.why));
+            }
+
+            if ($cb.is('input')) {
+                $cb.on('change', function() {
+                    saveCheck(r.id, it.k, this.checked);
+                    refreshStepCount($(this).closest('.bid-step'));
+                });
+            }
             $label.append($cb).append($txt);
             $step.append($label);
         });
@@ -732,9 +767,124 @@ function buildSteps(r) {
 
 function refreshStepCount($step) {
     var total = $step.find('.bid-check-item').length;
-    var done = $step.find('input:checked').length;
+    // 자동으로 확인된 항목도 완료로 친다
+    var done = $step.find('input:checked').length + $step.find('.bid-auto-mark.ok').length;
     $step.find('.bid-step-count').text(done + '/' + total);
     $step.toggleClass('done', done === total && total > 0);
+}
+
+/* 자동 판정 결과를 맨 위에 한 줄로. 막힌 것이 있으면 그것부터 보여준다. */
+function autoSummary(r, auto) {
+    var fails = [], warns = [], oks = 0;
+    Object.keys(auto).forEach(function(k) {
+        // 서류 보유 판정은 여기서 세지 않는다 (제출과 다른 이야기)
+        if (k.indexOf('d_') === 0) return;
+        if (auto[k].state === 'fail') fails.push(auto[k].why);
+        else if (auto[k].state === 'warn') warns.push(auto[k].why);
+        else if (auto[k].state === 'ok') oks++;
+    });
+
+    var $box = $('<div class="bid-auto-summary">');
+    if (fails.length) {
+        $box.addClass('blocked')
+            .append($('<b>').text('지금은 투찰할 수 없습니다'))
+            .append($('<span>').text(fails.join(' · ')));
+        return $box;
+    }
+    var parts = ['자동 확인 ' + oks + '건'];
+    if (warns.length) parts.push('직접 확인 ' + warns.length + '건');
+    $box.addClass(warns.length ? 'partial' : 'clear')
+        .append($('<b>').text(warns.length ? '참가자격 대부분 확인됨' : '참가자격 확인 완료'))
+        .append($('<span>').text(parts.join(' · ')));
+    return $box;
+}
+
+/* 데이터로 확정되는 것은 사람 손을 거치지 않게 한다.
+ *   ok   확인 완료 — 체크할 필요 없음
+ *   warn 사람이 봐야 함 — 근거만 붙이고 체크박스는 남긴다
+ *   fail 이대로면 투찰이 막힌다
+ *
+ * 서류 항목은 '보유' 판정에만 쓴다. 갖고 있다고 낸 것은 아니라서,
+ * 제출 체크까지 자동으로 해버리면 안 낸 걸 냈다고 믿게 된다.
+ */
+function autoChecks(r) {
+    var a = {};
+    var prod = registeredProduct(r);
+    var today = startOfToday();
+    var comp = _company || {};
+
+    // 등록분야 — 여기서 막히면 나머지는 의미가 없다
+    if (comp.fields) {
+        a.field = comp.fields[r.kind]
+            ? { state: 'ok',   why: '등록분야에 ' + kindLabel(r.kind) + ' 포함' }
+            : { state: 'fail', why: '등록분야에 ' + kindLabel(r.kind) + '이(가) 없습니다 — 투찰할 수 없습니다' };
+    }
+
+    // 등록물품 대조
+    if (r.relevance === 'registered' && prod) {
+        a.prod = { state: 'ok', why: '\u2018' + prod.name + '\u2019 · 등록유효 ' + prod.regEnd + '까지' };
+    } else if (r.relevance === 'expired' && prod) {
+        a.prod = { state: 'fail', why: '\u2018' + prod.name + '\u2019 등록유효기간 ' + prod.regEnd + ' 지남 — 갱신해야 참가할 수 있습니다' };
+    } else if (r.relevance === 'group') {
+        a.prod = { state: 'warn', why: '등록물품이 아닙니다 (' + (r.industry || r.productCode || '품명 미상') + ') — 품명 추가 등록이 필요할 수 있습니다' };
+    } else if (r.relevance === 'keyword') {
+        a.prod = { state: 'warn', why: '세부품명번호가 우리 등록물품과 맞지 않습니다 — 공고문에서 품명 확인' };
+    }
+
+    // 지역제한 — 제한이 없을 때만 확정할 수 있다.
+    // 걸려 있으면 본사소재지가 해당하는지는 공고문을 봐야 안다.
+    a.rgn = r.regionLimit
+        ? { state: 'warn', why: r.regionLimit + ' 기준 — 본사(' + (comp.region || '소재지') + ')가 해당하는지 확인' }
+        : { state: 'ok',   why: '지역제한 없음' };
+
+    a.ind = r.industryLimit
+        ? { state: 'warn', why: '업종제한 공고 — 해당 업종으로 등록되어 있는지 확인' }
+        : { state: 'ok',   why: '업종제한 없음' };
+
+    // 직접생산확인증명서 — 등록 품목의 증명 유효기간으로 판정
+    if (prod) {
+        var alive = prod.certEnd && parseDt(prod.certEnd) >= today;
+        a.dpc = alive
+            ? { state: 'ok',   why: '직접생산증명 유효 ' + prod.certEnd + '까지' }
+            : { state: 'fail', why: '직접생산증명 만료' + (prod.certEnd ? ' (' + prod.certEnd + ')' : '') };
+        a.d_direct = a.dpc;
+    }
+
+    // 금액 관련은 근거만 붙이고 완료 처리하지 않는다. 자동으로 체크해버리면
+    // 정작 금액을 정할 때 봐야 할 경고가 목록에서 사라진다.
+    if (r.lowerRate != null) {
+        a.low = { state: 'info', why: '공고에 ' + r.lowerRate + '% 로 명시되어 있습니다' };
+    }
+    if (r.prdprcTotal) {
+        a.prd = { state: 'info', why: r.prdprcTotal + '개 중 ' + (r.prdprcDrawn || '?') + '개 추첨' };
+    }
+
+    var close = parseDt(r.closeAt);
+    if (close && close < new Date()) a.time = { state: 'fail', why: '이미 마감되었습니다' };
+
+    // 가점 인증 보유 여부
+    var map = { women: 'd_women', mainbiz: 'd_mainbiz', designLab: 'd_rnd' };
+    (comp.certifications || []).forEach(function(c) {
+        var key = map[c.key];
+        if (!key) return;
+        if (c.termMonths === null && !c.until) {
+            a[key] = { state: 'ok', why: '보유 · 유효기간 없음' };
+        } else if (!c.until) {
+            a[key] = { state: 'warn', why: '발급일이 비어 있습니다 — 등록 품목·인증에서 넣어주세요' };
+        } else if (parseDt(c.until) < today) {
+            a[key] = { state: 'fail', why: '유효기간 ' + c.until + ' 지남 — 점수가 인정되지 않습니다' };
+        } else {
+            a[key] = { state: 'ok', why: '보유 · 유효 ' + c.until + '까지' };
+        }
+    });
+
+    return a;
+}
+
+function startOfToday() {
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
 }
 
 /* 공고 성격에 따라 준비 항목을 짜맞춘다. */
@@ -743,39 +893,16 @@ function prepSteps(r) {
     var isCnstwk = r.kind === 'cnstwk';
     var isSuui = /수의/.test((r.method || '') + (r.bidMethod || ''));
 
-    /* 1 ─ 참가자격 */
+    /* 1 ─ 참가자격. 등록 내용으로 판정되는 것은 autoChecks 가 채운다. */
     var s1 = { title: '참가자격 확인', items: [] };
-
-    // 등록증과 대조한 결과를 맨 앞에 둔다. 여기서 막히면 나머지는 의미가 없다.
-    var prod = registeredProduct(r);
-    if (r.relevance === 'registered' && prod) {
-        s1.items.push({ k: 'prod',
-            t: '등록물품 \u2018' + prod.name + '\u2019 으로 참가 가능 (등록유효기간 ' + prod.regEnd + '까지)' });
-    } else if (r.relevance === 'expired' && prod) {
-        s1.items.push({ k: 'prod', warn: true, link: 'products.html', linkText: '등록 품목 열기 →',
-            t: '등록물품 \u2018' + prod.name + '\u2019 의 등록유효기간이 ' + prod.regEnd + ' 로 지났습니다 — 갱신해야 참가할 수 있습니다.' });
-    } else if (r.relevance === 'group') {
-        s1.items.push({ k: 'prod', warn: true, link: 'products.html', linkText: '등록 품목 열기 →',
-            t: '등록물품이 아닙니다 (' + (r.industry || r.productCode || '품명 미상') + ') — 품명 추가 등록이 필요할 수 있습니다.' });
-    } else if (r.relevance === 'keyword') {
-        s1.items.push({ k: 'prod', warn: true,
-            t: '세부품명번호가 우리 등록물품과 맞지 않습니다 — 공고문에서 품명을 확인하세요.' });
-    }
-    if (r.regionLimit) {
-        s1.items.push({ k: 'rgn', warn: true,
-            t: '지역제한 공고입니다 — ' + r.regionLimit + ' 기준으로 우리 회사가 해당하는지 확인' });
-    } else {
-        s1.items.push({ k: 'rgn', t: '지역제한 없음 — 소재지 제약 없이 참가 가능' });
-    }
-    if (r.industryLimit) {
-        s1.items.push({ k: 'ind', warn: true,
-            t: '업종제한 공고입니다 — 해당 업종으로 등록되어 있는지 확인' });
-    }
-    s1.items.push({ k: 'reg', t: '나라장터 입찰참가자격 등록이 살아 있는지 확인 (만료되면 투찰 자체가 막힙니다)' });
+    s1.items.push({ k: 'field', t: '등록분야' });
+    s1.items.push({ k: 'prod',  t: '입찰참가 등록물품', link: 'products.html', linkText: '등록 품목 열기 →' });
+    s1.items.push({ k: 'rgn',   t: '지역제한' });
+    s1.items.push({ k: 'ind',   t: '업종제한' });
     if (isCnstwk) {
         s1.items.push({ k: 'lic', t: '건설업·전문건설업 면허와 시공능력평가액이 공고 요건을 넘는지 확인' });
     } else {
-        s1.items.push({ k: 'dpc', t: '직접생산확인증명서가 필요한 품목인지 확인 (관급 물품은 요구하는 경우가 많습니다)' });
+        s1.items.push({ k: 'dpc', t: '직접생산확인증명서' });
     }
     s1.items.push({ k: 'ban', t: '부정당업자 제재 이력이 없는지 확인' });
     steps.push(s1);
