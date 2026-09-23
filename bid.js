@@ -596,7 +596,8 @@ function openDetail(id) {
     var $cols = $('<div class="bid-detail-cols">')
         .append($('<div>')
             .append($('<p class="bid-col-title">').text('공고 정보'))
-            .append(buildInfoGrid(r)))
+            .append(buildInfoGrid(r))
+            .append(buildCalc(r)))
         .append($('<div>')
             .append($('<p class="bid-col-title">').text('투찰 준비'))
             .append(buildSteps(r)));
@@ -661,6 +662,174 @@ function buildInfoGrid(r) {
             .attr('href', r.specUrl).text('규격서·공고문 내려받기 →'));
     }
     return $wrap;
+}
+
+/* ── 투찰금액 산정 ───────────────────────────────────────────
+ * 개찰 전에는 예정가격을 알 수 없어 확정값이 아니라 확률로 본다.
+ * '낙찰 확률'이라고 부르지 않는다 — 경쟁사가 몇 곳이고 얼마를 쓸지
+ * 모르니 계산할 수 없다. 여기서 내는 건 '무효가 되지 않을 확률'이다.
+ */
+function buildCalc(r) {
+    var $box = $('<div class="bid-calc">');
+    $box.append($('<h4>').text('투찰금액 산정'));
+
+    if (r.lowerRate == null) {
+        $box.append($('<p class="bid-calc-na">').text(
+            '이 공고에는 낙찰하한율이 없습니다. 수의계약이거나 낙찰자 결정방법이 ' +
+            '달라 계산이 성립하지 않습니다 — 공고문의 낙찰자 결정방법을 확인하세요.'));
+        return $box;
+    }
+
+    var saved = loadChecks(r.id);
+    var defBase = saved._base || bidBaseFromEstimate(r.estPrice) || '';
+
+    var $in = $('<div class="bid-calc-inputs">');
+    function field(label, id, value, hint, attrs) {
+        var $f = $('<div class="bid-calc-field">');
+        $f.append($('<label>').attr('for', id).text(label));
+        var $i = $('<input type="number">').attr('id', id).val(value);
+        if (attrs) $i.attr(attrs);
+        $f.append($i);
+        if (hint) $f.append($('<span class="bid-calc-hint">').text(hint));
+        $in.append($f);
+        return $i;
+    }
+
+    var $base = field('기초금액 (원)', 'calc_base', defBase,
+        r.estPrice && !saved._base ? '추정가격 × 1.1 로 어림한 값. 공고에 공표되면 그 값을 넣으세요' : '',
+        { step: 10000, min: 0 });
+    var $rate = field('낙찰하한율 (%)', 'calc_rate', saved._rate || r.lowerRate,
+        '', { step: 0.001, min: 0 });
+    var $cost = field('우리 제작원가 (원)', 'calc_cost', saved._cost || '',
+        '견적 계산기로 뽑은 금액', { step: 10000, min: 0 });
+
+    var $sf = $('<div class="bid-calc-field">');
+    $sf.append($('<label for="calc_spread">').text('예비가격 변동폭'));
+    var $spread = $('<select id="calc_spread">')
+        .append('<option value="0.02">±2%</option>')
+        .append('<option value="0.03">±3%</option>')
+        .val(String(saved._spread || 0.02));
+    $sf.append($spread);
+    $in.append($sf);
+
+    var $tf = $('<div class="bid-calc-field">');
+    $tf.append($('<label for="calc_target">').text('목표 유효확률'));
+    var $target = $('<select id="calc_target">')
+        .append('<option value="0.7">70%</option>')
+        .append('<option value="0.8">80%</option>')
+        .append('<option value="0.9">90%</option>')
+        .append('<option value="0.95">95%</option>')
+        .append('<option value="0.99">99%</option>')
+        .val(String(saved._target || 0.9));
+    $tf.append($target);
+    $in.append($tf);
+
+    $box.append($in);
+    var $out = $('<div class="bid-calc-out">');
+    $box.append($out);
+
+    function run() {
+        var res = bidCalc({
+            base: $base.val(), rate: Number($rate.val()) / 100,
+            spread: Number($spread.val()), cost: $cost.val(),
+            target: Number($target.val()),
+            total: r.prdprcTotal, drawn: r.prdprcDrawn,
+        });
+        renderCalc($out, res, r);
+    }
+
+    // 입력은 공고별로 남긴다. 다시 열었을 때 원가를 또 넣게 하면 안 쓴다.
+    function persistAndRun(key, $el) {
+        saveCalcInput(r.id, key, $el.val());
+        run();
+    }
+    $base.on('input change', function() { persistAndRun('_base', $base); });
+    $rate.on('input change', function() { persistAndRun('_rate', $rate); });
+    $cost.on('input change', function() { persistAndRun('_cost', $cost); });
+    $spread.on('change', function() { persistAndRun('_spread', $spread); });
+    $target.on('change', function() { persistAndRun('_target', $target); });
+
+    run();
+    return $box;
+}
+
+function renderCalc($out, res, r) {
+    $out.empty();
+    if (!res) {
+        $out.append($('<p class="bid-calc-na">').text('기초금액과 낙찰하한율을 넣어주세요.'));
+        return;
+    }
+
+    var rec = res.recommend;
+    var $rec = $('<div class="bid-calc-rec">')
+        .append($('<span class="label">').text('권장 투찰금액'))
+        .append($('<span class="amt">').text(comma(rec.amount) + ' 원'))
+        .append($('<span class="sub">').text(
+            '투찰률 ' + (rec.t * 100).toFixed(3) + '% · 유효확률 ' +
+            Math.round(rec.valid * 100) + '%' + (rec.reason ? ' · ' + rec.reason : '')));
+    if (rec.margin != null) {
+        $rec.append($('<span class="margin">')
+            .addClass(rec.margin < 0 ? 'bad' : (rec.margin < 0.05 ? 'thin' : 'ok'))
+            .text('원가 대비 ' + (rec.margin >= 0 ? '+' : '') + (rec.margin * 100).toFixed(1) + '%'));
+    }
+    $out.append($rec);
+
+    // 투찰률별 표. 하한율 근처만 보여준다 — 멀리 가면 볼 이유가 없다.
+    var $tb = $('<tbody>');
+    res.rows.forEach(function(row) {
+        var diff = row.t - (res.floor.t);
+        if (diff < -0.0021 || diff > 0.0151) return;
+        var $tr = $('<tr>');
+        if (Math.abs(row.t - rec.t) < 0.0005) $tr.addClass('pick');
+        if (row.belowCost) $tr.addClass('below');
+        $tr.append($('<td>').text((row.t * 100).toFixed(3) + '%'));
+        $tr.append($('<td class="num">').text(comma(row.amount)));
+        $tr.append($('<td class="num">').append(probBar(row.valid)));
+        $tr.append($('<td class="num">').text(
+            row.margin == null ? '—' : (row.margin >= 0 ? '+' : '') + (row.margin * 100).toFixed(1) + '%'));
+        $tb.append($tr);
+    });
+
+    $out.append($('<table class="bid-calc-table">')
+        .append('<thead><tr><th>투찰률</th><th>투찰금액</th>' +
+                '<th>유효확률</th><th>원가대비</th></tr></thead>')
+        .append($tb));
+
+    $out.append($('<p class="bid-calc-note">').html(
+        '<b>유효확률은 낙찰 확률이 아닙니다.</b> 내 금액이 낙찰하한가 이상이어서 ' +
+        '무효가 되지 않을 확률입니다. 실제 낙찰은 유효한 입찰 중 최저가가 가져가는데, ' +
+        '경쟁사가 몇 곳이고 얼마를 쓸지는 알 수 없습니다. ' +
+        '확률을 높이면 무효 위험은 줄지만 최저가 경쟁에서는 밀립니다.'));
+
+    $out.append($('<p class="bid-calc-note">').text(
+        '예비가격 ' + (r.prdprcTotal || 15) + '개 중 ' + (r.prdprcDrawn || 4) +
+        '개를 추첨해 평균낸 값이 예정가격이라는 전제로 계산합니다. ' +
+        '예정가격 흩어짐 ±' + (res.sigmaRel * 100).toFixed(2) + '% (1σ).'));
+}
+
+function probBar(p) {
+    var pct = Math.round(p * 100);
+    var cls = pct >= 90 ? 'hi' : (pct >= 70 ? 'mid' : 'lo');
+    return $('<span class="bid-prob">').addClass(cls)
+        .append($('<span class="fill">').css('width', Math.max(2, pct) + '%'))
+        .append($('<span class="txt">').text(pct + '%'));
+}
+
+/* 계산기 입력값도 체크 상태와 같은 문서에 담는다. */
+function saveCalcInput(id, key, value) {
+    if (!_checks[id]) _checks[id] = {};
+    if (value === '' || value == null) delete _checks[id][key];
+    else _checks[id][key] = value;
+
+    if (!_db) {
+        try { localStorage.setItem(LS_CHECKS, JSON.stringify(_checks)); } catch (e) {}
+        return;
+    }
+    var patch = {};
+    patch[key] = (value === '' || value == null)
+        ? firebase.firestore.FieldValue.delete() : value;
+    _db.collection('bid_checklists').doc(id).set(patch, { merge: true })
+        .catch(function(err) { console.error('계산 입력 저장 실패:', err); });
 }
 
 /* ── 오른쪽: 투찰 준비 단계 ──────────────────────────────────

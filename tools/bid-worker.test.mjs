@@ -533,3 +533,128 @@ test('guide.html 이 참조하는 로컬 파일이 모두 있다', async () => {
     }
     assert.ok(checked >= 5, '검사된 로컬 참조가 너무 적다: ' + checked);
 });
+
+/* ── 투찰금액 산정 (bid-calc.js) ──────────────────────────────
+ * 여기가 틀리면 금액이 틀린다. 이론식을 몬테카를로로 대조한다.
+ * 처음에 유한모집단 보정을 넣었다가 실측과 어긋나 잡았다 — 예비가격
+ * 15개 자체가 우리가 모르는 확률변수라 보정이 들어가면 안 된다. */
+const CALC_SRC = await (async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const url = await import('node:url');
+    const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
+    return fs.readFileSync(path.join(root, 'bid-calc.js'), 'utf8');
+})();
+
+const calc = {};
+new Function('g', CALC_SRC + `
+    g.bidPrceSigma = bidPrceSigma;
+    g.normalCdf = normalCdf;
+    g.bidValidProbability = bidValidProbability;
+    g.bidRateForProbability = bidRateForProbability;
+    g.bidCalc = bidCalc;
+    g.bidBaseFromEstimate = bidBaseFromEstimate;
+`)(calc);
+
+test('표준정규 누적분포가 알려진 값과 맞는다', () => {
+    const known = [[0, 0.5], [1, 0.8413447], [1.96, 0.9750021], [-1, 0.1586553], [2.5758, 0.995]];
+    for (const [z, want] of known) {
+        assert.ok(Math.abs(calc.normalCdf(z) - want) < 1e-5, `Φ(${z})=${calc.normalCdf(z)}`);
+    }
+});
+
+test('예정가격 표준편차가 몬테카를로와 맞는다', () => {
+    // 예비가격 15개를 만들고 4개를 비복원으로 뽑아 평균낸다 — 실제 절차 그대로
+    function simulate(spread, n) {
+        let sum = 0, sq = 0;
+        for (let i = 0; i < n; i++) {
+            const pool = [];
+            for (let k = 0; k < 15; k++) pool.push(1 + (Math.random() * 2 - 1) * spread);
+            for (let k = pool.length - 1; k > 0; k--) {
+                const j = Math.floor(Math.random() * (k + 1));
+                [pool[k], pool[j]] = [pool[j], pool[k]];
+            }
+            const m = (pool[0] + pool[1] + pool[2] + pool[3]) / 4;
+            sum += m; sq += m * m;
+        }
+        const mean = sum / n;
+        return Math.sqrt(sq / n - mean * mean);
+    }
+    for (const spread of [0.02, 0.03]) {
+        const got = simulate(spread, 200000);
+        const theory = calc.bidPrceSigma(spread, 15, 4);
+        const err = Math.abs(got - theory) / theory;
+        assert.ok(err < 0.02, `±${spread * 100}%: 실측 ${got} vs 이론 ${theory} (오차 ${(err * 100).toFixed(1)}%)`);
+    }
+});
+
+test('하한율 그대로 쓰면 유효확률이 절반이다', () => {
+    // 예정가격이 기초금액을 중심으로 대칭이므로 정확히 50%
+    const sig = calc.bidPrceSigma(0.02, 15, 4);
+    const p = calc.bidValidProbability(0.87995, 0.87995, sig);
+    assert.ok(Math.abs(p - 0.5) < 1e-6, String(p));
+});
+
+test('투찰률을 올리면 유효확률이 오른다', () => {
+    const sig = calc.bidPrceSigma(0.02, 15, 4);
+    let prev = 0;
+    for (let d = -0.004; d <= 0.02; d += 0.001) {
+        const p = calc.bidValidProbability(0.87995 + d, 0.87995, sig);
+        assert.ok(p >= prev, '단조증가 깨짐');
+        prev = p;
+    }
+});
+
+test('목표 확률을 거꾸로 맞춘다', () => {
+    const sig = calc.bidPrceSigma(0.02, 15, 4);
+    for (const target of [0.5, 0.7, 0.9, 0.95, 0.99]) {
+        const t = calc.bidRateForProbability(target, 0.87995, sig);
+        const back = calc.bidValidProbability(t, 0.87995, sig);
+        assert.ok(Math.abs(back - target) < 1e-4, `목표 ${target} → ${back}`);
+    }
+});
+
+test('변동폭이 넓으면 같은 확률을 맞추는 데 더 올려 써야 한다', () => {
+    const t2 = calc.bidRateForProbability(0.9, 0.87995, calc.bidPrceSigma(0.02, 15, 4));
+    const t3 = calc.bidRateForProbability(0.9, 0.87995, calc.bidPrceSigma(0.03, 15, 4));
+    assert.ok(t3 > t2, '±3% 쪽이 더 높아야 한다');
+});
+
+test('원가를 밑돌면 원가선까지 올려 권한다', () => {
+    // 낙찰받고 적자를 보는 것이 무효보다 나쁘다
+    const base = 20000000;
+    const r = calc.bidCalc({ base, rate: 0.87995, spread: 0.02, cost: 19500000 });
+    assert.ok(r.recommend.amount >= 19500000, '원가 위여야 한다: ' + r.recommend.amount);
+    assert.match(r.recommend.reason, /원가선/);
+});
+
+test('원가가 낮으면 목표 확률 지점을 권한다', () => {
+    const r = calc.bidCalc({ base: 20000000, rate: 0.87995, spread: 0.02, cost: 12000000, target: 0.9 });
+    // 표와 같은 0.1%p 격자로 올려 맞추므로 목표를 살짝 넘을 수 있다
+    assert.ok(r.recommend.valid >= 0.9, String(r.recommend.valid));
+    assert.ok(r.recommend.valid < 0.93, '너무 많이 넘으면 격자 정렬이 잘못된 것');
+    assert.equal(r.recommend.reason, null, '원가가 안 물리면 사유를 붙이지 않는다');
+    assert.ok(r.recommend.margin > 0);
+});
+
+test('기초금액이나 하한율이 없으면 계산하지 않는다', () => {
+    assert.equal(calc.bidCalc({ base: 0, rate: 0.88 }), null);
+    assert.equal(calc.bidCalc({ base: 1000, rate: 0 }), null, '수의계약처럼 하한율이 없으면 null');
+});
+
+test('추정가격에서 기초금액을 어림한다 (부가세 별도)', () => {
+    assert.equal(calc.bidBaseFromEstimate(18400000), 20240000);
+    assert.equal(calc.bidBaseFromEstimate(0), null);
+});
+
+test('권장 투찰률이 표와 같은 0.1%p 격자에 맞는다', () => {
+    // 권장 금액과 표의 강조 행이 어긋나면 어느 쪽을 믿어야 할지 헷갈린다
+    const rate = 0.87995;
+    for (const target of [0.7, 0.8, 0.9, 0.95, 0.99]) {
+        const r = calc.bidCalc({ base: 20240000, rate, spread: 0.02, target });
+        const steps = (r.recommend.t - rate) / 0.001;
+        assert.ok(Math.abs(steps - Math.round(steps)) < 1e-6,
+            `목표 ${target}: 투찰률 ${r.recommend.t} 가 격자에 안 맞음`);
+        assert.ok(r.recommend.valid >= target, `목표 ${target} 미달: ${r.recommend.valid}`);
+    }
+});
