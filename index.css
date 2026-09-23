@@ -155,60 +155,84 @@ body {
     opacity: 1;
 }
 
-/* ── 나라장터 공고 (단독 메뉴) ─────────────────────────────
-   조달청 API 로 외부 데이터가 들어오는 메뉴라 나머지 관리 메뉴와
-   성격이 다르다. 카테고리 밖으로 빼 맨 위에 두고 색으로 구분한다. */
-.nav-feature {
+/* ── 입찰 드롭다운 (우측 상단) ─────────────────────────────
+   입찰은 조달청 데이터를 다루는 별도 업무라 좌측 관리 메뉴와 성격이
+   다르다. 헤더 오른쪽에 따로 두어 어디서든 바로 들어갈 수 있게 한다. */
+.hdr-bid {
+    position: relative;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.hdr-bid-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0 12px 12px;
-    margin: 8px 8px 14px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, rgba(233,69,96,0.26) 0%, rgba(233,69,96,0.09) 100%);
-    border: 1px solid rgba(233,69,96,0.38);
-    color: rgba(255,255,255,0.92);
-    text-decoration: none;
-    font-size: 14px;
+    gap: 8px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(233,69,96,0.45);
+    background: linear-gradient(135deg, rgba(233,69,96,0.30) 0%, rgba(233,69,96,0.12) 100%);
+    color: #fff;
+    font-size: 13px;
     font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
     white-space: nowrap;
-    overflow: hidden;
     transition: background 0.15s, border-color 0.15s;
 }
-.nav-feature:hover {
-    background: linear-gradient(135deg, rgba(233,69,96,0.40) 0%, rgba(233,69,96,0.16) 100%);
-    border-color: rgba(233,69,96,0.62);
+.hdr-bid-btn:hover {
+    background: linear-gradient(135deg, rgba(233,69,96,0.45) 0%, rgba(233,69,96,0.20) 100%);
+    border-color: rgba(233,69,96,0.7);
 }
-.nav-feature.active {
+.hdr-bid-btn.active {
     background: #e94560;
     border-color: #e94560;
-    color: #fff;
 }
-.nav-feature .nav-icon { font-size: 15px; }
-.nav-feature-label {
-    flex: 1;
-    opacity: 0;
-    transition: opacity 0.15s 0.05s;
+.hdr-bid-icon { font-size: 14px; }
+.hdr-bid-caret {
+    font-size: 9px;
+    opacity: 0.8;
+    transition: transform 0.18s;
 }
-.sidebar:hover .nav-feature-label { opacity: 1; }
+.hdr-bid.open .hdr-bid-caret { transform: rotate(180deg); }
 
-/* 살아 있는 데이터라는 표시 */
-.nav-feature-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #6ee7a8;
-    margin-right: 12px;
-    flex-shrink: 0;
-    opacity: 0;
-    transition: opacity 0.15s 0.05s;
-    animation: navPulse 2.4s infinite;
+.hdr-bid-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 208px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 12px 34px rgba(0,0,0,0.22);
+    padding: 6px;
+    z-index: 500;
 }
-.sidebar:hover .nav-feature-dot { opacity: 1; }
-@keyframes navPulse {
-    0%   { box-shadow: 0 0 0 0 rgba(110,231,168,0.55); }
-    70%  { box-shadow: 0 0 0 5px rgba(110,231,168,0); }
-    100% { box-shadow: 0 0 0 0 rgba(110,231,168,0); }
+.hdr-bid.open .hdr-bid-menu { display: block; }
+.hdr-bid-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 7px;
+    color: #1a1a2e;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
+}
+.hdr-bid-menu a:hover { background: #f0f2f5; }
+.hdr-bid-menu a.on {
+    background: rgba(233,69,96,0.10);
+    color: #e94560;
+    font-weight: 700;
+}
+.hdr-bid-mi { font-size: 14px; min-width: 18px; text-align: center; }
+
+@media (max-width: 720px) {
+    .hdr-bid-btn span:not(.hdr-bid-icon):not(.hdr-bid-caret) { display: none; }
 }
 .nav-logout {
     display: flex;
