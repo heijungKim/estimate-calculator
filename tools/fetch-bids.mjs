@@ -28,6 +28,7 @@ const DEFAULT_KEYWORDS = [
 ];
 
 const RETRIES = 3;
+const TIMEOUT_MS = 25000;
 
 main().catch(err => {
     console.error('\n수집 실패:', err.message);
@@ -93,7 +94,10 @@ async function fetchText(url) {
     let lastErr;
     for (let i = 1; i <= RETRIES; i++) {
         try {
-            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            const res = await fetch(url, {
+                headers: { Accept: 'application/json' },
+                signal: AbortSignal.timeout(TIMEOUT_MS),
+            });
             const text = await res.text();
             // 본문에 오류 사유가 들어 있으면 호출한 쪽(parseEnvelope)이 읽어서 던진다.
             if (!res.ok && !text.trim().startsWith('{') && !text.trim().startsWith('<')) {
@@ -104,10 +108,23 @@ async function fetchText(url) {
             lastErr = e;
             if (i < RETRIES) {
                 const wait = i * 2000;
-                console.log(`  재시도 ${i}/${RETRIES - 1} (${wait / 1000}초 후): ${e.message}`);
+                console.log(`  재시도 ${i}/${RETRIES - 1} (${wait / 1000}초 후): ${describe(e)}`);
                 await new Promise(r => setTimeout(r, wait));
             }
         }
     }
-    throw lastErr;
+    throw new Error(describe(lastErr));
+}
+
+/* Node 의 'fetch failed' 는 진짜 원인을 cause 에 숨긴다.
+ * DNS 인지, TLS 인지, 타임아웃인지 구분되어야 손을 쓸 수 있다. */
+function describe(e) {
+    const parts = [e.name === 'TimeoutError' ? `${TIMEOUT_MS / 1000}초 안에 응답 없음` : e.message];
+    let c = e.cause;
+    for (let depth = 0; c && depth < 4; depth++) {
+        const bits = [c.code, c.syscall, c.hostname, c.message].filter(Boolean);
+        if (bits.length) parts.push(bits.join(' '));
+        c = c.cause;
+    }
+    return parts.join(' ← ');
 }
