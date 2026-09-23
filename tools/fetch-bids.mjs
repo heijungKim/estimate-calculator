@@ -54,8 +54,14 @@ async function main() {
 
     console.log(`업무구분 ${kinds.join(', ')} · 최근 ${days}일 · 키워드 ${keywords.length}개`);
 
+    const diag = process.env.BID_DIAG === '1';
+
     const started = Date.now();
-    const result = await collectBids({ key, kinds, days, keywords, fetchText });
+    const result = await collectBids({ key, kinds, days, keywords, fetchText, debug: diag });
+
+    if (diag) reportFields(result.items);
+    // _raw 는 점검용일 뿐이라 저장 파일에는 넣지 않는다 (용량이 몇 배로 뛴다).
+    result.items.forEach(function (r) { delete r._raw; });
 
     const payload = {
         fetchedAt: new Date().toISOString(),
@@ -88,6 +94,45 @@ async function main() {
     console.log(`저장: ${outPath}`);
 }
 
+/* 업스트림이 실제로 무엇을 주는지 표로 보여준다.
+ * 조달청이 필드명을 바꾸거나, 애초에 목록 API 에 없는 항목을 기대하고 있었다면
+ * 여기서 드러난다. */
+function reportFields(items) {
+    const raws = items.map(r => r._raw).filter(Boolean);
+    if (!raws.length) { console.log('\n점검할 표본이 없습니다.'); return; }
+
+    const EXPECTED = [
+        'bidNtceNo', 'bidNtceOrd', 'bidNtceNm', 'ntceInsttNm', 'dminsttNm',
+        'bidNtceDt', 'bidClseDt', 'opengDt', 'presmptPrce', 'asignBdgtAmt',
+        'sucsfbidLwltRate', 'cntrctCnclsMthdNm', 'bidMethdNm', 'indstrytyNm',
+        'prtcptPsblRgnNm', 'bidNtceDtlUrl',
+    ];
+
+    console.log(`\n=== 필드 점검 (표본 ${raws.length}건) ===`);
+    for (const f of EXPECTED) {
+        const filled = raws.filter(r => r[f] != null && String(r[f]).trim() !== '').length;
+        const exists = raws.some(r => f in r);
+        const mark = !exists ? 'X  응답에 없음' : (filled === 0 ? '~  있으나 모두 빈값' : `OK ${filled}/${raws.length}`);
+        console.log(`  ${f.padEnd(20)} ${mark}`);
+    }
+
+    const seen = new Set();
+    raws.forEach(r => Object.keys(r).forEach(k => seen.add(k)));
+    const extra = [...seen].filter(k => !EXPECTED.includes(k)).sort();
+    console.log(`\n=== 예상 목록에 없는 필드 ${extra.length}개 ===`);
+    console.log(extra.join(', '));
+
+    // 지역/업종 후보를 눈에 띄게 뽑아준다
+    const hint = extra.filter(k => /rgn|locplc|area|indstry|licen|lmt/i.test(k));
+    if (hint.length) {
+        console.log(`\n=== 지역·업종 관련으로 보이는 필드 ===`);
+        for (const k of hint) {
+            const sample = raws.map(r => r[k]).find(v => v != null && String(v).trim() !== '');
+            const filled = raws.filter(r => r[k] != null && String(r[k]).trim() !== '').length;
+            console.log(`  ${k.padEnd(28)} ${filled}/${raws.length}  예: ${String(sample ?? '').slice(0, 40)}`);
+        }
+    }
+}
 /* 업스트림이 간헐적으로 5xx 를 뱉는다. 몇 번 다시 해본다.
  * 인증 실패 같은 항구적 오류는 parseEnvelope 가 위에서 던지므로 여기 안 온다. */
 async function fetchText(url) {
