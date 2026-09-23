@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>나라장터 입찰공고 - 우성디지탈 관리 시스템</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="bid.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── 사이드바 ── -->
+<aside class="sidebar">
+    <a href="index.html" class="sidebar-brand" style="text-decoration:none">
+        <img src="logo.svg" class="sidebar-logo-img" alt="우성디지탈" />
+        <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
+    </a>
+            <nav class="sidebar-nav">
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128203;</span>
+                <span class="nav-cat-label">견적</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="index.html" class="nav-item">
+                    <span class="nav-icon">&#9998;</span>
+                    <span>견적 계산기</span>
+                </a>
+                <a href="estimates.html" class="nav-item">
+                    <span class="nav-icon">&#128196;</span>
+                    <span>견적서 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128188;</span>
+                <span class="nav-cat-label">입찰</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="bid.html" class="nav-item active">
+                    <span class="nav-icon">&#127963;</span>
+                    <span>나라장터 공고</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#9881;</span>
+                <span class="nav-cat-label">관리</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="price.html" class="nav-item">
+                    <span class="nav-icon">&#128176;</span>
+                    <span>단가 설정표</span>
+                </a>
+                <a href="materials.html" class="nav-item">
+                    <span class="nav-icon">&#128230;</span>
+                    <span>자재 관리</span>
+                </a>
+                <a href="vendor.html" class="nav-item">
+                    <span class="nav-icon">&#9679;</span>
+                    <span>업체 관리</span>
+                </a>
+                <a href="print_history.html" class="nav-item">
+                    <span class="nav-icon">&#128424;</span>
+                    <span>출력 내역</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#128101;</span>
+                <span class="nav-cat-label">인사/급여</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="employees.html" class="nav-item">
+                    <span class="nav-icon">&#128100;</span>
+                    <span>직원 관리</span>
+                </a>
+                <a href="leave.html" class="nav-item">
+                    <span class="nav-icon">&#128197;</span>
+                    <span>연차 관리</span>
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">&#127761;</span><span>야간 수당 관리</span>
+                </a>
+            </div>
+        </div>
+        <div class="nav-category">
+            <div class="nav-cat-header">
+                <span class="nav-icon">&#127912;</span>
+                <span class="nav-cat-label">도구</span>
+                <span class="nav-cat-arrow">&#9660;</span>
+            </div>
+            <div class="nav-cat-items">
+                <a href="imageconvert.html" class="nav-item">
+                    <span class="nav-icon">&#128444;</span>
+                    <span>이미지 변환</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <button type="button" class="nav-logout" onclick="wsLogout()">
+        <span class="nav-icon">&#9711;</span>
+        <span>로그아웃</span>
+    </button>
+</aside>
+
+<!-- ── 메인 콘텐츠 ── -->
+<div class="page-body">
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="logo.svg" class="logo-img" alt="우성디지탈" />
+            <span class="logo-text">우성디지탈 관리 시스템</span>
+        </div>
+        <p class="header-sub">나라장터 입찰공고를 조건별로 모아 보고 투찰을 준비하세요</p>
+    </div>
+</header>
+
+<div class="bid-wrap">
+
+    <div class="bid-page-header">
+        <h2 class="bid-page-title">
+            <span class="title-bar"></span>
+            나라장터 입찰공고
+        </h2>
+        <div class="bid-header-actions">
+            <button type="button" id="bid_reload" class="bid-btn bid-btn-primary">
+                &#8635; 공고 불러오기
+            </button>
+        </div>
+    </div>
+
+    <!-- 투찰 방식 안내 -->
+    <div class="bid-notice" id="bid_notice">
+        <span class="bid-notice-icon">&#9432;</span>
+        <div class="bid-notice-body">
+            <strong>투찰은 나라장터에서 직접 하셔야 합니다.</strong>
+            이 화면은 공고 조회와 투찰 준비까지만 담당합니다.
+            나라장터 전자입찰은 사업자용·개인용 인증서로 <strong>본인 신원확인</strong>을 거치도록
+            설계돼 있어, 프로그램이 대신 투찰하도록 만들면 인증서 관리 의무 위반이자
+            입찰방해·부정당업자 제재(입찰참가자격 제한) 대상이 될 수 있습니다.
+            공고를 고르고 금액을 정하는 일까지 여기서 끝내고, 마지막 투찰 버튼만
+            나라장터에서 누르시면 됩니다.
+        </div>
+        <button type="button" class="bid-notice-dismiss" id="bid_notice_dismiss" title="접어두기">&#215;</button>
+    </div>
+
+    <!-- 최초 설정 안내 (첫 수집 전에만 표시) -->
+    <div class="bid-setup" id="bid_setup" style="display:none;">
+        <h3>&#128295; 딱 한 가지만 해주시면 됩니다</h3>
+        <p>
+            나라장터에서 공고를 받아오려면 GitHub 저장소에 API 키를 한 번 등록해 주셔야 합니다.
+            등록해 두시면 이후로는 한 시간마다
+            자동으로 공고를 받아옵니다. 프로그램을 따로 설치하거나 다른 서비스에
+            가입하실 필요는 없습니다.
+        </p>
+        <ol>
+            <li>
+                <a href="https://www.data.go.kr/data/15129394/openapi.do" target="_blank" rel="noopener">공공데이터포털</a>에서
+                <strong>조달청_나라장터 입찰공고정보서비스</strong> 활용신청 →
+                일반 인증키 <strong>(Decoding)</strong> 복사
+            </li>
+            <li>
+                <a href="https://github.com/heijungKim/estimate-calculator/settings/secrets/actions/new" target="_blank" rel="noopener">저장소 시크릿 등록 화면</a>을 열고
+                이름에 <code>G2B_SERVICE_KEY</code>, 값에 복사한 키를 넣고 저장
+            </li>
+            <li>
+                <a href="https://github.com/heijungKim/estimate-calculator/actions/workflows/fetch-bids.yml" target="_blank" rel="noopener">수집 워크플로</a>에서
+                <strong>Run workflow</strong> 를 눌러 첫 수집 실행 (1~2분)
+            </li>
+        </ol>
+        <p style="margin:14px 0 0">
+            활용신청 직후에는 키가 아직 활성화되지 않아 실패할 수 있습니다. 보통 30분~1시간 걸립니다.
+        </p>
+    </div>
+    <!-- 검색 조건 -->
+    <div class="bid-filters">
+        <div class="bid-filter-row">
+            <div class="bid-field">
+                <label>업무구분</label>
+                <div class="bid-kinds">
+                    <label class="bid-check">
+                        <input type="checkbox" class="bid-kind" value="thng" checked /> 물품
+                    </label>
+                    <label class="bid-check">
+                        <input type="checkbox" class="bid-kind" value="cnstwk" checked /> 공사
+                    </label>
+                    <label class="bid-check">
+                        <input type="checkbox" class="bid-kind" value="servc" /> 용역
+                    </label>
+                </div>
+            </div>
+            <div class="bid-field">
+                <label for="bid_from">공고일 (시작)</label>
+                <input type="date" id="bid_from" />
+            </div>
+            <div class="bid-field">
+                <label for="bid_to">공고일 (종료)</label>
+                <input type="date" id="bid_to" />
+            </div>
+            <div class="bid-field">
+                <label for="bid_region">참가가능지역</label>
+                <input type="text" id="bid_region" placeholder="예: 경기, 서울" size="12" />
+            </div>
+            <div class="bid-field">
+                <label>추정가격 (원)</label>
+                <div class="bid-field-range">
+                    <input type="number" id="bid_min_price" placeholder="최소" min="0" step="1000000" />
+                    <span>~</span>
+                    <input type="number" id="bid_max_price" placeholder="최대" min="0" step="1000000" />
+                </div>
+            </div>
+        </div>
+        <div class="bid-filter-row">
+            <div class="bid-field bid-keywords-field">
+                <label for="bid_chip_input">검색 키워드 <span style="font-weight:400;color:#aab0bb">— 공고명·업종에 하나라도 걸리면 목록에 남습니다. Enter 로 추가</span></label>
+                <div class="bid-chips" id="bid_chips">
+                    <input type="text" class="bid-chip-input" id="bid_chip_input" placeholder="키워드 입력 후 Enter" />
+                </div>
+            </div>
+        </div>
+        <div class="bid-filter-row">
+            <label class="bid-check">
+                <input type="checkbox" id="bid_only_open" checked /> 마감 안 지난 것만
+            </label>
+            <label class="bid-check">
+                <input type="checkbox" id="bid_only_fav" /> 관심공고만
+            </label>
+            <div style="flex:1"></div>
+            <button type="button" id="bid_reset" class="bid-btn bid-btn-ghost">조건 초기화</button>
+        </div>
+    </div>
+
+    <!-- 결과 툴바 -->
+    <div class="bid-toolbar">
+        <div>
+            <span class="bid-count" id="bid_count">공고 <b>0</b>건</span>
+            <span class="bid-meta" id="bid_meta"></span>
+        </div>
+        <div class="bid-view-tabs">
+            <button type="button" class="bid-view-tab active" data-sort="closeAt">마감 임박순</button>
+            <button type="button" class="bid-view-tab" data-sort="noticeAt">최신 공고순</button>
+            <button type="button" class="bid-view-tab" data-sort="estPrice">금액순</button>
+        </div>
+    </div>
+
+    <!-- 결과 목록 -->
+    <div class="bid-card">
+        <div class="bid-table-wrap">
+            <table class="bid-table" id="bid_table">
+                <thead>
+                    <tr>
+                        <th style="width:38px"></th>
+                        <th style="width:56px">구분</th>
+                        <th>공고명 / 기관</th>
+                        <th style="width:130px; text-align:right">추정가격</th>
+                        <th style="width:110px">참가지역</th>
+                        <th style="width:104px">공고일</th>
+                        <th style="width:126px">마감일시</th>
+                        <th style="width:78px">남은기간</th>
+                    </tr>
+                </thead>
+                <tbody id="bid_tbody"></tbody>
+            </table>
+        </div>
+        <div class="bid-state" id="bid_state">
+            조건을 정한 뒤 <strong>공고 불러오기</strong>를 누르세요.
+        </div>
+    </div>
+
+</div>
+</div><!-- /page-body -->
+
+<!-- ── 공고 상세 모달 ── -->
+<div class="modal_overlay" id="bid_detail_modal">
+    <div class="modal_box bid-detail-box">
+        <div class="modal_header">
+            <h3>공고 상세</h3>
+            <button type="button" class="modal_close" id="bid_detail_close">&#215;</button>
+        </div>
+        <div class="modal_body" id="bid_detail_body"></div>
+        <div class="modal_footer">
+            <button type="button" id="bid_detail_cancel" class="modal_cancel_btn">닫기</button>
+            <button type="button" id="bid_detail_open" class="bid-btn bid-btn-navy">
+                &#127963; 나라장터에서 투찰하기
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="nav.js"></script>
+<script src="auth.js"></script>
+<script src="bid-config.js"></script>
+<script src="bid.js"></script>
+</body>
+</html>

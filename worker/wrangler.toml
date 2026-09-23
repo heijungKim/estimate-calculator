@@ -1,0 +1,14 @@
+name = "g2b-proxy"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# 서비스키는 여기에 적지 않는다. 아래 명령으로 시크릿에 넣는다.
+#   npx wrangler secret put G2B_SERVICE_KEY
+# (공공데이터포털 마이페이지의 '일반 인증키 (Decoding)' 값을 붙여넣을 것)
+
+[vars]
+# 이 Worker 를 호출할 수 있는 origin 목록. 여기 없는 origin 은 403.
+ALLOWED_ORIGINS = "https://heijungkim.github.io,http://localhost:8080,http://127.0.0.1:8080"
+
+[observability]
+enabled = true

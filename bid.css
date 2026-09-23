@@ -1,0 +1,496 @@
+/* bid.css — 나라장터 입찰공고 */
+
+.bid-wrap {
+    max-width: 1400px;
+    margin: 36px auto 60px;
+    padding: 0 32px;
+}
+
+/* ── 페이지 헤더 ── */
+.bid-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+.bid-page-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.bid-page-title .title-bar {
+    width: 4px;
+    height: 20px;
+    background: #e94560;
+    border-radius: 2px;
+    display: inline-block;
+}
+.bid-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── 투찰 방식 안내 ── */
+.bid-notice {
+    display: flex;
+    gap: 12px;
+    background: #fff8e6;
+    border: 1.5px solid #f2d79b;
+    border-left: 4px solid #f59e0b;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #6b5518;
+}
+.bid-notice-icon {
+    font-size: 16px;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+.bid-notice strong { color: #4a3a0a; }
+.bid-notice-body { flex: 1; }
+.bid-notice-dismiss {
+    background: none;
+    border: none;
+    color: #a18540;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+    flex-shrink: 0;
+}
+.bid-notice-dismiss:hover { color: #6b5518; }
+
+/* ── 최초 설정 안내 ── */
+.bid-setup {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+}
+.bid-setup h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 6px;
+}
+.bid-setup p {
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.7;
+    margin: 0 0 14px;
+}
+.bid-setup ol {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.9;
+}
+.bid-setup code {
+    background: #f0f2f5;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    color: #0f3460;
+}
+.bid-setup a { color: #e94560; }
+
+/* ── 필터 카드 ── */
+.bid-filters {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+}
+.bid-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 20px;
+    align-items: flex-end;
+}
+.bid-filter-row + .bid-filter-row {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f2f5;
+}
+.bid-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bid-field > label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8892a4;
+    letter-spacing: 0.02em;
+}
+.bid-field input[type="text"],
+.bid-field input[type="date"],
+.bid-field input[type="number"],
+.bid-field select {
+    height: 36px;
+    padding: 0 10px;
+    border: 1.5px solid #dde1e9;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1a1a2e;
+    background: #fff;
+    font-family: inherit;
+}
+.bid-field input:focus,
+.bid-field select:focus {
+    outline: none;
+    border-color: #e94560;
+}
+.bid-field-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.bid-field-range span { color: #aab0bb; font-size: 13px; }
+.bid-field-range input { width: 120px; }
+
+/* 업무구분 체크박스 */
+.bid-kinds {
+    display: flex;
+    gap: 14px;
+    height: 36px;
+    align-items: center;
+}
+.bid-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #4a5568;
+    cursor: pointer;
+    user-select: none;
+}
+.bid-check input { accent-color: #e94560; width: 15px; height: 15px; cursor: pointer; }
+
+/* ── 키워드 칩 ── */
+.bid-keywords-field { flex: 1 1 100%; }
+.bid-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    border: 1.5px solid #dde1e9;
+    border-radius: 8px;
+    padding: 7px 8px;
+    min-height: 36px;
+    background: #fff;
+}
+.bid-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f0f2f5;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 3px 6px 3px 10px;
+    font-size: 12px;
+    color: #4a5568;
+}
+.bid-chip button {
+    background: none;
+    border: none;
+    color: #aab0bb;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+}
+.bid-chip button:hover { color: #c62828; }
+.bid-chip-input {
+    border: none !important;
+    outline: none;
+    flex: 1;
+    min-width: 110px;
+    height: 24px !important;
+    font-size: 13px;
+    padding: 0 4px !important;
+}
+
+/* ── 버튼 ── */
+.bid-btn {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.bid-btn-primary { background: #e94560; color: #fff; }
+.bid-btn-primary:hover { background: #d63652; }
+.bid-btn-primary:disabled { background: #e8b5bf; cursor: default; }
+.bid-btn-ghost { background: #fff; border-color: #dde1e9; color: #4a5568; }
+.bid-btn-ghost:hover { border-color: #aab0bb; color: #1a1a2e; }
+.bid-btn-navy { background: #0f3460; color: #fff; }
+.bid-btn-navy:hover { background: #16213e; }
+
+/* ── 결과 툴바 ── */
+.bid-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+.bid-count {
+    font-size: 13px;
+    color: #4a5568;
+}
+.bid-count b { color: #e94560; font-size: 15px; }
+.bid-meta {
+    font-size: 11.5px;
+    color: #aab0bb;
+}
+.bid-view-tabs { display: flex; gap: 4px; }
+.bid-view-tab {
+    height: 30px;
+    padding: 0 13px;
+    border: 1.5px solid #dde1e9;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #8892a4;
+    cursor: pointer;
+    font-family: inherit;
+}
+.bid-view-tab.active {
+    background: #1a1a2e;
+    border-color: #1a1a2e;
+    color: #fff;
+}
+
+/* ── 결과 테이블 ── */
+.bid-card {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+}
+.bid-table-wrap { overflow-x: auto; }
+.bid-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.bid-table thead tr { background: #f0f2f5; }
+.bid-table thead th {
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #5a6880;
+    text-align: left;
+    border-bottom: 1.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+.bid-table thead th.sortable { cursor: pointer; user-select: none; }
+.bid-table thead th.sortable:hover { color: #e94560; }
+.bid-table thead th .sort-arrow { font-size: 9px; color: #e94560; margin-left: 3px; }
+.bid-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.15s;
+    cursor: pointer;
+}
+.bid-table tbody tr:hover { background: #fafbff; }
+.bid-table tbody tr:last-child { border-bottom: none; }
+.bid-table td {
+    padding: 12px 14px;
+    color: #1a1a2e;
+    vertical-align: middle;
+}
+.bid-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.bid-name {
+    font-weight: 500;
+    line-height: 1.45;
+    max-width: 520px;
+}
+.bid-inst {
+    font-size: 12px;
+    color: #8892a4;
+    margin-top: 3px;
+}
+.bid-when {
+    white-space: nowrap;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── 배지 ── */
+.bid-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.bid-badge-thng   { background: #e8f0fe; color: #0f3460; }
+.bid-badge-cnstwk { background: #fdecea; color: #c62828; }
+.bid-badge-servc  { background: #e8f5e9; color: #2e7d32; }
+
+.bid-dday {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 11px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.bid-dday-urgent { background: #fdecea; color: #c62828; }
+.bid-dday-soon   { background: #fff4e0; color: #b57400; }
+.bid-dday-normal { background: #f0f2f5; color: #5a6880; }
+.bid-dday-closed { background: #f0f2f5; color: #aab0bb; }
+
+/* ── 관심공고 별 ── */
+.bid-star {
+    background: none;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    color: #dde1e9;
+    padding: 2px;
+    transition: color 0.15s, transform 0.1s;
+}
+.bid-star:hover { transform: scale(1.18); }
+.bid-star.on { color: #f59e0b; }
+
+/* ── 상태 표시 ── */
+.bid-state {
+    padding: 56px 24px;
+    text-align: center;
+    font-size: 13.5px;
+    color: #8892a4;
+    line-height: 1.7;
+}
+.bid-state-error {
+    color: #c62828;
+    background: #fdecea;
+    border-top: 1px solid #f5c6c0;
+}
+.bid-state-error code {
+    display: block;
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: #8a3a35;
+    word-break: break-all;
+}
+.bid-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid #e2e8f0;
+    border-top-color: #e94560;
+    border-radius: 50%;
+    animation: bidSpin 0.7s linear infinite;
+    vertical-align: -4px;
+    margin-right: 8px;
+}
+@keyframes bidSpin { to { transform: rotate(360deg); } }
+
+/* ── 상세 패널 ── */
+.bid-detail-box {
+    width: 620px;
+    max-width: calc(100vw - 32px);
+}
+.bid-detail-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1a1a2e;
+    line-height: 1.55;
+    margin: 0 0 14px;
+}
+.bid-detail-grid {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 9px 14px;
+    font-size: 13px;
+    align-items: baseline;
+}
+.bid-detail-grid dt {
+    color: #8892a4;
+    font-weight: 600;
+    font-size: 12px;
+}
+.bid-detail-grid dd {
+    margin: 0;
+    color: #1a1a2e;
+    word-break: break-all;
+}
+.bid-detail-grid dd.num { font-variant-numeric: tabular-nums; }
+.bid-detail-sep {
+    grid-column: 1 / -1;
+    border: none;
+    border-top: 1px solid #f0f2f5;
+    margin: 4px 0;
+}
+
+/* 투찰 전 확인 목록 */
+.bid-checklist {
+    margin-top: 18px;
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    padding: 14px 16px;
+}
+.bid-checklist h4 {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 9px;
+}
+.bid-checklist label {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    color: #4a5568;
+    line-height: 1.6;
+    padding: 3px 0;
+    cursor: pointer;
+}
+.bid-checklist input { accent-color: #2e7d32; margin-top: 2px; flex-shrink: 0; }
+.bid-checklist-note {
+    margin: 10px 0 0;
+    font-size: 11.5px;
+    color: #8892a4;
+    line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+    .bid-wrap { padding: 0 16px; margin-top: 24px; }
+    .bid-field input, .bid-field select { width: 100%; }
+    .bid-detail-grid { grid-template-columns: 1fr; gap: 2px 0; }
+    .bid-detail-grid dd { margin-bottom: 8px; }
+}

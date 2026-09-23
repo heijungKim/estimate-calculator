@@ -33,6 +33,8 @@ jobs:
           node-version: '22'
       - name: Check image restoration
         run: node --test tools/imageconvert.test.cjs
+      - name: Check bid proxy
+        run: node --test tools/bid-worker.test.mjs
       - name: Prepare public files
         run: |
           mkdir -p _site

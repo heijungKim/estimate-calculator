@@ -1,0 +1,14 @@
+{
+  "name": "g2b-proxy",
+  "private": true,
+  "type": "module",
+  "description": "나라장터 입찰공고 API 중계 (Cloudflare Worker)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "secret": "wrangler secret put G2B_SERVICE_KEY"
+  },
+  "devDependencies": {
+    "wrangler": "^4.136.3"
+  }
+}
