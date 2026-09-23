@@ -120,18 +120,59 @@ export function normalize(r, kind, debug) {
         budget:     numOrNull(r.asignBdgtAmt),
         // 낙찰하한율. 투찰금액 계산기에서 쓴다.
         lowerRate:  numOrNull(r.sucsfbidLwltRate),
-        method:     str(r.cntrctCnclsMthdNm) || str(r.bidMethdNm),
-        industry:   str(r.indstrytyNm),
-        regions:    str(r.prtcptPsblRgnNm),
-        url:        str(r.bidNtceDtlUrl),
+
+        // 계약방법(수의/제한경쟁…)과 낙찰방법(적격심사…)은 다른 항목이다.
+        method:     str(r.cntrctCnclsMthdNm),
+        bidMethod:  str(r.sucsfbidMthdNm) || str(r.bidMethdNm),
+
+        // 업종. indstrytyNm 은 목록 API 에 없다 — 별도 오퍼레이션 소관이라
+        // 건별로 부르면 호출 수가 감당이 안 된다. 목록에 들어 있는 것 중
+        // 가장 가까운 값을 쓴다: 물품은 세부품명, 공사는 주공종명.
+        industry:   str(r.dtilPrdctClsfcNoNm) || str(r.mainCnsttyNm),
+
+        // 참가가능지역(prtcptPsblRgnNm)도 목록 API 에 없다.
+        // 공사는 현장 지역이 들어오므로 그것만이라도 쓴다. 물품은 비어 있다.
+        regions:    str(r.cnstrtsiteRgnNm),
+        // 지역제한이 걸린 공고인지, 무엇을 기준으로 보는지 (예: 본사소재지)
+        regionLimit: str(r.rgnLmtBidLocplcJdgmBssNm),
+        industryLimit: str(r.indstrytyLmtYn) === 'Y',
+
+        // 물품 규격·수량. 원가를 잡으려면 이게 있어야 한다.
+        spec:       str(r.prdctSpecNm),
+        qty:        numOrNull(r.prdctQty),
+        unit:       str(r.prdctUnit),
+
+        // 문의처. 규격을 확인하려면 결국 전화하게 된다.
+        officer:    str(r.ntceInsttOfclNm),
+        officerTel: str(r.ntceInsttOfclTelNo),
+
+        // 현장설명회 — 참석이 의무인 공고가 있어 놓치면 입찰 자체가 막힌다.
+        briefingAt:    str(r.dcmtgOprtnDt),
+        briefingPlace: str(r.dcmtgOprtnPlce),
+
+        // 예비가격 개수. 투찰금액 계산기에서 복수예비가격 조합을 돌릴 때 쓴다.
+        prdprcTotal: numOrNull(r.totPrdprcNum),
+        prdprcDrawn: numOrNull(r.drwtPrdprcNum),
+
+        specUrl:    str(r.ntceSpecDocUrl1),
+        url:        str(r.bidNtceDtlUrl) || str(r.bidNtceUrl),
     };
     if (debug) rec._raw = r;
     return rec;
 }
 
 export function matchesKeyword(rec, keywords) {
-    const hay = `${rec.name} ${rec.industry}`;
+    const hay = `${rec.name} ${rec.industry} ${rec.spec}`;
     return keywords.some(k => hay.includes(k));
+}
+
+/* 지역으로 거르기. 목록 API 에 참가가능지역이 없어서, 공사 현장지역과
+ * 기관명을 함께 본다. 기관명에 지역이 들어 있는 경우가 많다
+ * (예: "경기도교육청", "강원특별자치도 평창군"). 참가자격을 판정하는
+ * 것이 아니라 훑어볼 범위를 좁히는 용도다. */
+export function matchesRegion(rec, region) {
+    const hay = `${rec.regions} ${rec.noticeInst} ${rec.demandInst}`;
+    return hay.includes(region);
 }
 
 /* ── 수집 ────────────────────────────────────────────────────── */
@@ -172,7 +213,7 @@ export async function collectBids(opts) {
 
     let list = [...seen.values()];
     if (keywords.length) list = list.filter(r => matchesKeyword(r, keywords));
-    if (region)   list = list.filter(r => (r.regions || '').includes(region));
+    if (region)   list = list.filter(r => matchesRegion(r, region));
     if (minPrice != null) list = list.filter(r => r.estPrice != null && r.estPrice >= minPrice);
     if (maxPrice != null) list = list.filter(r => r.estPrice != null && r.estPrice <= maxPrice);
 

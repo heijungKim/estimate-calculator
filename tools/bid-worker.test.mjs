@@ -33,6 +33,10 @@ function envelope(items, totalCount) {
     });
 }
 
+/* 필드명은 실제 응답을 찍어 확인한 것이다(BID_DIAG=1).
+ * indstrytyNm(업종)과 prtcptPsblRgnNm(참가가능지역)은 목록 API 에 없다 —
+ * 별도 오퍼레이션 소관이라 건별로 부르면 호출 수가 감당이 안 된다.
+ * 그 자리는 물품이면 dtilPrdctClsfcNoNm, 공사면 mainCnsttyNm 이 채운다. */
 const REC_SIGN = {
     bidNtceNo: '20260900123', bidNtceOrd: '000',
     bidNtceNm: '○○초 교내 안내표지판 및 간판 제작설치',
@@ -40,14 +44,20 @@ const REC_SIGN = {
     bidNtceDt: '2026-09-21 10:00:00', bidClseDt: '2026-09-30 11:00:00',
     opengDt: '2026-09-30 14:00:00',
     presmptPrce: '18400000', asignBdgtAmt: '20,000,000',
-    sucsfbidLwltRate: '87.995', cntrctCnclsMthdNm: '제한경쟁',
-    indstrytyNm: '광고물업', prtcptPsblRgnNm: '경기도',
+    sucsfbidLwltRate: '87.995',
+    cntrctCnclsMthdNm: '제한경쟁', sucsfbidMthdNm: '적격심사',
+    dtilPrdctClsfcNoNm: '광고물',
+    prdctSpecNm: '알루미늄 복합판 3T', prdctQty: '12', prdctUnit: '개',
+    rgnLmtBidLocplcJdgmBssNm: '본사소재지', indstrytyLmtYn: 'Y',
+    ntceInsttOfclNm: '김담당', ntceInsttOfclTelNo: '031-000-0000',
+    dcmtgOprtnDt: '2026-09-25 14:00:00', dcmtgOprtnPlce: '○○초등학교 본관',
+    totPrdprcNum: '15', drwtPrdprcNum: '4',
     bidNtceDtlUrl: 'https://www.g2b.go.kr/detail?no=20260900123',
 };
 const REC_OTHER = {
     ...REC_SIGN, bidNtceNo: '20260900999',
-    bidNtceNm: '급식실 주방기구 구매', indstrytyNm: '주방용품',
-    presmptPrce: '5000000',
+    bidNtceNm: '급식실 주방기구 구매', dtilPrdctClsfcNoNm: '주방용품',
+    prdctSpecNm: '스테인리스 조리대', presmptPrce: '5000000',
 };
 
 function req(qs, origin = ORIGIN) {
@@ -72,9 +82,15 @@ test('정상 응답을 정규화하고 키워드로 걸러낸다', async () => {
     assert.equal(res.headers.get('Access-Control-Allow-Origin'), ORIGIN);
 });
 
-test('키워드가 업종에도 걸린다', async () => {
+test('키워드가 품명에도 걸린다', async () => {
     mockUpstream(() => ({ body: envelope([REC_SIGN, REC_OTHER]) }));
-    const res = await worker.fetch(req('kind=thng&keywords=광고물업&from=20260920&to=20260923'), ENV);
+    const res = await worker.fetch(req('kind=thng&keywords=광고물&from=20260920&to=20260923'), ENV);
+    assert.equal((await res.json()).count, 1);
+});
+
+test('키워드가 규격에도 걸린다', async () => {
+    mockUpstream(() => ({ body: envelope([REC_SIGN, REC_OTHER]) }));
+    const res = await worker.fetch(req('kind=thng&keywords=알루미늄&from=20260920&to=20260923'), ENV);
     assert.equal((await res.json()).count, 1);
 });
 
@@ -260,4 +276,54 @@ test('오류 응답은 캐시에 남기지 않는다', async () => {
     assert.equal(puts, 1, '정상 응답은 캐시해야 한다');
 
     globalThis.caches = real;
+});
+
+/* 아래는 실제 응답을 확인한 뒤 맞춘 매핑이다.
+ * 추측으로 넣었던 필드가 전부 빈 값으로 들어오던 것을 잡고 나서 추가했다. */
+
+test('목록에 실제로 있는 필드로 정규화한다', async () => {
+    mockUpstream(() => ({ body: envelope([REC_SIGN]) }));
+    const res = await worker.fetch(req('kind=thng&from=20260920&to=20260923'), ENV);
+    const r = (await res.json()).items[0];
+
+    assert.equal(r.industry, '광고물', '물품은 세부품명이 업종 자리를 채운다');
+    assert.equal(r.spec, '알루미늄 복합판 3T');
+    assert.equal(r.qty, 12);
+    assert.equal(r.unit, '개');
+    assert.equal(r.method, '제한경쟁', '계약방법');
+    assert.equal(r.bidMethod, '적격심사', '낙찰방법은 계약방법과 다른 항목이다');
+    assert.equal(r.regionLimit, '본사소재지');
+    assert.equal(r.industryLimit, true);
+    assert.equal(r.officer, '김담당');
+    assert.equal(r.officerTel, '031-000-0000');
+    assert.equal(r.briefingPlace, '○○초등학교 본관');
+    assert.equal(r.prdprcTotal, 15, '예비가격 개수는 투찰금액 계산에 쓴다');
+    assert.equal(r.prdprcDrawn, 4);
+});
+
+test('공사는 주공종명이 업종 자리를 채운다', async () => {
+    const cnstwk = {
+        ...REC_SIGN,
+        bidNtceNo: '20260900777',
+        bidNtceNm: '체육공원 사인탑 신설공사',
+        dtilPrdctClsfcNoNm: undefined,
+        mainCnsttyNm: '금속구조물창호공사',
+        cnstrtsiteRgnNm: '강원특별자치도 평창군',
+    };
+    mockUpstream(() => ({ body: envelope([cnstwk]) }));
+    const res = await worker.fetch(req('kind=cnstwk&from=20260920&to=20260923'), ENV);
+    const r = (await res.json()).items[0];
+    assert.equal(r.industry, '금속구조물창호공사');
+    assert.equal(r.regions, '강원특별자치도 평창군', '공사는 현장지역이 들어온다');
+});
+
+test('지역 필터가 기관명도 본다', async () => {
+    // 목록 API 에 참가가능지역이 없어서, 물품 공고는 기관명 말고는 단서가 없다.
+    mockUpstream(() => ({ body: envelope([REC_SIGN]) }));
+    let res = await worker.fetch(req('kind=thng&region=경기&from=20260920&to=20260923'), ENV);
+    assert.equal((await res.json()).count, 1, '경기도교육청 → 경기로 걸려야 한다');
+
+    mockUpstream(() => ({ body: envelope([REC_SIGN]) }));
+    res = await worker.fetch(req('kind=thng&region=제주&from=20260920&to=20260923'), ENV);
+    assert.equal((await res.json()).count, 0);
 });

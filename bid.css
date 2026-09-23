@@ -358,6 +358,26 @@
 .bid-badge-cnstwk { background: #fdecea; color: #c62828; }
 .bid-badge-servc  { background: #e8f5e9; color: #2e7d32; }
 
+/* 지역제한·업종제한 표시. 참가 자격을 가르는 정보라 목록에서 바로 보여야 한다. */
+.bid-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    vertical-align: 1px;
+    background: #fff4e0;
+    color: #b57400;
+    border: 1px solid #f2d79b;
+}
+
+.bid-industry {
+    font-size: 12.5px;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
 .bid-dday {
     display: inline-block;
     padding: 2px 8px;

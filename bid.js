@@ -361,7 +361,7 @@ function render() {
         if (onlyFav && !_favs[r.id]) return false;
         if (kinds.length && kinds.indexOf(r.kind) === -1) return false;
         if (_keywords.length && !matchesKeyword(r, _keywords)) return false;
-        if (region && (r.regions || '').indexOf(region) === -1) return false;
+        if (region && !matchesRegion(r, region)) return false;
         if (minPrice != null && !(r.estPrice != null && r.estPrice >= minPrice)) return false;
         if (maxPrice != null && !(r.estPrice != null && r.estPrice <= maxPrice)) return false;
 
@@ -453,13 +453,22 @@ function buildRow(r, now) {
             .text(kindLabel(r.kind))
     ));
 
+    var $name = $('<div class="bid-name">').text(r.name || '(공고명 없음)');
+    // 지역제한·업종제한은 참가 자격을 가르므로 목록에서 바로 보여준다.
+    if (r.regionLimit) {
+        $name.append($('<span class="bid-tag">').text('지역제한 ' + r.regionLimit));
+    }
+    if (r.industryLimit) {
+        $name.append($('<span class="bid-tag">').text('업종제한'));
+    }
+
     $tr.append($('<td>')
-        .append($('<div class="bid-name">').text(r.name || '(공고명 없음)'))
+        .append($name)
         .append($('<div class="bid-inst">').text(instLine(r)))
     );
 
+    $tr.append($('<td>').append($('<div class="bid-industry">').text(industryText(r))));
     $tr.append($('<td class="num">').text(r.estPrice != null ? comma(r.estPrice) : '—'));
-    $tr.append($('<td>').css('font-size', '12.5px').text(shortRegion(r.regions)));
     $tr.append($('<td class="bid-when">').text(dateOnly(r.noticeAt)));
     $tr.append($('<td class="bid-when">').text(dateTime(r.closeAt)));
     $tr.append($('<td>').append(
@@ -476,18 +485,33 @@ function instLine(r) {
     return a || b || '';
 }
 
-function shortRegion(s) {
-    s = String(s || '').trim();
-    if (!s) return '전국';
+/* 물품은 세부품명, 공사는 주공종명. 목록 API 에 업종(indstrytyNm)이
+ * 아예 없어서 그 자리에 들어갈 수 있는 가장 가까운 값이다. */
+function industryText(r) {
+    var s = String(r.industry || '').trim();
+    if (!s) return '—';
+    return s;
+}
+
+function regionText(r) {
+    var s = String(r.regions || '').trim();
+    if (!s) return '';
     // "경기도 안양시, 경기도 군포시" 처럼 길게 오는 경우가 많아 앞만 보여준다
     var parts = s.split(/\s*,\s*/).filter(Boolean);
-    if (parts.length <= 1) return parts[0] || '전국';
+    if (parts.length <= 1) return parts[0] || '';
     return parts[0] + ' 외 ' + (parts.length - 1);
 }
 
 function matchesKeyword(rec, keywords) {
-    var hay = (rec.name || '') + ' ' + (rec.industry || '');
+    var hay = (rec.name || '') + ' ' + (rec.industry || '') + ' ' + (rec.spec || '');
     return keywords.some(function(k) { return hay.indexOf(k) > -1; });
+}
+
+/* 목록 API 에 참가가능지역이 없어 공사 현장지역과 기관명을 함께 본다.
+ * 참가자격을 판정하는 게 아니라 훑어볼 범위를 좁히는 용도다. */
+function matchesRegion(rec, region) {
+    var hay = (rec.regions || '') + ' ' + (rec.noticeInst || '') + ' ' + (rec.demandInst || '');
+    return hay.indexOf(region) > -1;
 }
 
 /* ── 상세 ────────────────────────────────────────────────────── */
@@ -506,16 +530,31 @@ function openDetail(id) {
     row('공고기관', r.noticeInst);
     row('수요기관', r.demandInst);
     $dl.append('<hr class="bid-detail-sep">');
+    row('품명·공종', r.industry);
+    if (r.spec) row('규격', r.spec);
+    if (r.qty != null) row('수량', comma(r.qty) + (r.unit ? ' ' + r.unit : ''), 'num');
+    $dl.append('<hr class="bid-detail-sep">');
     row('추정가격', r.estPrice != null ? comma(r.estPrice) + ' 원' : '', 'num');
     row('배정예산', r.budget != null ? comma(r.budget) + ' 원' : '', 'num');
     row('낙찰하한율', r.lowerRate != null ? r.lowerRate + ' %' : '', 'num');
     row('계약방법', r.method);
-    row('업종', r.industry);
-    row('참가지역', r.regions || '전국');
+    row('낙찰방법', r.bidMethod);
+    $dl.append('<hr class="bid-detail-sep">');
+    row('지역제한', r.regionLimit ? r.regionLimit + ' 기준' : '없음');
+    row('업종제한', r.industryLimit ? '있음' : '없음');
+    row('현장지역', regionText(r));
     $dl.append('<hr class="bid-detail-sep">');
     row('공고일시', dateTime(r.noticeAt));
     row('마감일시', dateTime(r.closeAt));
     row('개찰일시', dateTime(r.openAt));
+    // 참석이 의무인 공고가 있어 놓치면 입찰 자체가 막힌다.
+    if (r.briefingAt) {
+        row('현장설명회', dateTime(r.briefingAt) + (r.briefingPlace ? ' · ' + r.briefingPlace : ''));
+    }
+    if (r.officer || r.officerTel) {
+        $dl.append('<hr class="bid-detail-sep">');
+        row('담당자', [r.officer, r.officerTel].filter(Boolean).join(' · '));
+    }
 
     var $checklist = $(
         '<div class="bid-checklist">' +
