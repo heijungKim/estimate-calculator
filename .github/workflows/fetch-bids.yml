@@ -57,7 +57,8 @@ jobs:
         if: steps.key.outputs.has_key == 'true'
         env:
           G2B_SERVICE_KEY: ${{ secrets.G2B_SERVICE_KEY }}
-          BID_KINDS: thng,cnstwk
+          # BID_KINDS 는 주지 않는다. company.json 의 등록분야에서 뽑는다 —
+          # 여기에 박아두면 등록증과 어긋나도 아무도 모른다.
           # 14일 × 물품+공사 ≈ API 호출 15회/실행. 하루 24회 실행하면 약 360회로
           # 개발계정 일일 한도(보통 1,000회) 안에 들어온다. 한도를 올렸거나
           # 줄여야 하면 이 값을 조절할 것.
