@@ -38,7 +38,7 @@ jobs:
       - name: Prepare public files
         run: |
           mkdir -p _site
-          cp *.html *.css *.js *.svg .nojekyll _site/
+          cp *.html *.css *.js *.json *.svg .nojekyll _site/
           cp -R lib _site/lib
       - name: Setup Pages
         uses: actions/configure-pages@v5

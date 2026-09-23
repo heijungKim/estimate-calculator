@@ -8,24 +8,20 @@
  *
  *   G2B_SERVICE_KEY=<Decoding 키> node tools/fetch-bids.mjs [출력경로]
  *
- * 환경변수로 수집 범위를 조절한다.
- *   BID_KINDS     기본 thng,cnstwk
- *   BID_DAYS      기본 14
- *   BID_KEYWORDS  기본 아래 목록 (콤마 구분). 빈 문자열이면 키워드 필터 없음
+ * 무엇을 담을지는 tools/company.mjs 의 입찰참가자격 등록 내용이 정한다.
+ * 등록분야에 없는 업무구분은 수집조차 하지 않고, 등록물품 세부품명번호와
+ * 대조해 관련 없는 공고는 버린다.
+ *
+ * 환경변수로 덮어쓸 수 있다.
+ *   BID_KINDS  기본: 등록분야에서 뽑음 (물품, 용역)
+ *   BID_DAYS   기본 14
+ *   BID_DIAG   1 이면 업스트림 원본 필드 점검표 출력
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { collectBids, OPS } from './g2b-core.mjs';
-
-// 간판 업체가 실제로 노릴 만한 공고를 넓게 잡는다.
-// 화면에서 더 좁히는 건 자유지만, 여기 없는 키워드는 애초에 수집되지 않는다.
-const DEFAULT_KEYWORDS = [
-    '간판', '사인', '싸인', '현수막', '실사출력', '출력물',
-    'LED', '배너', '표지판', '안내판', '안내표지', '시트',
-    '스카시', '채널문자', '옥외광고', '광고물', '홍보물',
-    '조형물', '게시대', '아크릴', '판넬', '패널', '인쇄',
-];
+import { COMPANY } from './company.mjs';
 
 const RETRIES = 3;
 const TIMEOUT_MS = 25000;
@@ -43,34 +39,41 @@ async function main() {
     }
 
     const outPath = process.argv[2] || 'bids.json';
-    const kinds = (process.env.BID_KINDS || 'thng,cnstwk')
-        .split(',').map(s => s.trim()).filter(k => OPS[k]);
     const days = Number(process.env.BID_DAYS || 14);
-    const keywords = process.env.BID_KEYWORDS === ''
-        ? []
-        : (process.env.BID_KEYWORDS || DEFAULT_KEYWORDS.join(',')).split(',').map(s => s.trim()).filter(Boolean);
-
-    if (!kinds.length) throw new Error('BID_KINDS 가 비었습니다.');
-
-    console.log(`업무구분 ${kinds.join(', ')} · 최근 ${days}일 · 키워드 ${keywords.length}개`);
-
     const diag = process.env.BID_DIAG === '1';
 
+    // 등록분야에 없는 업무구분은 투찰 자체가 불가능하므로 부르지 않는다.
+    // 공사는 등록증에 체크가 없고 업종(면허) 목록도 비어 있다.
+    const kinds = (process.env.BID_KINDS
+        ? process.env.BID_KINDS.split(',').map(s => s.trim())
+        : Object.keys(COMPANY.fields).filter(k => COMPANY.fields[k])
+    ).filter(k => OPS[k]);
+
+    if (!kinds.length) throw new Error('수집할 업무구분이 없습니다.');
+
+    console.log(`${COMPANY.name} · 등록분야 ${kinds.map(labelOf).join(', ')} · 최근 ${days}일`);
+    console.log(`등록물품 ${COMPANY.products.length}개로 관련 공고를 가려냅니다.`);
+    warnExpiring();
+
     const started = Date.now();
-    const result = await collectBids({ key, kinds, days, keywords, fetchText, debug: diag });
+    const result = await collectBids({
+        key, kinds, days, company: COMPANY, fetchText, debug: diag,
+    });
 
     if (diag) reportFields(result.items);
     // _raw 는 점검용일 뿐이라 저장 파일에는 넣지 않는다 (용량이 몇 배로 뛴다).
-    result.items.forEach(function (r) { delete r._raw; });
+    result.items.forEach(r => { delete r._raw; });
 
     const payload = {
         fetchedAt: new Date().toISOString(),
         range: result.range,
         kinds,
-        keywords,
         days,
         count: result.count,
         meta: result.meta,
+        // 화면이 등록 내용을 알아야 '참가 가능'을 표시하고 준비 목록을 짤 수 있다.
+        // 같이 실어 보내면 설정이 두 곳으로 갈라지지 않는다.
+        company: COMPANY,
         items: result.items,
     };
 
@@ -80,23 +83,56 @@ async function main() {
     const kb = Math.round(fs.statSync(outPath).size / 1024);
     console.log(`\n기간 ${result.range.from}~${result.range.to}`);
     for (const [kind, s] of Object.entries(result.meta.byKind)) {
-        console.log(`  ${kind}: 전체 ${s.total} → 수집 ${s.fetched}`);
+        console.log(`  ${labelOf(kind)}: 전체 ${s.total} → 수집 ${s.fetched}`);
     }
-    console.log(`키워드 통과 ${result.count}건 · API 호출 ${result.meta.upstreamCalls}회`
+
+    const rel = result.meta.relevance || {};
+    console.log('\n관련도별 건수');
+    console.log(`  등록물품 일치   ${rel.registered || 0}  (바로 투찰 가능)`);
+    console.log(`  등록 만료       ${rel.expired || 0}  (갱신해야 참가 가능)`);
+    console.log(`  같은 품명군     ${rel.group || 0}  (품명 추가 등록 필요)`);
+    console.log(`  공고명만 일치   ${rel.keyword || 0}  (확인 필요)`);
+
+    console.log(`\n합계 ${result.count}건 · API 호출 ${result.meta.upstreamCalls}회`
         + ` · ${kb}KB · ${((Date.now() - started) / 1000).toFixed(1)}초`);
 
-    if (result.meta.truncated) {
-        console.log('! 결과가 잘렸습니다. BID_DAYS 를 줄이세요.');
-    }
-    // 0건이면 워크플로에서 눈에 띄게. 키가 죽었거나 필터가 과한 신호일 수 있다.
+    if (result.meta.truncated) console.log('! 결과가 잘렸습니다. BID_DAYS 를 줄이세요.');
     if (result.count === 0) console.log('! 수집 결과가 0건입니다.');
 
     console.log(`저장: ${outPath}`);
 }
 
+function labelOf(k) {
+    return { thng: '물품', cnstwk: '공사', servc: '용역' }[k] || k;
+}
+
+/* 등록유효기간이 지났거나 곧 지나는 품명을 알린다.
+ * 기간이 지나면 그 품명으로는 입찰에 못 들어간다 — 공고를 찾아놓고
+ * 투찰 당일에 알게 되면 손쓸 방법이 없다. */
+function warnExpiring() {
+    const today = new Date();
+    const soon = new Date(today.getTime() + 60 * 86400000);
+
+    const dead = COMPANY.products.filter(p => new Date(p.regEnd + 'T23:59:59') < today);
+    const near = COMPANY.products.filter(p => {
+        const d = new Date(p.regEnd + 'T23:59:59');
+        return d >= today && d <= soon;
+    });
+
+    if (dead.length) {
+        console.log(`! 등록 만료됨: ${dead.map(p => `${p.name}(${p.regEnd})`).join(', ')}`);
+    }
+    if (near.length) {
+        console.log(`! 60일 안에 만료: ${near.map(p => {
+            const left = Math.ceil((new Date(p.regEnd + 'T23:59:59') - today) / 86400000);
+            return `${p.name}(${p.regEnd}, ${left}일 남음)`;
+        }).join(', ')}`);
+    }
+}
+
 /* 업스트림이 실제로 무엇을 주는지 표로 보여준다.
- * 조달청이 필드명을 바꾸거나, 애초에 목록 API 에 없는 항목을 기대하고 있었다면
- * 여기서 드러난다. */
+ * 조달청이 필드명을 바꾸거나, 애초에 목록 API 에 없는 항목을 기대하고
+ * 있었다면 여기서 드러난다. */
 function reportFields(items) {
     const raws = items.map(r => r._raw).filter(Boolean);
     if (!raws.length) { console.log('\n점검할 표본이 없습니다.'); return; }
@@ -104,16 +140,22 @@ function reportFields(items) {
     const EXPECTED = [
         'bidNtceNo', 'bidNtceOrd', 'bidNtceNm', 'ntceInsttNm', 'dminsttNm',
         'bidNtceDt', 'bidClseDt', 'opengDt', 'presmptPrce', 'asignBdgtAmt',
-        'sucsfbidLwltRate', 'cntrctCnclsMthdNm', 'bidMethdNm', 'indstrytyNm',
-        'prtcptPsblRgnNm', 'bidNtceDtlUrl',
+        'sucsfbidLwltRate', 'cntrctCnclsMthdNm', 'sucsfbidMthdNm',
+        'dtilPrdctClsfcNo', 'dtilPrdctClsfcNoNm', 'mainCnsttyNm',
+        'prdctSpecNm', 'prdctQty', 'prdctUnit',
+        'rgnLmtBidLocplcJdgmBssNm', 'indstrytyLmtYn', 'cnstrtsiteRgnNm',
+        'ntceInsttOfclNm', 'ntceInsttOfclTelNo',
+        'dcmtgOprtnDt', 'dcmtgOprtnPlce',
+        'totPrdprcNum', 'drwtPrdprcNum', 'ntceSpecDocUrl1', 'bidNtceDtlUrl',
     ];
 
     console.log(`\n=== 필드 점검 (표본 ${raws.length}건) ===`);
     for (const f of EXPECTED) {
         const filled = raws.filter(r => r[f] != null && String(r[f]).trim() !== '').length;
         const exists = raws.some(r => f in r);
-        const mark = !exists ? 'X  응답에 없음' : (filled === 0 ? '~  있으나 모두 빈값' : `OK ${filled}/${raws.length}`);
-        console.log(`  ${f.padEnd(20)} ${mark}`);
+        const mark = !exists ? 'X  응답에 없음'
+            : (filled === 0 ? '~  있으나 모두 빈값' : `OK ${filled}/${raws.length}`);
+        console.log(`  ${f.padEnd(26)} ${mark}`);
     }
 
     const seen = new Set();
@@ -121,19 +163,9 @@ function reportFields(items) {
     const extra = [...seen].filter(k => !EXPECTED.includes(k)).sort();
     console.log(`\n=== 예상 목록에 없는 필드 ${extra.length}개 ===`);
     console.log(extra.join(', '));
-
-    // 지역/업종 후보를 눈에 띄게 뽑아준다
-    const hint = extra.filter(k => /rgn|locplc|area|indstry|licen|lmt/i.test(k));
-    if (hint.length) {
-        console.log(`\n=== 지역·업종 관련으로 보이는 필드 ===`);
-        for (const k of hint) {
-            const sample = raws.map(r => r[k]).find(v => v != null && String(v).trim() !== '');
-            const filled = raws.filter(r => r[k] != null && String(r[k]).trim() !== '').length;
-            console.log(`  ${k.padEnd(28)} ${filled}/${raws.length}  예: ${String(sample ?? '').slice(0, 40)}`);
-        }
-    }
 }
-/* 업스트림이 간헐적으로 5xx 를 뱉는다. 몇 번 다시 해본다.
+
+/* 업스트림이 간헐적으로 5xx 를 뱉고, 한국 밖에서는 느려 연결이 끊기기도 한다.
  * 인증 실패 같은 항구적 오류는 parseEnvelope 가 위에서 던지므로 여기 안 온다. */
 async function fetchText(url) {
     let lastErr;

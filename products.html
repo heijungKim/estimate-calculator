@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache" />
-    <title>견적서 관리 - 우성디지탈 관리 시스템</title>
+    <title>입찰 등록 품목 - 우성디지탈 관리 시스템</title>
     <link rel="icon" href="logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="products.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -35,7 +36,7 @@
                     <span class="nav-icon">&#9998;</span>
                     <span>견적 계산기</span>
                 </a>
-                <a href="estimates.html" class="nav-item active">
+                <a href="estimates.html" class="nav-item">
                     <span class="nav-icon">&#128196;</span>
                     <span>견적서 관리</span>
                 </a>
@@ -48,7 +49,7 @@
                 <span class="nav-cat-arrow">&#9660;</span>
             </div>
             <div class="nav-cat-items">
-                <a href="products.html" class="nav-item">
+                <a href="products.html" class="nav-item active">
                     <span class="nav-icon">&#128203;</span>
                     <span>등록 품목·인증</span>
                 </a>
@@ -128,112 +129,122 @@
             <img src="logo.svg" class="logo-img" alt="우성디지탈" />
             <span class="logo-text">우성디지탈 관리 시스템</span>
         </div>
-        <p class="header-sub">저장된 견적서를 조회하고 관리하세요</p>
+        <p class="header-sub">입찰참가 등록물품과 인증의 유효기간을 관리하세요</p>
     </div>
 </header>
 
-<div class="woosung_wrap">
-    <!-- 저장된 견적 목록 -->
-    <div class="archive_section" id="archive_section">
-        <h2 class="total_title">
+<div class="prod-wrap">
+
+    <div class="prod-page-header">
+        <h2 class="prod-page-title">
             <span class="title-bar"></span>
-            저장된 견적 목록
-            <span id="arc_count" class="arc-count"></span>
+            입찰 등록 품목·인증
         </h2>
-        <!-- 검색/필터 -->
-        <div class="archive_search" id="archive_search">
-            <!-- 1행: 텍스트·상태·진행여부 -->
-            <div class="arc_search_row">
-                <input type="text" id="search_name"    class="arc_search_input" placeholder="견적서 이름 검색..." />
-                <input type="text" id="search_company" class="arc_search_input" placeholder="업체명 검색..." />
-                <select id="search_status" class="arc_search_select">
-                    <option value="">전체 상태</option>
-                    <option value="대기">대기</option>
-                    <option value="미납">미납</option>
-                    <option value="부분 납부">부분 납부</option>
-                    <option value="완납">완납</option>
-                </select>
-                <select id="search_proceed" class="arc_search_select">
-                    <option value="">진행 여부 전체</option>
-                    <option value="O">O (진행)</option>
-                    <option value="X">X (미진행)</option>
-                </select>
-                <button id="btn_search_reset" class="arc_search_reset">초기화</button>
-            </div>
-            <!-- 2행: 기간 검색 -->
-            <div class="arc_search_row arc_date_row">
-                <span class="arc_date_label">기간</span>
-                <input type="date" id="search_date_from" class="arc_search_input arc_date_input" />
-                <span class="arc_date_sep">~</span>
-                <input type="date" id="search_date_to"   class="arc_search_input arc_date_input" />
-                <div class="arc_date_quick_btns">
-                    <button class="arc_date_quick" data-range="today">당일</button>
-                    <button class="arc_date_quick" data-range="yesterday">전일</button>
-                    <button class="arc_date_quick" data-range="thismonth">당월</button>
-                    <button class="arc_date_quick" data-range="lastmonth">전월</button>
-                </div>
-            </div>
+        <div class="prod-company" id="prod_company"></div>
+    </div>
+
+    <!-- 만료 요약 -->
+    <div class="prod-summary" id="prod_summary"></div>
+
+    <!-- ── 입찰참가 등록물품 ── -->
+    <div class="prod-section">
+        <div class="prod-section-head">
+            <h3>입찰참가 등록물품</h3>
+            <p>
+                등록유효기간이 지나면 그 품명으로는 입찰에 참여할 수 없습니다
+                (국가종합전자조달시스템 입찰참가자격 등록규정 제9조제1항).
+                <strong>종료일 한 달 전에는 갱신</strong>하세요.
+            </p>
         </div>
-        <div class="arc-summary" id="arc_summary"></div>
-        <div class="archive_list" id="archive_list">
-            <p class="archive_empty">저장된 견적이 없습니다.</p>
+        <div class="prod-table-wrap">
+            <table class="prod-table" id="prod_table">
+                <thead>
+                    <tr>
+                        <th style="width:92px">등록일</th>
+                        <th style="width:104px">세부품명번호</th>
+                        <th>세부품명</th>
+                        <th style="width:48px">제조</th>
+                        <th style="width:112px">증명서류</th>
+                        <th style="width:168px">제조생산증명 유효기간</th>
+                        <th style="width:168px">등록 유효기간</th>
+                        <th style="width:96px">제조공장</th>
+                        <th style="width:124px">상태</th>
+                        <th style="width:74px">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="prod_tbody"></tbody>
+            </table>
         </div>
     </div>
-</div>
 
+    <!-- ── 인증·가산점 ── -->
+    <div class="prod-section">
+        <div class="prod-section-head">
+            <h3>인증 · 적격심사 가산점</h3>
+            <p>
+                자격이 있어도 <strong>확인서를 제출해야</strong> 신인도 점수가 붙습니다.
+                유효기간이 지난 확인서는 인정되지 않으니 투찰 전에 날짜를 확인하세요.
+            </p>
+        </div>
+        <div class="prod-table-wrap">
+            <table class="prod-table" id="cert_table">
+                <thead>
+                    <tr>
+                        <th style="width:200px">인증</th>
+                        <th style="width:180px">제출 서류</th>
+                        <th style="width:180px">발급기관</th>
+                        <th style="width:168px">유효기간</th>
+                        <th style="width:124px">상태</th>
+                        <th>비고</th>
+                        <th style="width:74px">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="cert_tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="prod-note">
+        최초 등록 내용은 <code>company.json</code> 에 있습니다. 여기서 갱신한 날짜는
+        클라우드에 저장되어 이 시스템 전체에 반영됩니다.
+    </p>
+
+</div>
 </div><!-- /page-body -->
 
-<!-- 견적 내역 보기 모달 -->
-<div class="modal_overlay" id="archive_detail_modal">
-    <div class="modal_box modal_lg">
+<!-- ── 갱신 모달 ── -->
+<div class="modal_overlay" id="renew_modal">
+    <div class="modal_box">
         <div class="modal_header">
-            <div class="modal_header_info">
-                <h3 id="detail_modal_title"></h3>
-                <p id="detail_modal_date" class="detail_modal_date"></p>
-            </div>
-            <button class="modal_close" id="detail_modal_close">&#215;</button>
+            <h3 id="renew_title">갱신</h3>
+            <button type="button" class="modal_close" id="renew_close">&#215;</button>
         </div>
-        <div class="modal_body modal_body_scroll">
-            <ul id="detail_items_list" class="detail_items_list"></ul>
-            <div class="detail_total_row">
-                <span class="detail_total_label">합 계</span>
-                <span class="detail_total_val">&#8361; <em id="detail_total_num">0</em> 원</span>
+        <div class="modal_body">
+            <p class="renew_target" id="renew_target"></p>
+
+            <div class="modal_field">
+                <label for="renew_date">재발급일 (새 시작일자)</label>
+                <input type="date" id="renew_date" />
             </div>
-        </div>
-        <!-- 결제 정보 -->
-        <div class="detail_payment_section">
-            <div class="detail_payment_field">
-                <span class="detail_payment_label">진행 여부</span>
-                <div class="detail_proceed_btns">
-                    <button class="btn_proceed" data-val="O">O</button>
-                    <button class="btn_proceed" data-val="X">X</button>
-                </div>
+
+            <div class="modal_field">
+                <label for="renew_term">유효기간</label>
+                <select id="renew_term">
+                    <option value="12">1년</option>
+                    <option value="24" selected>2년</option>
+                    <option value="36">3년</option>
+                    <option value="48">4년</option>
+                    <option value="60">5년</option>
+                    <option value="">유효기간 없음</option>
+                </select>
             </div>
-            <div id="detail_payment_fields" class="detail_payment_fields payment_disabled">
-                <div class="detail_payment_field">
-                    <span class="detail_payment_label">견적 상태</span>
-                    <select id="detail_status_sel" class="arc_status_sel st_wait">
-                        <option value="대기">대기</option>
-                        <option value="미납">미납</option>
-                        <option value="부분 납부">부분 납부</option>
-                        <option value="완납">완납</option>
-                    </select>
-                </div>
-                <div class="detail_payment_field">
-                    <span class="detail_payment_label">입금 금액</span>
-                    <div class="detail_paid_row">
-                        <span class="detail_paid_currency">&#8361;</span>
-                        <input type="text" id="detail_paid_input" class="detail_paid_input" placeholder="0" />
-                        <label class="detail_paid_full_label">
-                            <input type="checkbox" id="detail_paid_full_chk" />
-                            <span>완납</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+
+            <div class="renew_preview" id="renew_preview"></div>
+            <p class="renew_error" id="renew_error"></p>
         </div>
         <div class="modal_footer">
-            <button id="detail_print_btn" class="modal_print_btn">견적서 출력</button>
+            <button type="button" id="renew_cancel" class="modal_cancel_btn">취소</button>
+            <button type="button" id="renew_confirm" class="modal_save_btn">저장하기</button>
         </div>
     </div>
 </div>
@@ -246,6 +257,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="nav.js"></script>
 <script src="auth.js"></script>
-<script src="estimates.js"></script>
+<script src="products.js"></script>
 </body>
 </html>

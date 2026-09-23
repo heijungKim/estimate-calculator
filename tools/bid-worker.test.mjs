@@ -149,8 +149,11 @@ test('총건수가 많으면 페이지를 이어 받는다', async () => {
     let calls = 0;
     mockUpstream((op, page) => {
         calls++;
-        const rec = { ...REC_SIGN, bidNtceNo: `2026090${page}000` };
-        return { body: envelope(Array.from({ length: 999 }, (_, i) => ({ ...rec, bidNtceOrd: String(i).padStart(3, '0') })), 1998) };
+        // 공고번호를 달리한다. 같은 번호의 차수 여러 개는 한 건으로 합쳐지므로
+        // 페이지 이어받기 시험이 성립하지 않는다.
+        return { body: envelope(
+            Array.from({ length: 999 }, (_, i) => ({ ...REC_SIGN, bidNtceNo: `P${page}-${i}` })),
+            1998) };
     });
     const res = await worker.fetch(req('kind=thng&from=20260920&to=20260923'), ENV);
     const j = await res.json();
@@ -326,4 +329,125 @@ test('지역 필터가 기관명도 본다', async () => {
     mockUpstream(() => ({ body: envelope([REC_SIGN]) }));
     res = await worker.fetch(req('kind=thng&region=제주&from=20260920&to=20260923'), ENV);
     assert.equal((await res.json()).count, 0);
+});
+
+test('같은 공고의 여러 차수는 마지막 것만 남긴다', async () => {
+    // 원공고(000)와 변경공고(001)가 함께 온다. 둘 다 남기면 같은 공고가
+    // 목록에 두 번 나온다. 실제 수집분에서 18쌍이 이렇게 겹쳐 있었다.
+    const v0 = { ...REC_SIGN, bidNtceOrd: '000', bidNtceDt: '2026-09-17 14:25:13' };
+    const v1 = { ...REC_SIGN, bidNtceOrd: '001', bidNtceDt: '2026-09-17 17:40:43' };
+    mockUpstream(() => ({ body: envelope([v0, v1]) }));
+
+    const res = await worker.fetch(req('kind=thng&from=20260920&to=20260923'), ENV);
+    const j = await res.json();
+    assert.equal(j.count, 1);
+    assert.equal(j.items[0].ord, '001', '나중 차수가 유효한 공고다');
+    assert.equal(j.items[0].noticeAt, '2026-09-17 17:40:43');
+});
+
+test('차수가 역순으로 와도 마지막 것을 고른다', async () => {
+    const v2 = { ...REC_SIGN, bidNtceOrd: '002' };
+    const v0 = { ...REC_SIGN, bidNtceOrd: '000' };
+    mockUpstream(() => ({ body: envelope([v2, v0]) }));
+    const res = await worker.fetch(req('kind=thng&from=20260920&to=20260923'), ENV);
+    const j = await res.json();
+    assert.equal(j.count, 1);
+    assert.equal(j.items[0].ord, '002');
+});
+
+test('공고번호가 다르면 이름이 같아도 각각 남긴다', async () => {
+    // 재공고는 별개의 입찰이다. 이름이 같다고 합치면 안 된다.
+    const a = { ...REC_SIGN, bidNtceNo: 'R26BK01719586' };
+    const b = { ...REC_SIGN, bidNtceNo: 'R26BK01723966' };
+    mockUpstream(() => ({ body: envelope([a, b]) }));
+    const res = await worker.fetch(req('kind=thng&from=20260920&to=20260923'), ENV);
+    assert.equal((await res.json()).count, 2);
+});
+
+/* ── 입찰참가자격 등록 내용으로 관련 공고 가리기 ──────────────
+ * 키워드만으로 걸렀더니 'LED'로 조명등이, '시트'로 방수시트가,
+ * '인쇄'로 인쇄기가 딸려 들어왔다. 세부품명번호가 맞으면 실제로
+ * 투찰할 수 있는 건이라는 뜻이라 확실성이 다르다. */
+
+const { classifyRelevance } = await import('../tools/g2b-core.mjs');
+const { COMPANY } = await import('../tools/company.mjs');
+
+const TODAY = new Date('2026-09-23T00:00:00');
+const rec = (o) => ({ name: '', industry: '', spec: '', productCode: '', ...o });
+
+test('등록물품과 품명번호가 맞으면 registered', () => {
+    const r = rec({ productCode: '5512190401', name: '○○초 간판 제작설치' });
+    assert.equal(classifyRelevance(r, COMPANY, TODAY), 'registered');
+});
+
+test('등록유효기간이 지난 품명은 expired', () => {
+    // 스티커(5512161202)는 등록이 2018-12-31 로 끝나 있다
+    const r = rec({ productCode: '5512161202', name: '홍보 스티커 제작' });
+    assert.equal(classifyRelevance(r, COMPANY, TODAY), 'expired');
+});
+
+test('같은 품명군이면 group', () => {
+    // 55121904 군이지만 등록번호(…0401)는 아님
+    const r = rec({ productCode: '5512190499', name: '무언가' });
+    assert.equal(classifyRelevance(r, COMPANY, TODAY), 'group');
+});
+
+test('품명번호가 없어도 공고명이 우리 일이면 keyword', () => {
+    const r = rec({ name: '청사 현수막 게시대 설치' });
+    assert.equal(classifyRelevance(r, COMPANY, TODAY), 'keyword');
+});
+
+test('제외어에 걸리면 버린다', () => {
+    // 실제 수집분에서 딸려 들어왔던 것들
+    for (const name of [
+        'LED실내조명등 구매',
+        'LED터널용등기구 구입',
+        '풀로터리인쇄기 구매의건',
+        '옥상 방수시트 방수공사',
+        'AX 스프린트 실증용 GPU 서버 구매',
+    ]) {
+        assert.equal(classifyRelevance(rec({ name }), COMPANY, TODAY), null, name);
+    }
+});
+
+test('제외어가 있어도 품명번호가 맞으면 남긴다', () => {
+    // 'LED 간판'처럼 등록물품이 확실한 건은 이름에 뭐가 섞여도 버리면 안 된다
+    const r = rec({ productCode: '5512190401', name: 'LED조명등 및 간판 교체' });
+    assert.equal(classifyRelevance(r, COMPANY, TODAY), 'registered');
+});
+
+test('아무 데도 안 걸리면 null', () => {
+    assert.equal(classifyRelevance(rec({ name: '급식실 주방기구 구매' }), COMPANY, TODAY), null);
+});
+
+test('등록분야에 공사가 없다', () => {
+    // 등록증에 공사 체크가 없고 업종 목록도 비어 있어 투찰 자체가 불가능하다
+    assert.equal(COMPANY.fields.cnstwk, false);
+    assert.equal(COMPANY.fields.thng, true);
+    assert.equal(COMPANY.fields.servc, true);
+});
+
+test('company.json 의 품명 날짜가 모두 읽히는 형식이다', () => {
+    for (const p of COMPANY.products) {
+        assert.match(p.code, /^\d{10}$/, p.name + ' 품명번호');
+        for (const f of ['regStart', 'regEnd', 'certStart', 'certEnd']) {
+            assert.match(p[f], /^\d{4}-\d{2}-\d{2}$/, `${p.name}.${f}`);
+        }
+        assert.ok(new Date(p.regEnd) >= new Date(p.regStart), p.name + ' 기간 역전');
+    }
+});
+
+test('products.html 이 참조하는 로컬 파일이 모두 있다', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const url = await import('node:url');
+    const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
+    const html = fs.readFileSync(path.join(root, 'products.html'), 'utf8');
+    let checked = 0;
+    for (const m of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
+        if (/^https?:/.test(m[1])) continue;
+        assert.ok(fs.existsSync(path.join(root, m[1])), m[1] + ' 없음');
+        checked++;
+    }
+    assert.ok(checked >= 5, '검사된 로컬 참조가 너무 적다: ' + checked);
 });

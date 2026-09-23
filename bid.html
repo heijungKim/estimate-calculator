@@ -20,6 +20,16 @@
         <span class="sidebar-brand-text">우성디지탈<br>관리 시스템</span>
     </a>
             <nav class="sidebar-nav">
+        <a href="bid.html" class="nav-feature active">
+            <span class="nav-icon">&#127963;</span>
+            <span class="nav-feature-label">나라장터 공고</span>
+            <span class="nav-feature-dot"></span>
+        </a>
+        <a href="bid.html" class="nav-feature active">
+            <span class="nav-icon">&#127963;</span>
+            <span class="nav-feature-label">나라장터 공고</span>
+            <span class="nav-feature-dot"></span>
+        </a>
         <div class="nav-category">
             <div class="nav-cat-header">
                 <span class="nav-icon">&#128203;</span>
@@ -44,9 +54,9 @@
                 <span class="nav-cat-arrow">&#9660;</span>
             </div>
             <div class="nav-cat-items">
-                <a href="bid.html" class="nav-item active">
-                    <span class="nav-icon">&#127963;</span>
-                    <span>나라장터 공고</span>
+                <a href="products.html" class="nav-item">
+                    <span class="nav-icon">&#128203;</span>
+                    <span>등록 품목·인증</span>
                 </a>
             </div>
         </div>
@@ -195,12 +205,20 @@
                         <input type="checkbox" class="bid-kind" value="thng" checked /> 물품
                     </label>
                     <label class="bid-check">
-                        <input type="checkbox" class="bid-kind" value="cnstwk" checked /> 공사
+                        <input type="checkbox" class="bid-kind" value="servc" checked /> 용역
                     </label>
-                    <label class="bid-check">
-                        <input type="checkbox" class="bid-kind" value="servc" /> 용역
+                    <label class="bid-check bid-check-off" title="입찰참가자격 등록증에 공사 분야가 없어 참가할 수 없습니다">
+                        <input type="checkbox" class="bid-kind" value="cnstwk" disabled /> 공사 <span class="bid-na">미등록</span>
                     </label>
                 </div>
+            </div>
+            <div class="bid-field">
+                <label for="bid_rel">관련도</label>
+                <select id="bid_rel">
+                    <option value="">전체</option>
+                    <option value="registered">등록물품 일치 — 바로 투찰 가능</option>
+                    <option value="ready">확인 필요한 건 빼고</option>
+                </select>
             </div>
             <div class="bid-field">
                 <label for="bid_from">공고일 (시작)</label>
@@ -225,7 +243,7 @@
         </div>
         <div class="bid-filter-row">
             <div class="bid-field bid-keywords-field">
-                <label for="bid_chip_input">검색 키워드 <span style="font-weight:400;color:#aab0bb">— 공고명·업종에 하나라도 걸리면 목록에 남습니다. Enter 로 추가</span></label>
+                <label for="bid_chip_input">추가로 좁히기 <span style="font-weight:400;color:#aab0bb">— 선택. 비워두면 수집된 공고를 모두 보여줍니다. Enter 로 추가</span></label>
                 <div class="bid-chips" id="bid_chips">
                     <input type="text" class="bid-chip-input" id="bid_chip_input" placeholder="키워드 입력 후 Enter" />
                 </div>

@@ -18,16 +18,13 @@ var BID_DATA_URL = 'https://raw.githubusercontent.com/heijungKim/estimate-calcul
  * 비워두면 위 BID_DATA_URL 을 쓴다. 둘 다 비면 예시 데이터로 동작한다. */
 var BID_PROXY_BASE = '';
 
-// 기본 검색 키워드. 공고명·업종에 하나라도 걸리면 목록에 남는다.
-// 화면에서 수정할 수 있고, 수정하면 이 브라우저에 기억된다.
-var BID_DEFAULT_KEYWORDS = [
-    '간판', '사인', '현수막', '실사출력', 'LED',
-    '배너', '표지판', '안내판', '시트', '스카시',
-    '채널문자', '옥외광고', '광고물',
-];
+/* 화면에서 더 좁히고 싶을 때 쓰는 키워드. 기본은 비어 있다 —
+ * 수집 단계에서 이미 입찰참가자격 등록물품 기준으로 걸러내므로
+ * 여기서 또 거르면 정작 볼 공고가 가려진다. */
+var BID_DEFAULT_KEYWORDS = [];
 
-// 기본 조회 업무구분 — 물품, 공사
-var BID_DEFAULT_KINDS = ['thng', 'cnstwk'];
+// 기본 조회 업무구분. 등록분야가 물품·용역이라 공사는 뺀다.
+var BID_DEFAULT_KINDS = ['thng', 'servc'];
 
 // 기본 조회 기간 (일)
 var BID_DEFAULT_DAYS = 7;

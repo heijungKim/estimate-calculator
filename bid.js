@@ -20,6 +20,7 @@ var _favs     = {};      // { [id]: true } 관심공고
 var _keywords = [];
 var _sort     = 'closeAt';
 var _source   = null;    // { mode, fetchedAt, range, keywords } 데이터 출처 정보
+var _company  = null;    // 입찰참가자격 등록 내용 (수집 파일에 함께 실려 온다)
 var _db       = null;    // Firestore. 못 쓰면 null (localStorage 로 대체)
 
 var LS_KEYWORDS = 'bid_keywords_v1';
@@ -132,7 +133,7 @@ function bindEvents() {
     });
 
     // 수집분을 보고 있을 때는 재조회 없이 곧바로 다시 걸러내면 된다
-    $('#bid_only_open, #bid_only_fav, .bid-kind').change(render);
+    $('#bid_only_open, #bid_only_fav, .bid-kind, #bid_rel').change(render);
     $('#bid_region, #bid_min_price, #bid_max_price, #bid_from, #bid_to').on('change', render);
 
     // 관심공고 토글
@@ -161,6 +162,7 @@ function resetFilters() {
     $('#bid_region, #bid_min_price, #bid_max_price').val('');
     $('#bid_only_open').prop('checked', true);
     $('#bid_only_fav').prop('checked', false);
+    $('#bid_rel').val('');
     render();
 }
 
@@ -283,7 +285,10 @@ function loadFromData(done) {
                 fetchedAt: data.fetchedAt,
                 range: data.range,
                 keywords: data.keywords || [],
+                relevance: (data.meta && data.meta.relevance) || null,
             };
+            // 등록 내용을 알아야 '투찰 가능'을 표시하고 준비 목록을 짤 수 있다.
+            _company = data.company || null;
 
             // 날짜 칸을 수집 기간에 맞춘다. 수집은 14일치인데 화면 기본값이
             // 7일이면, 모아둔 공고가 이유도 없이 목록에서 빠져 보인다.
@@ -349,6 +354,7 @@ function loadFromProxy(done) {
 function render() {
     var onlyOpen = $('#bid_only_open').is(':checked');
     var onlyFav  = $('#bid_only_fav').is(':checked');
+    var relWant  = $('#bid_rel').val();
     var kinds    = $('.bid-kind:checked').map(function() { return this.value; }).get();
     var region   = $('#bid_region').val().trim();
     var minPrice = numOrNull($('#bid_min_price').val());
@@ -360,6 +366,9 @@ function render() {
     var list = _items.filter(function(r) {
         if (onlyFav && !_favs[r.id]) return false;
         if (kinds.length && kinds.indexOf(r.kind) === -1) return false;
+        if (relWant === 'registered' && r.relevance !== 'registered') return false;
+        // '확인 필요'는 품명번호가 안 맞아 공고명만 걸린 건들이다
+        if (relWant === 'ready' && r.relevance === 'keyword') return false;
         if (_keywords.length && !matchesKeyword(r, _keywords)) return false;
         if (region && !matchesRegion(r, region)) return false;
         if (minPrice != null && !(r.estPrice != null && r.estPrice >= minPrice)) return false;
@@ -423,6 +432,9 @@ function metaLine() {
     if (_source.fetchedAt) bits.push(agoText(_source.fetchedAt) + ' 수집');
     if (_source.range) bits.push('공고일 ' + dashDate(_source.range.from) + '~' + dashDate(_source.range.to));
     bits.push('전체 ' + _items.length + '건');
+    if (_source.relevance && _source.relevance.registered) {
+        bits.push('투찰가능 ' + _source.relevance.registered + '건');
+    }
 
     // 수집 때 안 걸린 키워드를 화면에서 찾으면 결과가 없는 게 당연한데,
     // 그 이유가 화면에 안 보이면 한참 헤매게 된다.
@@ -447,16 +459,26 @@ function buildRow(r, now) {
             .html(fav ? '&#9733;' : '&#9734;')
     ));
 
-    $tr.append($('<td>').append(
+    var $kind = $('<td>').append(
         $('<span class="bid-badge">')
             .addClass('bid-badge-' + r.kind)
             .text(kindLabel(r.kind))
-    ));
+    );
+    // 등록물품과 대조한 결과. 투찰할 수 있는 건인지가 목록에서 바로 보여야
+    // 훑는 시간이 줄어든다.
+    if (r.relevance) {
+        $kind.append($('<span class="bid-rel">')
+            .addClass('bid-rel-' + r.relevance)
+            .attr('title', relDesc(r.relevance))
+            .text(relLabel(r.relevance)));
+    }
+    $tr.append($kind);
 
     var $name = $('<div class="bid-name">').text(r.name || '(공고명 없음)');
     // 지역제한·업종제한은 참가 자격을 가르므로 목록에서 바로 보여준다.
     if (r.regionLimit) {
-        $name.append($('<span class="bid-tag">').text('지역제한 ' + r.regionLimit));
+        // 판단 기준(본사소재지 등)은 길어서 상세에서 보여준다.
+        $name.append($('<span class="bid-tag">').attr('title', r.regionLimit + ' 기준').text('지역제한'));
     }
     if (r.industryLimit) {
         $name.append($('<span class="bid-tag">').text('업종제한'));
@@ -502,6 +524,33 @@ function regionText(r) {
     return parts[0] + ' 외 ' + (parts.length - 1);
 }
 
+function relLabel(rel) {
+    return {
+        registered: '투찰가능',
+        expired:    '등록만료',
+        group:      '품명추가',
+        keyword:    '확인필요',
+    }[rel] || rel;
+}
+
+function relDesc(rel) {
+    return {
+        registered: '입찰참가 등록물품과 세부품명번호가 일치합니다',
+        expired:    '등록물품이지만 등록유효기간이 지났습니다 — 갱신해야 참가할 수 있습니다',
+        group:      '같은 품명군이지만 등록물품은 아닙니다 — 품명 추가 등록이 필요합니다',
+        keyword:    '세부품명번호가 맞지 않고 공고명만 걸렸습니다 — 공고문을 확인하세요',
+    }[rel] || '';
+}
+
+/* 공고의 세부품명번호에 해당하는 등록물품 */
+function registeredProduct(r) {
+    if (!_company || !_company.products || !r.productCode) return null;
+    for (var i = 0; i < _company.products.length; i++) {
+        if (_company.products[i].code === r.productCode) return _company.products[i];
+    }
+    return null;
+}
+
 function matchesKeyword(rec, keywords) {
     var hay = (rec.name || '') + ' ' + (rec.industry || '') + ' ' + (rec.spec || '');
     return keywords.some(function(k) { return hay.indexOf(k) > -1; });
@@ -519,60 +568,23 @@ function openDetail(id) {
     var r = findItem(id);
     if (!r) return;
 
-    var $dl = $('<dl class="bid-detail-grid">');
-    function row(k, v, cls) {
-        $dl.append($('<dt>').text(k));
-        $dl.append($('<dd>').addClass(cls || '').text(v == null || v === '' ? '—' : v));
-    }
-
-    row('공고번호', r.no + (r.ord && r.ord !== '000' ? ' (차수 ' + r.ord + ')' : ''));
-    row('업무구분', kindLabel(r.kind));
-    row('공고기관', r.noticeInst);
-    row('수요기관', r.demandInst);
-    $dl.append('<hr class="bid-detail-sep">');
-    row('품명·공종', r.industry);
-    if (r.spec) row('규격', r.spec);
-    if (r.qty != null) row('수량', comma(r.qty) + (r.unit ? ' ' + r.unit : ''), 'num');
-    $dl.append('<hr class="bid-detail-sep">');
-    row('추정가격', r.estPrice != null ? comma(r.estPrice) + ' 원' : '', 'num');
-    row('배정예산', r.budget != null ? comma(r.budget) + ' 원' : '', 'num');
-    row('낙찰하한율', r.lowerRate != null ? r.lowerRate + ' %' : '', 'num');
-    row('계약방법', r.method);
-    row('낙찰방법', r.bidMethod);
-    $dl.append('<hr class="bid-detail-sep">');
-    row('지역제한', r.regionLimit ? r.regionLimit + ' 기준' : '없음');
-    row('업종제한', r.industryLimit ? '있음' : '없음');
-    row('현장지역', regionText(r));
-    $dl.append('<hr class="bid-detail-sep">');
-    row('공고일시', dateTime(r.noticeAt));
-    row('마감일시', dateTime(r.closeAt));
-    row('개찰일시', dateTime(r.openAt));
-    // 참석이 의무인 공고가 있어 놓치면 입찰 자체가 막힌다.
-    if (r.briefingAt) {
-        row('현장설명회', dateTime(r.briefingAt) + (r.briefingPlace ? ' · ' + r.briefingPlace : ''));
-    }
-    if (r.officer || r.officerTel) {
-        $dl.append('<hr class="bid-detail-sep">');
-        row('담당자', [r.officer, r.officerTel].filter(Boolean).join(' · '));
-    }
-
-    var $checklist = $(
-        '<div class="bid-checklist">' +
-        '<h4>투찰 전 확인</h4>' +
-        '<label><input type="checkbox"> 참가가능지역·업종에 우리 회사가 해당하는지 확인</label>' +
-        '<label><input type="checkbox"> 공고문·과업내용서 내려받아 규격과 수량 확인</label>' +
-        '<label><input type="checkbox"> 견적 계산기로 제작원가 산출 (이 금액 아래로는 적자)</label>' +
-        '<label><input type="checkbox"> 입찰참가자격 등록 및 제출서류 준비</label>' +
-        '<label><input type="checkbox"> 마감시각 전 여유 확보 — 인증서 로그인에 시간이 걸립니다</label>' +
-        '<p class="bid-checklist-note">' +
-        '투찰 금액 입력과 제출은 나라장터에서 인증서로 본인 확인을 거쳐 직접 하셔야 합니다.' +
-        '</p></div>'
-    );
-
-    $('#bid_detail_body').empty()
+    var dd = ddayInfo(r.closeAt, new Date());
+    var $head = $('<div class="bid-detail-head">')
         .append($('<p class="bid-detail-name">').text(r.name || '(공고명 없음)'))
-        .append($dl)
-        .append($checklist);
+        .append($('<div class="bid-detail-due">')
+            .append($('<span class="when">').text('마감 ' + dateTime(r.closeAt)))
+            .append($('<span class="bid-dday">').addClass('bid-dday-' + dd.level).text(dd.text)));
+
+    var $cols = $('<div class="bid-detail-cols">')
+        .append($('<div>')
+            .append($('<p class="bid-col-title">').text('공고 정보'))
+            .append(buildInfoGrid(r)))
+        .append($('<div>')
+            .append($('<p class="bid-col-title">').text('투찰 준비'))
+            .append(buildSteps(r)));
+
+    $('#bid_detail_body').empty().append($head).append($cols);
+    $('#bid_detail_body').scrollTop(0);
 
     var url = r.url || 'https://www.g2b.go.kr/';   // 상세 URL 이 비어 오는 건도 있다
     $('#bid_detail_open').off('click').click(function() {
@@ -582,6 +594,274 @@ function openDetail(id) {
     $('#bid_detail_modal').css('display', 'flex');
 }
 
+/* ── 왼쪽: 공고 정보 ── */
+function buildInfoGrid(r) {
+    var $dl = $('<dl class="bid-detail-grid">');
+    function row(k, v, cls) {
+        if (v == null || v === '') v = '—';
+        $dl.append($('<dt>').text(k));
+        $dl.append($('<dd>').addClass(cls || '').text(v));
+    }
+    function sep() { $dl.append('<hr class="bid-detail-sep">'); }
+
+    row('공고번호', r.no + (r.ord && r.ord !== '000' ? '  (차수 ' + r.ord + ')' : ''));
+    row('업무구분', kindLabel(r.kind));
+    row('공고기관', r.noticeInst);
+    row('수요기관', r.demandInst);
+    sep();
+    row('품명·공종', r.industry);
+    row('규격', r.spec);
+    row('수량', r.qty != null ? comma(r.qty) + (r.unit ? ' ' + r.unit : '') : '', 'num');
+    sep();
+    row('추정가격', r.estPrice != null ? comma(r.estPrice) + ' 원' : '', 'num');
+    row('배정예산', r.budget != null ? comma(r.budget) + ' 원' : '', 'num');
+    row('낙찰하한율', r.lowerRate != null ? r.lowerRate + ' %' : '', 'num');
+    if (r.prdprcTotal) {
+        row('예비가격', r.prdprcTotal + '개 중 ' + (r.prdprcDrawn || '?') + '개 추첨');
+    }
+    row('계약방법', r.method);
+    row('낙찰방법', r.bidMethod);
+    sep();
+    row('지역제한', r.regionLimit ? r.regionLimit + ' 기준' : '없음', r.regionLimit ? 'warn' : '');
+    row('업종제한', r.industryLimit ? '있음' : '없음', r.industryLimit ? 'warn' : '');
+    row('현장지역', regionText(r));
+    sep();
+    row('공고일시', dateTime(r.noticeAt));
+    row('마감일시', dateTime(r.closeAt));
+    row('개찰일시', dateTime(r.openAt));
+    if (r.briefingAt) {
+        row('현장설명회', dateTime(r.briefingAt) + (r.briefingPlace ? '  ' + r.briefingPlace : ''), 'warn');
+    }
+    if (r.officer || r.officerTel) {
+        sep();
+        row('담당자', [r.officer, r.officerTel].filter(Boolean).join('  ·  '));
+    }
+
+    var $wrap = $('<div>').append($dl);
+    if (r.specUrl) {
+        $wrap.append($('<a class="bid-doc-link" target="_blank" rel="noopener">')
+            .attr('href', r.specUrl).text('규격서·공고문 내려받기 →'));
+    }
+    return $wrap;
+}
+
+/* ── 오른쪽: 투찰 준비 단계 ──────────────────────────────────
+ * 공고마다 챙길 것이 다르다. 지역제한이 걸렸는지, 현장설명회가 있는지,
+ * 공사인지 물품인지에 따라 항목을 바꿔 넣는다. 일반론만 늘어놓으면
+ * 읽지 않게 되고, 정작 그 공고에서 발목 잡히는 것을 놓친다.
+ */
+function buildSteps(r) {
+    var checks = loadChecks(r.id);
+    var $box = $('<div class="bid-steps">');
+
+    prepSteps(r).forEach(function(step, si) {
+        var $step = $('<div class="bid-step">');
+        var doneCount = step.items.filter(function(it) { return checks[it.k]; }).length;
+
+        var $head = $('<div class="bid-step-head">')
+            .append($('<span class="bid-step-no">').text(si + 1))
+            .append($('<span class="bid-step-title">').text(step.title))
+            .append($('<span class="bid-step-count">').text(doneCount + '/' + step.items.length));
+        $step.append($head);
+        if (doneCount === step.items.length) $step.addClass('done');
+
+        step.items.forEach(function(it) {
+            var $label = $('<label class="bid-check-item">').toggleClass('warn', !!it.warn);
+            var $cb = $('<input type="checkbox">')
+                .prop('checked', !!checks[it.k])
+                .attr('data-k', it.k);
+            var $txt = $('<span>');
+
+            // 링크가 붙는 항목은 텍스트를 쪼개 넣는다
+            if (it.link) {
+                $txt.append(document.createTextNode(it.t + ' '))
+                    .append($('<a>').attr('href', it.link).attr('target', '_blank').text(it.linkText || '열기 →'));
+            } else {
+                $txt.text(it.t);
+            }
+
+            $cb.on('change', function() {
+                saveCheck(r.id, it.k, this.checked);
+                refreshStepCount($(this).closest('.bid-step'));
+            });
+            $label.append($cb).append($txt);
+            $step.append($label);
+        });
+
+        $box.append($step);
+    });
+
+    $box.append($('<p class="bid-steps-note">').html(
+        '<b>투찰 금액 입력과 제출은 나라장터에서 직접 하셔야 합니다.</b> ' +
+        '전자입찰은 인증서로 본인 신원확인을 거치도록 되어 있어, 프로그램이 ' +
+        '대신 투찰하게 만들면 인증서 관리 의무 위반이자 입찰방해·부정당업자 ' +
+        '제재 대상이 될 수 있습니다. 여기서 금액까지 정해두고 마지막 제출만 ' +
+        '나라장터에서 누르십시오.'));
+
+    return $box;
+}
+
+function refreshStepCount($step) {
+    var total = $step.find('.bid-check-item').length;
+    var done = $step.find('input:checked').length;
+    $step.find('.bid-step-count').text(done + '/' + total);
+    $step.toggleClass('done', done === total && total > 0);
+}
+
+/* 공고 성격에 따라 준비 항목을 짜맞춘다. */
+function prepSteps(r) {
+    var steps = [];
+    var isCnstwk = r.kind === 'cnstwk';
+    var isSuui = /수의/.test((r.method || '') + (r.bidMethod || ''));
+
+    /* 1 ─ 참가자격 */
+    var s1 = { title: '참가자격 확인', items: [] };
+
+    // 등록증과 대조한 결과를 맨 앞에 둔다. 여기서 막히면 나머지는 의미가 없다.
+    var prod = registeredProduct(r);
+    if (r.relevance === 'registered' && prod) {
+        s1.items.push({ k: 'prod',
+            t: '등록물품 \u2018' + prod.name + '\u2019 으로 참가 가능 (등록유효기간 ' + prod.regEnd + '까지)' });
+    } else if (r.relevance === 'expired' && prod) {
+        s1.items.push({ k: 'prod', warn: true, link: 'products.html', linkText: '등록 품목 열기 →',
+            t: '등록물품 \u2018' + prod.name + '\u2019 의 등록유효기간이 ' + prod.regEnd + ' 로 지났습니다 — 갱신해야 참가할 수 있습니다.' });
+    } else if (r.relevance === 'group') {
+        s1.items.push({ k: 'prod', warn: true, link: 'products.html', linkText: '등록 품목 열기 →',
+            t: '등록물품이 아닙니다 (' + (r.industry || r.productCode || '품명 미상') + ') — 품명 추가 등록이 필요할 수 있습니다.' });
+    } else if (r.relevance === 'keyword') {
+        s1.items.push({ k: 'prod', warn: true,
+            t: '세부품명번호가 우리 등록물품과 맞지 않습니다 — 공고문에서 품명을 확인하세요.' });
+    }
+    if (r.regionLimit) {
+        s1.items.push({ k: 'rgn', warn: true,
+            t: '지역제한 공고입니다 — ' + r.regionLimit + ' 기준으로 우리 회사가 해당하는지 확인' });
+    } else {
+        s1.items.push({ k: 'rgn', t: '지역제한 없음 — 소재지 제약 없이 참가 가능' });
+    }
+    if (r.industryLimit) {
+        s1.items.push({ k: 'ind', warn: true,
+            t: '업종제한 공고입니다 — 해당 업종으로 등록되어 있는지 확인' });
+    }
+    s1.items.push({ k: 'reg', t: '나라장터 입찰참가자격 등록이 살아 있는지 확인 (만료되면 투찰 자체가 막힙니다)' });
+    if (isCnstwk) {
+        s1.items.push({ k: 'lic', t: '건설업·전문건설업 면허와 시공능력평가액이 공고 요건을 넘는지 확인' });
+    } else {
+        s1.items.push({ k: 'dpc', t: '직접생산확인증명서가 필요한 품목인지 확인 (관급 물품은 요구하는 경우가 많습니다)' });
+    }
+    s1.items.push({ k: 'ban', t: '부정당업자 제재 이력이 없는지 확인' });
+    steps.push(s1);
+
+    /* 2 ─ 공고문·규격 */
+    var s2 = { title: '공고문·규격 확인', items: [] };
+    s2.items.push({ k: 'doc', t: '공고문을 내려받아 과업 범위와 특수조건을 읽기' });
+    if (r.spec) {
+        s2.items.push({ k: 'spec',
+            t: '규격 확인: ' + r.spec + (r.qty != null ? '  /  ' + comma(r.qty) + (r.unit || '') : '') });
+    } else {
+        s2.items.push({ k: 'spec', t: '규격서·물량내역서로 정확한 사양과 수량 확인' });
+    }
+    s2.items.push({ k: 'site', t: '설치 현장 여건 확인 — 진입로, 고소작업 여부, 전기 인입, 주차' });
+    if (isCnstwk) {
+        s2.items.push({ k: 'perm', t: '옥외광고물 허가·신고 대상인지, 누가 처리하는지 확인' });
+    }
+    if (r.briefingAt) {
+        s2.items.push({ k: 'brief', warn: true,
+            t: '현장설명회 ' + dateTime(r.briefingAt) + (r.briefingPlace ? '  ·  ' + r.briefingPlace : '') +
+               ' — 참석이 의무인 공고는 빠지면 입찰이 무효입니다' });
+    }
+    if (r.officerTel) {
+        s2.items.push({ k: 'call',
+            t: '애매한 규격은 담당자에게 확인 — ' + [r.officer, r.officerTel].filter(Boolean).join(' ') });
+    }
+    steps.push(s2);
+
+    /* 3 ─ 원가 */
+    var s3 = { title: '원가 산출', items: [] };
+    s3.items.push({ k: 'cost', link: 'index.html', linkText: '견적 계산기 열기 →',
+        t: '제작원가를 뽑아 적자 하한선을 정하기.' });
+    s3.items.push({ k: 'sub', t: '외주 단가 확인 — 시트 출력, 절곡, 도장, 전기공사 등' });
+    s3.items.push({ k: 'extra', t: '부대비용 반영 — 운반비, 크레인·고소차, 야간·휴일 작업, 폐기물 처리' });
+    s3.items.push({ k: 'as', t: '하자보수 기간 동안의 유지관리 부담 반영' });
+    s3.items.push({ k: 'vat', t: '부가세 별도인지 포함인지 확인 (추정가격은 보통 부가세 별도)' });
+    steps.push(s3);
+
+    /* 4 ─ 투찰금액 */
+    var s4 = { title: '투찰금액 결정', items: [] };
+    if (r.lowerRate != null) {
+        s4.items.push({ k: 'low', warn: true,
+            t: '낙찰하한율 ' + r.lowerRate + '% — 기초금액 대비 이 아래로 쓰면 무효 처리됩니다' });
+    } else if (isSuui) {
+        s4.items.push({ k: 'low', t: '수의계약 건입니다 — 하한율 없이 견적 금액으로 경쟁합니다' });
+    } else {
+        s4.items.push({ k: 'low', t: '낙찰하한율이 공고에 안 실려 있습니다 — 공고문의 낙찰자 결정방법 확인' });
+    }
+    if (r.prdprcTotal) {
+        s4.items.push({ k: 'prd',
+            t: '복수예비가격 ' + r.prdprcTotal + '개 중 ' + (r.prdprcDrawn || '?') +
+               '개를 추첨해 기초금액이 정해집니다 — 개찰 전에는 확정 금액을 알 수 없습니다' });
+    }
+    s4.items.push({ k: 'band', t: '원가선과 하한선 사이에서 투찰 구간을 잡기' });
+    s4.items.push({ k: 'hist', t: '비슷한 공고의 지난 낙찰률과 비교' });
+    steps.push(s4);
+
+    /* 5 ─ 서류 */
+    var s5 = { title: '서류 준비', items: [] };
+    s5.items.push({ k: 'd_apply', t: '입찰참가신청서' });
+    if (isCnstwk) {
+        s5.items.push({ k: 'd_calc', t: '산출내역서 — 공사는 미제출 시 무효인 경우가 많습니다' });
+    }
+    s5.items.push({ k: 'd_clean', t: '청렴계약 이행서약서' });
+    s5.items.push({ k: 'd_seal', t: '사용인감계·위임장 (필요한 경우)' });
+    s5.items.push({ k: 'd_bond', t: '입찰보증금 또는 보증보험증권 — 납부 기한이 마감보다 이른 경우가 있습니다' });
+    s5.items.push({ k: 'd_perf', t: '실적증명서·자격 증빙 (적격심사 대상이면)' });
+
+    // 가산점은 자격이 있어도 확인서를 붙여야 점수가 붙는다. 빠뜨리면 그냥 0점이다.
+    var certs = (_company && _company.certifications) || [];
+    certs.forEach(function(c) {
+        var until = c.until ? ' (유효 ' + c.until + '까지)' : '';
+        s5.items.push({ k: 'cert_' + c.key,
+            t: c.doc + ' 첨부 — ' + c.name + ' 신인도 가산' + until });
+    });
+    if (certs.length) {
+        s5.items.push({ k: 'cert_valid', link: 'products.html', linkText: '유효기간 확인 →',
+            t: '확인서 유효기간이 살아 있는지 확인 — 지난 확인서는 점수가 인정되지 않습니다.' });
+    }
+
+    steps.push(s5);
+
+    /* 6 ─ 투찰 */
+    var s6 = { title: '투찰', items: [] };
+    s6.items.push({ k: 'cert', t: '사업자용·개인용 인증서 준비, 만료일 확인' });
+    s6.items.push({ k: 'sec', t: '나라장터 보안모듈이 깔려 있고 로그인되는지 미리 확인' });
+    s6.items.push({ k: 'time', warn: true,
+        t: '마감 ' + dateTime(r.closeAt) + ' — 최소 30분 전에 접속. 인증서 로그인과 보안모듈에서 시간을 까먹습니다' });
+    s6.items.push({ k: 'amt', t: '투찰금액 자릿수 확인 후 제출 (제출하면 수정할 수 없습니다)' });
+    steps.push(s6);
+
+    return steps;
+}
+
+/* ── 확인 목록 저장 ──────────────────────────────────────────
+ * 공고별로 이 브라우저에 남긴다. 준비는 며칠에 걸쳐 하게 되는데
+ * 창을 닫을 때마다 초기화되면 체크 자체를 안 하게 된다.
+ */
+var LS_CHECKS = 'bid_checklist_v1';
+
+function loadChecks(id) {
+    try {
+        return (JSON.parse(localStorage.getItem(LS_CHECKS) || '{}'))[id] || {};
+    } catch (e) { return {}; }
+}
+
+function saveCheck(id, key, on) {
+    try {
+        var all = JSON.parse(localStorage.getItem(LS_CHECKS) || '{}');
+        if (!all[id]) all[id] = {};
+        if (on) all[id][key] = 1; else delete all[id][key];
+        if (!Object.keys(all[id]).length) delete all[id];
+        localStorage.setItem(LS_CHECKS, JSON.stringify(all));
+    } catch (e) {}
+}
 function findItem(id) {
     for (var i = 0; i < _items.length; i++) {
         if (_items[i].id === id) return _items[i];

@@ -1,0 +1,253 @@
+/* products.css — 입찰 등록 품목·인증 */
+
+.prod-wrap {
+    max-width: 1400px;
+    margin: 36px auto 60px;
+    padding: 0 32px;
+}
+
+/* ── 페이지 헤더 ── */
+.prod-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+.prod-page-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.prod-page-title .title-bar {
+    width: 4px;
+    height: 20px;
+    background: #e94560;
+    border-radius: 2px;
+    display: inline-block;
+}
+.prod-company {
+    font-size: 13px;
+    color: #4a5568;
+}
+.prod-company b { color: #1a1a2e; }
+.prod-company .sep { color: #dde1e9; margin: 0 8px; }
+
+/* ── 만료 요약 ── */
+.prod-summary { margin-bottom: 20px; }
+.prod-alert {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.65;
+}
+.prod-alert-icon { font-size: 15px; flex-shrink: 0; line-height: 1.5; }
+.prod-alert-danger {
+    background: #fdecea;
+    border: 1.5px solid #f5c6c0;
+    border-left: 4px solid #c62828;
+    color: #8a3a35;
+}
+.prod-alert-danger strong { color: #c62828; }
+.prod-alert-warn {
+    background: #fff8e6;
+    border: 1.5px solid #f2d79b;
+    border-left: 4px solid #f59e0b;
+    color: #6b5518;
+}
+.prod-alert-warn strong { color: #a16207; }
+.prod-alert-ok {
+    background: #e8f5e9;
+    border: 1.5px solid #c3e6c5;
+    border-left: 4px solid #2e7d32;
+    color: #2b5b2e;
+}
+
+/* ── 섹션 ── */
+.prod-section {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    margin-bottom: 26px;
+    overflow: hidden;
+}
+.prod-section-head {
+    padding: 18px 22px 14px;
+    border-bottom: 1.5px solid #f0f2f5;
+}
+.prod-section-head h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 6px;
+}
+.prod-section-head p {
+    font-size: 12.5px;
+    color: #8892a4;
+    line-height: 1.65;
+    margin: 0;
+}
+.prod-section-head strong { color: #c62828; }
+
+/* ── 표 ── */
+.prod-table-wrap { overflow-x: auto; }
+.prod-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.prod-table thead tr { background: #f0f2f5; }
+.prod-table thead th {
+    padding: 10px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #5a6880;
+    text-align: left;
+    border-bottom: 1.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+.prod-table tbody tr { border-bottom: 1px solid #f0f2f5; }
+.prod-table tbody tr:last-child { border-bottom: none; }
+.prod-table tbody tr:hover { background: #fafbff; }
+.prod-table td {
+    padding: 11px 12px;
+    color: #1a1a2e;
+    vertical-align: middle;
+}
+.prod-table td.mono {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    color: #4a5568;
+    white-space: nowrap;
+}
+.prod-name { font-weight: 600; }
+.prod-sub {
+    font-size: 11.5px;
+    color: #8892a4;
+    margin-top: 2px;
+    line-height: 1.45;
+}
+
+/* 기간 칸 */
+.prod-period {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    font-size: 12.5px;
+}
+.prod-period .to { color: #aab0bb; margin: 0 4px; }
+.prod-period.dead { color: #c62828; font-weight: 600; }
+.prod-period.none { color: #aab0bb; }
+
+/* 상태 배지 */
+.prod-status {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.prod-status-dead   { background: #fdecea; color: #c62828; }
+.prod-status-renew  { background: #fff4e0; color: #b57400; }
+.prod-status-soon   { background: #fffbe6; color: #8a6d1f; border: 1px solid #f0e2b0; }
+.prod-status-ok     { background: #e8f5e9; color: #2e7d32; }
+.prod-status-none   { background: #f0f2f5; color: #8892a4; }
+
+/* 갱신 버튼 */
+.prod-renew-btn {
+    height: 28px;
+    padding: 0 11px;
+    border-radius: 7px;
+    border: 1.5px solid #dde1e9;
+    background: #fff;
+    color: #4a5568;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.prod-renew-btn:hover {
+    border-color: #e94560;
+    color: #e94560;
+}
+.prod-renew-btn.urgent {
+    background: #e94560;
+    border-color: #e94560;
+    color: #fff;
+}
+.prod-renew-btn.urgent:hover { background: #d63652; border-color: #d63652; color: #fff; }
+
+.prod-note {
+    font-size: 12px;
+    color: #8892a4;
+    line-height: 1.7;
+    margin: 0;
+}
+.prod-note code {
+    background: #f0f2f5;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11.5px;
+    color: #0f3460;
+}
+
+.prod-empty {
+    padding: 40px;
+    text-align: center;
+    color: #8892a4;
+    font-size: 13px;
+}
+
+/* ── 갱신 모달 ── */
+.renew_target {
+    background: #f7f8fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 11px 13px;
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #1a1a2e;
+    line-height: 1.5;
+}
+.renew_target .code {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11.5px;
+    color: #8892a4;
+    display: block;
+    margin-top: 3px;
+}
+.renew_preview {
+    margin-top: 16px;
+    background: #e8f5e9;
+    border: 1px solid #c3e6c5;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #2b5b2e;
+    line-height: 1.7;
+}
+.renew_preview b { color: #1b5e20; font-variant-numeric: tabular-nums; }
+.renew_preview .muted { color: #6b8a6d; font-size: 11.5px; }
+.renew_error {
+    margin: 10px 0 0;
+    font-size: 12.5px;
+    color: #c62828;
+    min-height: 16px;
+}
+
+@media (max-width: 900px) {
+    .prod-wrap { padding: 0 16px; margin-top: 24px; }
+}
