@@ -503,7 +503,7 @@ function buildRow(r, now) {
 
 /* 서류를 몇 개나 챙겼는지. 목록에서 바로 보여야 어디까지 했는지 안다. */
 function progressBadge(r) {
-    var docs = (typeof bidDocsFor === 'function') ? bidDocsFor(r) : [];
+    var docs = (typeof bidDocsPerBid === 'function') ? bidDocsPerBid(r) : [];
     if (!docs.length) return $('<span class="bid-prog none">').text('—');
     var checks = loadChecks(r.id);
     var done = docs.filter(function(d) { return checks[d.key]; }).length;
@@ -585,6 +585,7 @@ function matchesRegion(rec, region) {
 function openDetail(id) {
     var r = findItem(id);
     if (!r) return;
+    _prepTab = 'docs';   // 공고를 새로 열면 서류부터. 그리기 전에 바꿔야 한다.
 
     var dd = ddayInfo(r.closeAt, new Date());
     var $head = $('<div class="bid-detail-head">')
@@ -602,7 +603,6 @@ function openDetail(id) {
             .append($('<p class="bid-col-title">').text('투찰 준비'))
             .append(buildSteps(r)));
 
-    _wizStep = 0;   // 공고를 새로 열면 첫 단계부터
     $('#bid_detail_body').empty().append($head).append($cols);
     $('#bid_detail_body').scrollTop(0);
 
@@ -755,6 +755,10 @@ function buildCalc(r) {
 }
 
 function renderCalc($out, res, r) {
+    _lastCalc = { id: r.id, res: res };
+    // 준비 정보 탭이 열려 있으면 권장 금액을 같이 갱신한다
+    var $prep = $('.bid-prep');
+    if ($prep.length && _prepTab === 'info') renderPrep($prep, r);
     $out.empty();
     if (!res) {
         $out.append($('<p class="bid-calc-na">').text('기초금액과 낙찰하한율을 넣어주세요.'));
@@ -838,159 +842,205 @@ function saveCalcInput(id, key, value) {
  * 공사인지 물품인지에 따라 항목을 바꿔 넣는다. 일반론만 늘어놓으면
  * 읽지 않게 되고, 정작 그 공고에서 발목 잡히는 것을 놓친다.
  */
-/* 한 번에 한 단계만 보여준다. 전부 펼쳐두면 읽지 않고 넘긴다. */
-var _wizStep = 0;
+/* 투찰 준비는 두 영역이다.
+ *   제출 서류  이 공고에 실제로 내야 하는 것. 체크박스가 있는 유일한 곳.
+ *   준비 정보  시스템이 자동으로 정리한 것. 읽기만 한다.
+ * 체크박스가 서류에만 남아야 사람이 할 일이 무엇인지 분명해진다. */
+var _prepTab = 'docs';
 
 function buildSteps(r) {
-    var $box = $('<div class="bid-wiz">');
-    renderWizard($box, r);
+    var $box = $('<div class="bid-prep">');
+    renderPrep($box, r);
     return $box;
 }
 
-function renderWizard($box, r) {
+function renderPrep($box, r) {
     var checks = loadChecks(r.id);
     var auto = autoChecks(r);
-    var steps = prepSteps(r);
-    if (_wizStep >= steps.length) _wizStep = steps.length - 1;
-    if (_wizStep < 0) _wizStep = 0;
-
-    var step = steps[_wizStep];
+    var docs = (typeof bidDocsPerBid === 'function') ? bidDocsPerBid(r) : [];
+    var done = docs.filter(function(d) { return checks[d.key]; }).length;
     $box.empty();
 
-    // 막힌 것이 있으면 단계를 밟기 전에 먼저 알린다
     var blocked = autoSummary(r, auto);
     if (blocked) $box.append(blocked);
 
-    // 진행 표시
-    var $bar = $('<div class="bid-wiz-bar">');
-    steps.forEach(function(st, i) {
-        var d = stepDone(st, checks, auto);
-        var $dot = $('<button type="button" class="bid-wiz-dot">')
-            .toggleClass('on', i === _wizStep)
-            .toggleClass('done', d.done === d.total && d.total > 0)
-            .attr('title', st.title)
-            .append($('<span class="n">').text(i + 1))
-            .append($('<span class="t">').text(st.short || st.title));
-        $dot.on('click', function() { _wizStep = i; renderWizard($box, r); });
-        $bar.append($dot);
+    // 탭
+    var $tabs = $('<div class="bid-prep-tabs">');
+    var $t1 = $('<button type="button" class="bid-prep-tab">')
+        .toggleClass('on', _prepTab === 'docs')
+        .append($('<span>').text('제출 서류'))
+        .append($('<span class="cnt">').addClass(done === docs.length && docs.length ? 'full' : '')
+            .text(done + '/' + docs.length));
+    var $t2 = $('<button type="button" class="bid-prep-tab">')
+        .toggleClass('on', _prepTab === 'info')
+        .append($('<span>').text('준비 정보'))
+        .append($('<span class="cnt auto">').text('자동'));
+    $t1.on('click', function() { _prepTab = 'docs'; renderPrep($box, r); });
+    $t2.on('click', function() { _prepTab = 'info'; renderPrep($box, r); });
+    $tabs.append($t1).append($t2);
+    $box.append($tabs);
+
+    if (_prepTab === 'docs') renderDocsTab($box, r, docs, checks, auto);
+    else renderInfoTab($box, r, auto);
+}
+
+/* ── 제출 서류 ─────────────────────────────────────────────── */
+function renderDocsTab($box, r, docs, checks, auto) {
+    var $panel = $('<div class="bid-prep-panel">');
+
+    if (!docs.length) {
+        $panel.append($('<p class="bid-prep-empty">').text('이 공고에 따로 낼 서류가 없습니다.'));
+    }
+
+    var byStage = {};
+    docs.forEach(function(d) { (byStage[d.stage] = byStage[d.stage] || []).push(d); });
+
+    (typeof BID_STAGES !== 'undefined' ? BID_STAGES : []).forEach(function(st) {
+        var list = byStage[st.key];
+        if (!list || !list.length) return;
+        var $grp = $('<div class="bid-docgrp">');
+        $grp.append($('<div class="bid-docgrp-head">')
+            .append($('<b>').text(st.title))
+            .append($('<span>').text(st.note || '')));
+        list.forEach(function(d) {
+            $grp.append(buildDocItem(d, r, checks, auto, $box));
+        });
+        $panel.append($grp);
     });
-    $box.append($bar);
 
-    // 현재 단계
-    var $panel = $('<div class="bid-wiz-panel">');
-    var d = stepDone(step, checks, auto);
-    $panel.append($('<div class="bid-wiz-head">')
-        .append($('<h5>').text(step.title))
-        .append($('<span class="cnt">').text(d.done + '/' + d.total)));
-    if (step.note) $panel.append($('<p class="bid-wiz-note">').text(step.note));
-
-    step.items.forEach(function(it) {
-        $panel.append(buildItem(it, r, step, checks, auto, $box));
-    });
-
-    if (step.standingNote) {
+    var standing = (typeof bidDocsStanding === 'function') ? bidDocsStanding(r) : [];
+    if (standing.length) {
         $panel.append($('<div class="bid-wiz-standing">')
-            .append($('<span>').text(step.standingNote))
+            .append($('<span>').text('확인서·증명서 ' + standing.length + '건은 상시 준비에서 갖춰둔 것을 함께 냅니다.'))
             .append($('<a href="products.html">').text('상시 준비 확인 \u2192')));
     }
 
+    $panel.append($('<p class="bid-steps-note">').html(
+        '<b>투찰 금액 입력과 제출은 나라장터에서 직접 하셔야 합니다.</b> ' +
+        '전자입찰은 인증서로 본인 신원확인을 거치도록 되어 있어, 프로그램이 ' +
+        '대신 투찰하게 만들면 인증서 관리 의무 위반이자 입찰방해·부정당업자 ' +
+        '제재 대상이 될 수 있습니다.'));
+
     $box.append($panel);
-
-    // 이동
-    var $nav = $('<div class="bid-wiz-nav">');
-    var $prev = $('<button type="button" class="bid-wiz-btn ghost">').text('\u2190 이전')
-        .prop('disabled', _wizStep === 0);
-    $prev.on('click', function() { _wizStep--; renderWizard($box, r); });
-    $nav.append($prev);
-
-    if (_wizStep < steps.length - 1) {
-        var $next = $('<button type="button" class="bid-wiz-btn">').text('다음 \u2192');
-        $next.on('click', function() { _wizStep++; renderWizard($box, r); });
-        $nav.append($next);
-    } else {
-        $nav.append($('<span class="bid-wiz-last">').text('마지막 단계입니다'));
-    }
-    $box.append($nav);
-
-    // 마지막 단계에서만 붙인다. 매 단계마다 같은 경고를 보면 안 읽게 된다.
-    if (_wizStep === steps.length - 1) {
-        $box.append($('<p class="bid-steps-note">').html(
-            '<b>투찰 금액 입력과 제출은 나라장터에서 직접 하셔야 합니다.</b> ' +
-            '전자입찰은 인증서로 본인 신원확인을 거치도록 되어 있어, 프로그램이 ' +
-            '대신 투찰하게 만들면 인증서 관리 의무 위반이자 입찰방해·부정당업자 ' +
-            '제재 대상이 될 수 있습니다.'));
-    }
 }
 
-/* 항목 하나 그리기. 자동으로 확정된 것은 체크박스를 주지 않는다. */
-function buildItem(it, r, step, checks, auto, $box) {
-    var au = auto[it.k];
-    var autoDone = !step.docs && au && au.state === 'ok';
-
+function buildDocItem(d, r, checks, auto, $box) {
+    var au = auto[d.key];
+    var srcInfo = bidDocSource(d);
     var $label = $('<label class="bid-check-item">')
-        .toggleClass('warn', !!it.warn || (au && au.state === 'warn'))
-        .toggleClass('auto-ok', !!autoDone)
         .toggleClass('auto-fail', !!(au && au.state === 'fail'));
 
     var $cb;
-    if (autoDone) {
-        $cb = $('<span class="bid-auto-mark ok">').html('&#10003;');
-    } else if (au && au.state === 'fail') {
+    if (au && au.state === 'fail') {
+        // 만료된 증명서는 낼 수 없다. 체크할 수 있게 두면 냈다고 믿게 된다.
         $cb = $('<span class="bid-auto-mark fail">').html('&#10007;');
     } else {
-        $cb = $('<input type="checkbox">')
-            .prop('checked', !!checks[it.k]).attr('data-k', it.k);
+        $cb = $('<input type="checkbox">').prop('checked', !!checks[d.key]).attr('data-k', d.key);
+        $cb.on('change', function() {
+            saveCheck(r.id, d.key, this.checked);
+            renderPrep($box, r);
+        });
     }
 
     var $txt = $('<span>');
-    if (it.sub !== undefined) {
-        var $nm = $('<span class="bid-doc-name">').text(it.t);
-        if (it.gain) $nm.append($('<span class="bid-doc-gain">').text('가점'));
-        $txt.append($nm);
-        if (it.sub) $txt.append($('<span class="bid-doc-note">').text(it.sub));
-        if (it.link) {
-            $txt.append($('<a class="bid-doc-src" target="_blank" rel="noopener">')
-                .attr('href', it.link).text(it.linkText));
-        }
-    } else if (it.link) {
-        $txt.append(document.createTextNode(it.t + ' '))
-            .append($('<a>').attr('href', it.link).attr('target', '_blank')
-                .text(it.linkText || '열기 \u2192'));
-    } else {
-        $txt.text(it.t);
+    var $nm = $('<span class="bid-doc-name">').text(d.name);
+    if (d.gain) $nm.append($('<span class="bid-doc-gain">').text('가점'));
+    $txt.append($nm);
+    if (d.note) $txt.append($('<span class="bid-doc-note">').text(d.note));
+    if (srcInfo) {
+        $txt.append($('<a class="bid-doc-src" target="_blank" rel="noopener">')
+            .attr('href', srcInfo.url).text(srcInfo.name + ' \u2192'));
     }
+    if (au) $txt.append($('<span class="bid-auto-why">').addClass(au.state).text(au.why));
 
-    if (au) {
-        $txt.append($('<span class="bid-auto-why">').addClass(au.state).text(au.why));
-    }
-
-    if ($cb.is('input')) {
-        $cb.on('change', function() {
-            saveCheck(r.id, it.k, this.checked);
-            renderWizard($box, r);
-        });
-    }
     return $label.append($cb).append($txt);
 }
 
-/* 단계의 진행 정도. 자동 확인된 것도 완료로 친다. */
-function stepDone(step, checks, auto) {
-    var done = 0;
-    step.items.forEach(function(it) {
-        var au = auto[it.k];
-        if ((!step.docs && au && au.state === 'ok') || checks[it.k]) done++;
+/* ── 준비 정보 (자동) ───────────────────────────────────────── */
+function renderInfoTab($box, r, auto) {
+    var $panel = $('<div class="bid-prep-panel">');
+
+    function section(title, $content) {
+        $panel.append($('<div class="bid-info-sec">')
+            .append($('<h5>').text(title))
+            .append($content));
+    }
+    function fact(state, text) {
+        return $('<div class="bid-fact">').addClass(state || '')
+            .append($('<span class="mk">').html(
+                state === 'ok' ? '&#10003;' : state === 'fail' ? '&#10007;' : state === 'warn' ? '!' : '&#8226;'))
+            .append($('<span>').text(text));
+    }
+
+    // 1. 참가자격 — 전부 자동 판정
+    var $q = $('<div>');
+    ['field', 'prod', 'rgn', 'ind', 'dpc'].forEach(function(k) {
+        var au = auto[k];
+        if (!au) return;
+        var label = { field: '등록분야', prod: '등록물품', rgn: '지역제한', ind: '업종제한', dpc: '직접생산증명' }[k];
+        $q.append(fact(au.state, label + ' — ' + au.why));
     });
-    return { done: done, total: step.items.length };
-}
-function refreshStepCount($step) {
-    var total = $step.find('.bid-check-item').length;
-    // 자동으로 확인된 항목도 완료로 친다
-    var done = $step.find('input:checked').length + $step.find('.bid-auto-mark.ok').length;
-    $step.find('.bid-step-count').text(done + '/' + total);
-    $step.toggleClass('done', done === total && total > 0);
+    section('참가자격', $q);
+
+    // 2. 규격·현장 — 공고에서 뽑은 그대로
+    var $s = $('<div>');
+    if (r.spec) $s.append(fact('', '규격: ' + r.spec + (r.qty != null ? '  /  ' + comma(r.qty) + (r.unit || '') : '')));
+    else $s.append(fact('warn', '규격이 공고에 없습니다 — 규격서·물량내역서를 확인하세요'));
+    if (r.briefingAt) {
+        $s.append(fact('warn', '현장설명회 ' + dateTime(r.briefingAt) +
+            (r.briefingPlace ? '  ·  ' + r.briefingPlace : '') + ' — 의무 참석인지 공고문 확인'));
+    }
+    if (r.officer || r.officerTel) $s.append(fact('', '담당자 ' + [r.officer, r.officerTel].filter(Boolean).join('  ')));
+    if (r.specUrl) {
+        $s.append($('<a class="bid-doc-src" target="_blank" rel="noopener">')
+            .attr('href', r.specUrl).text('규격서·공고문 내려받기 \u2192'));
+    }
+    section('규격·현장', $s);
+
+    // 3. 투찰금액 — 왼쪽 계산기 결과
+    var $m = $('<div>');
+    if (r.lowerRate == null) {
+        $m.append(fact('warn', '낙찰하한율이 없는 공고 — 공고문의 낙찰자 결정방법 확인'));
+    } else if (_lastCalc && _lastCalc.id === r.id && _lastCalc.res) {
+        var rec = _lastCalc.res.recommend;
+        $m.append(fact('ok', '권장 투찰금액 ' + comma(rec.amount) + '원 (투찰률 ' +
+            (rec.t * 100).toFixed(3) + '%, 유효확률 ' + Math.round(rec.valid * 100) + '%)'));
+        if (rec.margin != null) {
+            $m.append(fact(rec.margin < 0 ? 'fail' : rec.margin < 0.05 ? 'warn' : 'ok',
+                '원가 대비 ' + (rec.margin >= 0 ? '+' : '') + (rec.margin * 100).toFixed(1) + '%'));
+        } else {
+            $m.append(fact('warn', '제작원가를 넣으면 마진까지 봅니다 — 왼쪽 투찰금액 산정'));
+        }
+    } else {
+        $m.append(fact('', '왼쪽 투찰금액 산정에서 계산됩니다'));
+    }
+    $m.append(fact('', '낙찰하한율 ' + (r.lowerRate != null ? r.lowerRate + '%' : '—') +
+        (r.prdprcTotal ? ' · 예비가격 ' + r.prdprcTotal + '개 중 ' + (r.prdprcDrawn || '?') + '개 추첨' : '')));
+    section('투찰금액', $m);
+
+    // 4. 마감
+    var dd = ddayInfo(r.closeAt, new Date());
+    var $t = $('<div>');
+    $t.append(fact(dd.level === 'closed' ? 'fail' : dd.level === 'urgent' ? 'warn' : 'ok',
+        '마감 ' + dateTime(r.closeAt) + ' (' + dd.text + ') — 인증서 로그인에 시간이 걸리니 30분 전 접속'));
+    if (r.openAt) $t.append(fact('', '개찰 ' + dateTime(r.openAt)));
+    section('마감', $t);
+
+    // 5. 직접 확인할 것 — 시스템이 대신 못 하는 판단. 체크 없이 목록만.
+    var $c = $('<ul class="bid-info-list">');
+    [
+        '공고문의 특수조건·과업 범위',
+        '설치 현장 여건 — 진입로, 고소작업, 전기 인입, 주차',
+        '외주 단가 — 시트 출력, 절곡, 도장, 전기공사',
+        '부대비용 — 운반, 크레인·고소차, 야간·휴일, 폐기물',
+    ].forEach(function(t) { $c.append($('<li>').text(t)); });
+    section('직접 판단할 것', $c);
+
+    $box.append($panel);
 }
 
-/* 자동 판정 결과를 맨 위에 한 줄로. 막힌 것이 있으면 그것부터 보여준다. */
+/* 준비 정보 탭이 계산기 결과를 읽도록 마지막 결과를 기억한다 */
+var _lastCalc = null;
 /* 막힌 것이 있을 때만 배너를 낸다. 잘 되고 있을 때는 조용한 편이 낫다. */
 function autoSummary(r, auto) {
     var fails = [];
@@ -1085,102 +1135,6 @@ function startOfToday() {
 }
 
 /* 공고 성격에 따라 준비 항목을 짜맞춘다. */
-function prepSteps(r) {
-    var steps = [];
-    var isCnstwk = r.kind === 'cnstwk';
-
-    /* 1 ─ 참가할 수 있나. 대부분 등록 내용으로 판정된다. */
-    var s1 = { title: '이 공고에 참가할 수 있나', short: '참가자격', items: [] };
-    s1.items.push({ k: 'field', t: '등록분야' });
-    s1.items.push({ k: 'prod',  t: '입찰참가 등록물품', link: 'products.html', linkText: '등록 품목 열기 \u2192' });
-    s1.items.push({ k: 'rgn',   t: '지역제한' });
-    s1.items.push({ k: 'ind',   t: '업종제한' });
-    s1.items.push({ k: 'ban',   t: '부정당업자 제재 이력이 없는지 확인' });
-    s1.standingNote = '인증서·등록·확인서는 상시 준비에서 관리합니다.';
-    steps.push(s1);
-
-    /* 2 ─ 무엇을 만드나. 공고마다 완전히 다르다. */
-    var s2 = { title: '무엇을 만드나', short: '규격 확인', items: [] };
-    s2.items.push({ k: 'doc', t: '공고문을 내려받아 과업 범위와 특수조건을 읽기' });
-    if (r.spec) {
-        s2.items.push({ k: 'spec',
-            t: '규격 확인: ' + r.spec + (r.qty != null ? '  /  ' + comma(r.qty) + (r.unit || '') : '') });
-    } else {
-        s2.items.push({ k: 'spec', t: '규격서·물량내역서로 정확한 사양과 수량 확인' });
-    }
-    s2.items.push({ k: 'site', t: '설치 현장 여건 확인 — 진입로, 고소작업 여부, 전기 인입, 주차' });
-    if (isCnstwk) {
-        s2.items.push({ k: 'perm', t: '옥외광고물 허가·신고 대상인지, 누가 처리하는지 확인' });
-    }
-    if (r.briefingAt) {
-        s2.items.push({ k: 'brief', warn: true,
-            t: '현장설명회 ' + dateTime(r.briefingAt) + (r.briefingPlace ? '  ·  ' + r.briefingPlace : '') +
-               ' — 참석이 의무인 공고는 빠지면 입찰이 무효입니다' });
-    }
-    if (r.officerTel) {
-        s2.items.push({ k: 'call',
-            t: '애매한 규격은 담당자에게 확인 — ' + [r.officer, r.officerTel].filter(Boolean).join(' ') });
-    }
-    steps.push(s2);
-
-    /* 3 ─ 얼마에 쓰나. 왼쪽 계산기와 짝이다. */
-    var s3 = { title: '얼마에 쓰나', short: '금액', items: [] };
-    s3.items.push({ k: 'cost', link: 'index.html', linkText: '견적 계산기 열기 \u2192',
-        t: '제작원가를 뽑기.' });
-    s3.items.push({ k: 'sub', t: '외주 단가 확인 — 시트 출력, 절곡, 도장, 전기공사 등' });
-    s3.items.push({ k: 'extra', t: '부대비용 반영 — 운반비, 크레인·고소차, 야간·휴일 작업, 폐기물 처리' });
-    s3.items.push({ k: 'vat', t: '부가세 별도인지 포함인지 확인 (추정가격은 보통 부가세 별도)' });
-    if (r.lowerRate != null) {
-        s3.items.push({ k: 'low', warn: true,
-            t: '낙찰하한율 ' + r.lowerRate + '% — 이 아래로 쓰면 무효 처리됩니다' });
-        s3.items.push({ k: 'amt_fix', t: '왼쪽 투찰금액 산정에서 원가를 넣고 금액을 정하기' });
-    } else {
-        s3.items.push({ k: 'low', t: '낙찰하한율이 없는 공고입니다 — 공고문의 낙찰자 결정방법 확인' });
-    }
-    if (r.prdprcTotal) {
-        s3.items.push({ k: 'prd',
-            t: '복수예비가격 ' + r.prdprcTotal + '개 중 ' + (r.prdprcDrawn || '?') +
-               '개를 추첨해 기초금액이 정해집니다 — 개찰 전에는 확정 금액을 알 수 없습니다' });
-    }
-    steps.push(s3);
-
-    /* 4 ─ 이번에 낼 서류. 상시 준비분은 빼고 이 공고에만 해당하는 것만. */
-    var perBid = (typeof bidDocsPerBid === 'function') ? bidDocsPerBid(r) : [];
-    var standing = (typeof bidDocsStanding === 'function') ? bidDocsStanding(r) : [];
-    if (perBid.length) {
-        var byStage = {};
-        perBid.forEach(function(d) { (byStage[d.stage] = byStage[d.stage] || []).push(d); });
-
-        var s4 = { title: '이번에 낼 서류', short: '서류', docs: true, items: [] };
-        (typeof BID_STAGES !== 'undefined' ? BID_STAGES : []).forEach(function(st) {
-            (byStage[st.key] || []).forEach(function(d) {
-                var srcInfo = bidDocSource(d);
-                s4.items.push({
-                    k: d.key,
-                    t: d.name,
-                    sub: '[' + st.title + '] ' + (d.note || ''),
-                    gain: !!d.gain,
-                    link: srcInfo ? srcInfo.url : null,
-                    linkText: srcInfo ? srcInfo.name + ' \u2192' : null,
-                });
-            });
-        });
-        if (standing.length) {
-            s4.standingNote = '확인서·증명서 ' + standing.length + '건은 상시 준비에서 관리합니다.';
-        }
-        steps.push(s4);
-    }
-
-    /* 5 ─ 투찰 */
-    var s5 = { title: '투찰', short: '투찰', items: [] };
-    s5.items.push({ k: 'time', warn: true,
-        t: '마감 ' + dateTime(r.closeAt) + ' — 최소 30분 전에 접속. 인증서 로그인과 보안모듈에서 시간을 까먹습니다' });
-    s5.items.push({ k: 'amt', t: '투찰금액 자릿수 확인 후 제출 (제출하면 수정할 수 없습니다)' });
-    s5.standingNote = '인증서와 보안모듈은 상시 준비에서 관리합니다.';
-    steps.push(s5);
-
-    return steps;
-}
 /* ── 확인 목록 저장 ──────────────────────────────────────────
  * 공고별로 이 브라우저에 남긴다. 준비는 며칠에 걸쳐 하게 되는데
  * 창을 닫을 때마다 초기화되면 체크 자체를 안 하게 된다.

@@ -158,6 +158,11 @@ var BID_STANDING_EXTRA = [
         note: '투찰할 PC 에 미리 깔아두고 로그인까지 되는지 확인하세요.',
     },
     {
+        key: 's_noban', name: '부정당업자 제재 없음',
+        note: '제재 기간 중에는 모든 입찰에 참여할 수 없습니다. 나라장터에서 우리 회사 상태를 확인하세요.',
+        source: 'g2b',
+    },
+    {
         key: 's_bidreg', name: '입찰참가자격 등록', source: 'g2b',
         note: '등록 품목의 유효기간이 지나면 그 품명으로는 투찰할 수 없습니다.',
         link: 'products.html',
