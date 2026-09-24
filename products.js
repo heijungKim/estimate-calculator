@@ -14,6 +14,7 @@ var _company = null;
 var _products = [];    // company.json + 갱신분
 var _certs = [];
 var _mall = [];        // 종합쇼핑몰 계약
+var _standing = {};    // 상시 준비 체크 { [항목키]: 1 }
 var _db = null;
 var _renewTarget = null;   // { type: 'product'|'cert', id }
 
@@ -67,6 +68,7 @@ function load() {
             return loadOverrides();
         })
         .then(function(over) {
+            _standing = over.standing || {};
             _products = (_company.products || []).map(function(p) {
                 return $.extend({}, p, over.products[p.code] || {});
             });
@@ -107,7 +109,7 @@ function load() {
 
 /* 갱신분. Firestore 를 못 쓰면 이 브라우저에만 남긴다. */
 function loadOverrides() {
-    var empty = { products: {}, certs: {}, mall: {} };
+    var empty = { products: {}, certs: {}, mall: {}, standing: {} };
 
     if (!_db) {
         try {
@@ -125,11 +127,13 @@ function loadOverrides() {
         _db.collection('bid_products').get(),
         _db.collection('bid_certifications').get(),
         _db.collection('bid_mall').get(),
+        _db.collection('bid_standing').doc('current').get(),
     ]).then(function(snaps) {
-        var out = { products: {}, certs: {}, mall: {} };
+        var out = { products: {}, certs: {}, mall: {}, standing: {} };
         snaps[0].forEach(function(doc) { out.products[doc.id] = doc.data(); });
         snaps[1].forEach(function(doc) { out.certs[doc.id] = doc.data(); });
         snaps[2].forEach(function(doc) { out.mall[doc.id] = doc.data(); });
+        if (snaps[3].exists) out.standing = snaps[3].data() || {};
         d.resolve(out);
     }).catch(function(err) {
         console.error('갱신 내역 로드 실패:', err);
@@ -142,10 +146,134 @@ function loadOverrides() {
 /* ── 렌더 ────────────────────────────────────────────────────── */
 function renderAll() {
     renderCompany();
+    renderStanding();
     renderProducts();
     renderCerts();
     renderMall();
     renderSummary();
+}
+
+/* ── 상시 준비 ───────────────────────────────────────────────
+ * 매 공고에서 열일곱 가지를 전부 다시 확인하게 하면 결국 체크리스트를
+ * 형식적으로 넘기게 된다. 회사 단위로 한 번 갖춰두는 것은 여기서 끝내고,
+ * 공고 화면에는 그 공고에만 해당하는 것만 남긴다.
+ */
+function renderStanding() {
+    var $box = $('#standing_list').empty();
+    var items = bidStandingAll();
+    var auto = standingAuto();
+    var done = 0;
+
+    items.forEach(function(it) {
+        var au = auto[it.key];
+        var isAuto = !!au;
+        var ok = isAuto ? au.state === 'ok' : !!_standing[it.key];
+        if (ok) done++;
+
+        var $row = $(isAuto ? '<div class="prod-standing-item auto">' : '<label class="prod-standing-item">')
+            .toggleClass('done', ok);
+
+        if (isAuto) {
+            $row.append($('<span class="prod-standing-mark">')
+                .addClass(au.state === 'ok' ? 'ok' : 'fail')
+                .html(au.state === 'ok' ? '&#10003;' : '&#10007;'));
+        } else {
+            var $cb = $('<input type="checkbox">')
+                .prop('checked', ok).attr('data-k', it.key);
+            $cb.on('change', function() {
+                saveStanding(it.key, this.checked);
+                renderStanding();
+            });
+            $row.append($cb);
+        }
+
+        var $body = $('<div class="prod-standing-body">');
+        var $nm = $('<div class="prod-standing-name">').text(it.name);
+        if (it.gain) $nm.append($('<span class="prod-standing-gain">').text('가점'));
+        $body.append($nm);
+
+        if (au) {
+            $body.append($('<span class="prod-standing-why">')
+                .addClass(au.state).text(au.why));
+        } else if (it.note) {
+            $body.append($('<div class="prod-standing-note">').text(it.note));
+        }
+
+        var src = (typeof bidDocSource === 'function') ? bidDocSource(it) : null;
+        if (it.link) {
+            $body.append($('<a class="prod-standing-src">')
+                .attr('href', it.link).text('등록 품목에서 확인 \u2192'));
+        } else if (src) {
+            $body.append($('<a class="prod-standing-src" target="_blank" rel="noopener">')
+                .attr('href', src.url).text(src.name + ' \u2197'));
+        }
+
+        $row.append($body);
+        $box.append($row);
+    });
+
+    $('#standing_count')
+        .removeClass('full part')
+        .addClass(done === items.length ? 'full' : 'part')
+        .text(done + ' / ' + items.length);
+}
+
+/* 등록 품목·인증에서 이미 판정되는 것은 여기서도 자동으로 채운다.
+ * 같은 사실을 두 군데서 따로 체크하게 하면 반드시 어긋난다. */
+function standingAuto() {
+    var a = {};
+    var today = startOfToday();
+
+    // 입찰참가자격 등록 — 살아 있는 품목이 하나라도 있는지
+    var alive = _products.filter(function(p) {
+        return p.regEnd && parseDate(p.regEnd) >= today;
+    });
+    a.s_bidreg = alive.length
+        ? { state: 'ok', why: '유효한 등록 품목 ' + alive.length + '개' }
+        : { state: 'fail', why: '유효한 등록 품목이 없습니다' };
+
+    // 직접생산확인증명서
+    var certOk = _products.filter(function(p) {
+        return p.certEnd && parseDate(p.certEnd) >= today;
+    });
+    a.d_direct = certOk.length
+        ? { state: 'ok', why: '유효한 증명 ' + certOk.length + '개' }
+        : { state: 'fail', why: '유효한 직접생산증명이 없습니다' };
+
+    // 가점 인증
+    var map = { women: 'd_women', mainbiz: 'd_mainbiz', designLab: 'd_rnd' };
+    _certs.forEach(function(c) {
+        var key = map[c.key];
+        if (!key) return;
+        if (c.termMonths === null && !c.until) {
+            a[key] = { state: 'ok', why: '보유 · 유효기간 없음' };
+        } else if (!c.until) {
+            a[key] = { state: 'warn', why: '발급일이 비어 있습니다 — 아래에서 갱신을 눌러 넣어주세요' };
+        } else if (parseDate(c.until) < today) {
+            a[key] = { state: 'fail', why: '유효기간 ' + c.until + ' 지남' };
+        } else {
+            a[key] = { state: 'ok', why: '유효 ' + c.until + '까지' };
+        }
+    });
+
+    return a;
+}
+
+function saveStanding(key, on) {
+    if (on) _standing[key] = 1; else delete _standing[key];
+
+    if (!_db) {
+        try {
+            var all = JSON.parse(localStorage.getItem(LS_OVERRIDE) || '{}');
+            all.standing = _standing;
+            localStorage.setItem(LS_OVERRIDE, JSON.stringify(all));
+        } catch (e) {}
+        return;
+    }
+    var patch = {};
+    patch[key] = on ? 1 : firebase.firestore.FieldValue.delete();
+    _db.collection('bid_standing').doc('current').set(patch, { merge: true })
+        .catch(function(err) { console.error('상시 준비 저장 실패:', err); });
 }
 
 function renderCompany() {

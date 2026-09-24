@@ -569,6 +569,139 @@
     line-height: 1.6;
 }
 .bid-calc-note b { color: #c62828; }
+/* ── 투찰 준비 마법사 ───────────────────────────────────────
+   여덟 단계 서른세 항목을 한 화면에 늘어놓으면 읽지 않고 넘긴다.
+   한 번에 한 단계만 보여준다. */
+.bid-wiz { display: flex; flex-direction: column; gap: 12px; }
+
+.bid-wiz-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 5px;
+}
+.bid-wiz-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 2px 7px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+    min-width: 0;
+}
+.bid-wiz-dot:hover { border-color: #aab0bb; }
+.bid-wiz-dot .n {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #edf0f5;
+    color: #8892a4;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+.bid-wiz-dot .t {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #8892a4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.bid-wiz-dot.done .n { background: #d3edd6; color: #2e7d32; }
+.bid-wiz-dot.done .t { color: #4a5568; }
+.bid-wiz-dot.on {
+    border-color: #1a1a2e;
+    background: #1a1a2e;
+}
+.bid-wiz-dot.on .n { background: #e94560; color: #fff; }
+.bid-wiz-dot.on .t { color: #fff; }
+
+.bid-wiz-panel {
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px 12px;
+}
+.bid-wiz-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.bid-wiz-head h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.bid-wiz-head .cnt {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: #aab0bb;
+    font-variant-numeric: tabular-nums;
+}
+.bid-wiz-note {
+    margin: 0 0 8px;
+    font-size: 11.5px;
+    color: #8892a4;
+    line-height: 1.55;
+}
+.bid-wiz-panel .bid-check-item { padding-left: 0; }
+
+.bid-wiz-standing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding: 9px 11px;
+    background: #eef5ee;
+    border: 1px solid #cfe3d1;
+    border-radius: 7px;
+    font-size: 11.5px;
+    color: #3d6b41;
+    line-height: 1.5;
+}
+.bid-wiz-standing a { color: #2e7d32; font-weight: 700; text-decoration: none; }
+.bid-wiz-standing a:hover { text-decoration: underline; }
+
+.bid-wiz-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.bid-wiz-btn {
+    height: 34px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1.5px solid #1a1a2e;
+    background: #1a1a2e;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    margin-left: auto;
+}
+.bid-wiz-btn:hover { background: #2a2a44; }
+.bid-wiz-btn.ghost {
+    background: #fff;
+    border-color: #dde1e9;
+    color: #4a5568;
+    margin-left: 0;
+}
+.bid-wiz-btn.ghost:hover { border-color: #aab0bb; background: #fff; }
+.bid-wiz-btn:disabled { opacity: 0.35; cursor: default; }
+.bid-wiz-last {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: #aab0bb;
+}
 /* ── 자동 판정 ─────────────────────────────────────────────
    데이터로 확정되는 항목은 체크박스를 주지 않는다. 누를 것처럼 보이면
    사람이 또 확인하게 된다. 대신 왜 통과인지 근거를 붙인다. */
