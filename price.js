@@ -68,6 +68,8 @@ var DEFAULT_PRICES = {
     soosung_kel_white: 10000, soosung_kel_grey: 10000,
     soosung_yupo_white: 8000, soosung_yupo_grey: 8000,
     soosung_pet: 10000, soosung_pet_min: 10000, soosung_baklit: 13000,
+    // 수성 실사 - 현수막 M당 펀칭 (가로 m당 가산)
+    soosung_punch_m: 1000,
     // 공통자재
     cm_floodlight: 0,
     cm_timer_20a: 0, cm_timer_30a: 0, cm_timer_50a: 0,
