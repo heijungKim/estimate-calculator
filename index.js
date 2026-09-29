@@ -87,12 +87,14 @@ var DEFAULT_PRICES = {
     // 실사 소재별 코팅 단가 (m²)
     silsa_coat_white: 3000, silsa_coat_grey: 3000, silsa_coat_light: 3000, silsa_coat_embo: 3000,
     silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
-    // 수성 실사 - 현수막 (세로 구간별: m당 / M당 펀칭 시 m당 / 가로 0~1m·1~3m 정액)
-    soosung_banner_h9_unit: 2000, soosung_banner_h9_punch_unit: 3000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
-    soosung_banner_h11_unit: 3000, soosung_banner_h11_punch_unit: 4000, soosung_banner_h11_flat_1m: 9000, soosung_banner_h11_flat_3m: 10000,
-    soosung_banner_h127_unit: 4000, soosung_banner_h127_punch_unit: 5000, soosung_banner_h127_flat_1m: 11000, soosung_banner_h127_flat_3m: 12000,
-    soosung_banner_h150_unit: 5000, soosung_banner_h150_punch_unit: 6000, soosung_banner_h150_flat_1m: 14000, soosung_banner_h150_flat_3m: 15000,
-    soosung_banner_h180_sqm: 4000, soosung_banner_over_sqm: 5000,
+    // 수성 실사 - 현수막 (세로 구간별: m당 / 가로 0~1m·1~3m 정액), M당 펀칭은 m당 단가에 가산
+    soosung_banner_punch_add: 1000,
+    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
+    soosung_banner_h11_unit: 3000, soosung_banner_h11_flat_1m: 9000, soosung_banner_h11_flat_3m: 10000,
+    soosung_banner_h127_unit: 4000, soosung_banner_h127_flat_1m: 11000, soosung_banner_h127_flat_3m: 12000,
+    soosung_banner_h150_unit: 5000, soosung_banner_h150_flat_1m: 14000, soosung_banner_h150_flat_3m: 15000,
+    soosung_banner_h180_unit: 6000, soosung_banner_h180_flat_1m: 17000, soosung_banner_h180_flat_3m: 18000,
+    soosung_banner_over_unit: 7000, soosung_banner_over_flat_1m: 20000, soosung_banner_over_flat_3m: 21000,
     // 수성 실사 - 켈/유포/페트/백릿 (m²)
     soosung_kel_white: 10000, soosung_kel_grey: 10000,
     soosung_yupo_white: 8000, soosung_yupo_grey: 8000,
@@ -4329,9 +4331,9 @@ function soosung_silsa_cal(){ //수성실사 계산
     calcReset();
     var _ssLabel = "", _ssExpr = "";
     function _ssSet(label, expr){ _ssLabel = label; _ssExpr = expr; }
-    // 현수막 세로 구간별(~900 / ~1100 / ~1270 / ~1500mm):
+    // 현수막 세로 구간별(~900 / ~1100 / ~1270 / ~1500 / ~1800mm / 1800mm 초과):
     // 가로 0~1m / 1~3m 정액, 3m 초과는 가로를 1m 단위로 올려 m당 단가 (3~4m → 4m …).
-    // M당 펀칭이면 m당 단가 대신 펀칭 시 m당 단가.
+    // M당 펀칭이면 m당 단가에 펀칭 추가금을 더한다.
     function _ssBanner(tierName, key){
         var tier = "현수막 (" + tierName + ")";
         var k = "soosung_banner_" + key;
@@ -4345,9 +4347,11 @@ function soosung_silsa_cal(){ //수성실사 계산
         }
         var w_ceil = Math.ceil(target_width - 1e-9);
         var isPunch = $("#actual_more_order06").is(":checked");
-        var unit = PRICES[k + (isPunch ? "_punch_unit" : "_unit")];
-        _ssSet(tier, w_ceil + "m(가로 " + calcNum(target_width) + "m 올림) × " + calcWon(unit) + "원/m" + (isPunch ? " (M당 펀칭)" : ""));
-        return w_ceil * unit;
+        var base = PRICES[k + "_unit"] || 0;
+        var add = isPunch ? (PRICES.soosung_banner_punch_add || 0) : 0;
+        var unitExpr = add ? "(" + calcWon(base) + "원 + 펀칭 " + calcWon(add) + "원)" : calcWon(base) + "원";
+        _ssSet(tier, w_ceil + "m(가로 " + calcNum(target_width) + "m 올림) × " + unitExpr + "/m");
+        return w_ceil * (base + add);
     }
 
 	if(target_width != 0 && target_vertical != 0){
@@ -4361,11 +4365,9 @@ function soosung_silsa_cal(){ //수성실사 계산
             }else if(target_vertical <= 1.5){
                 total_price = _ssBanner("세로 1.5m 이하", "h150");
             }else if(target_vertical <= 1.8){
-                total_price = target_width * target_vertical * PRICES.soosung_banner_h180_sqm;
-                _ssSet("현수막 (세로 1.8m 이하)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_banner_h180_sqm) + "원");
+                total_price = _ssBanner("세로 1.8m 이하", "h180");
             }else{
-                total_price = target_width * target_vertical * PRICES.soosung_banner_over_sqm;
-                _ssSet("현수막 (세로 1.8m 초과)", calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(PRICES.soosung_banner_over_sqm) + "원");
+                total_price = _ssBanner("세로 1.8m 초과", "over");
             }
         }else if($("#actual_material02").is(":checked") || $("#actual_material03").is(":checked")){ //켈(백색/그레이)
             var kel_vertical_mm = nv("#frame_product_vertical");
@@ -4439,8 +4441,6 @@ function soosung_silsa_cal(){ //수성실사 계산
 
     // ── 계산식 표시
     if(_ssLabel) calcAdd(_ssLabel, _ssExpr, total_price);
-    if($("#actual_material01").is(":checked") && $("#actual_more_order06").is(":checked") && target_vertical > 1.5)
-        calcNote("M당 펀칭 단가는 세로 ~1500mm 까지만 설정되어 있어 이 크기에는 금액이 붙지 않습니다.");
     var _ssPost = nv("#actual_more_order_price");
     if(_ssPost) calcAdd("후가공", "면적 기준 자동 계산", _ssPost);
     if(_aqty > 1) calcAdd("수량", calcWon(total_price + _ssPost) + "원 × " + _aqty + "개", (total_price + _ssPost) * _aqty);

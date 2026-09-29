@@ -57,12 +57,14 @@ var DEFAULT_PRICES = {
     silsa_dombo_clear: 3000, silsa_dombo_oneway: 3000, silsa_dombo_reflect: 3000, silsa_dombo_banner: 3000,
     silsa_coat_white: 3000, silsa_coat_grey: 3000, silsa_coat_light: 3000, silsa_coat_embo: 3000,
     silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
-    // 수성 실사 - 현수막 (세로 구간별: m당 / M당 펀칭 시 m당 / 가로 0~1m·1~3m 정액)
-    soosung_banner_h9_unit: 2000, soosung_banner_h9_punch_unit: 3000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
-    soosung_banner_h11_unit: 3000, soosung_banner_h11_punch_unit: 4000, soosung_banner_h11_flat_1m: 9000, soosung_banner_h11_flat_3m: 10000,
-    soosung_banner_h127_unit: 4000, soosung_banner_h127_punch_unit: 5000, soosung_banner_h127_flat_1m: 11000, soosung_banner_h127_flat_3m: 12000,
-    soosung_banner_h150_unit: 5000, soosung_banner_h150_punch_unit: 6000, soosung_banner_h150_flat_1m: 14000, soosung_banner_h150_flat_3m: 15000,
-    soosung_banner_h180_sqm: 4000, soosung_banner_over_sqm: 5000,
+    // 수성 실사 - 현수막 (세로 구간별: m당 / 가로 0~1m·1~3m 정액), M당 펀칭은 m당 단가에 가산
+    soosung_banner_punch_add: 1000,
+    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
+    soosung_banner_h11_unit: 3000, soosung_banner_h11_flat_1m: 9000, soosung_banner_h11_flat_3m: 10000,
+    soosung_banner_h127_unit: 4000, soosung_banner_h127_flat_1m: 11000, soosung_banner_h127_flat_3m: 12000,
+    soosung_banner_h150_unit: 5000, soosung_banner_h150_flat_1m: 14000, soosung_banner_h150_flat_3m: 15000,
+    soosung_banner_h180_unit: 6000, soosung_banner_h180_flat_1m: 17000, soosung_banner_h180_flat_3m: 18000,
+    soosung_banner_over_unit: 7000, soosung_banner_over_flat_1m: 20000, soosung_banner_over_flat_3m: 21000,
     // 수성 실사 - 켈/유포/페트/백릿 (m²)
     soosung_kel_white: 10000, soosung_kel_grey: 10000,
     soosung_yupo_white: 8000, soosung_yupo_grey: 8000,
