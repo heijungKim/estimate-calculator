@@ -59,7 +59,7 @@ var DEFAULT_PRICES = {
     silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
     // 수성 실사 - 현수막 (세로 구간별 m당 단가 / 가로 3~4m 정액)
     // ~900mm 는 3~4m 정액 대신 가로 0~1m / 1~3m 정액
-    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
+    soosung_banner_h9_unit: 2000, soosung_banner_h9_punch_unit: 3000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
     soosung_banner_h11_unit: 3000, soosung_banner_h11_flat: 10000,
     soosung_banner_h127_unit: 4000, soosung_banner_h127_flat: 12000,
     soosung_banner_h150_unit: 5000, soosung_banner_h150_flat: 15000,
