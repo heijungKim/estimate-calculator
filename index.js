@@ -4338,7 +4338,8 @@ function soosung_silsa_cal(){ //수성실사 계산
         _ssSet("현수막 (" + tier + ")", calcNum(target_width) + "m × " + calcWon(PRICES[unitKey]) + "원/m");
         return target_width * PRICES[unitKey];
     }
-    // 세로 ~900mm 는 가로 0~1m / 1~3m 정액, 3m 초과는 가로 m당 단가
+    // 세로 ~900mm 는 가로 0~1m / 1~3m 정액, 3m 초과는 가로를 1m 단위로 올려 m당 단가
+    // (3~4m → 4m, 4~5m → 5m …)
     function _ssBannerH9(){
         var tier = "현수막 (세로 0.9m 이하)";
         if(target_width <= 1){
@@ -4349,8 +4350,9 @@ function soosung_silsa_cal(){ //수성실사 계산
             _ssSet(tier, "가로 1~3m 정액 " + calcWon(PRICES.soosung_banner_h9_flat_3m) + "원");
             return PRICES.soosung_banner_h9_flat_3m;
         }
-        _ssSet(tier, calcNum(target_width) + "m × " + calcWon(PRICES.soosung_banner_h9_unit) + "원/m");
-        return target_width * PRICES.soosung_banner_h9_unit;
+        var w_ceil = Math.ceil(target_width - 1e-9);
+        _ssSet(tier, w_ceil + "m(가로 " + calcNum(target_width) + "m 올림) × " + calcWon(PRICES.soosung_banner_h9_unit) + "원/m");
+        return w_ceil * PRICES.soosung_banner_h9_unit;
     }
 
 	if(target_width != 0 && target_vertical != 0){
