@@ -63,8 +63,6 @@ var DEFAULT_PRICES = {
 		ch_epox_eng_20: 0, ch_epox_eng_25: 0, ch_epox_eng_30: 0, ch_epox_eng_35: 0, ch_epox_eng_40: 0, ch_epox_eng_45: 0, ch_epox_eng_50: 0, ch_epox_eng_55: 0, ch_epox_eng_60: 0, ch_epox_eng_65: 0, ch_epox_eng_70: 0,
 		ch_epox_kor_20: 0, ch_epox_kor_25: 0, ch_epox_kor_30: 0, ch_epox_kor_35: 0, ch_epox_kor_40: 0, ch_epox_kor_45: 0, ch_epox_kor_50: 0, ch_epox_kor_55: 0, ch_epox_kor_60: 0, ch_epox_kor_65: 0, ch_epox_kor_70: 0,
 		ch_epox_got_20: 0, ch_epox_got_25: 0, ch_epox_got_30: 0, ch_epox_got_35: 0, ch_epox_got_40: 0, ch_epox_got_45: 0, ch_epox_got_50: 0, ch_epox_got_55: 0, ch_epox_got_60: 0, ch_epox_got_65: 0, ch_epox_got_70: 0,
-    // 채널문자 LED (개당)
-    ch_led_white: 450, ch_led_warm: 500, ch_led_rgb: 800, ch_led_panorama: 3500, ch_led_color: 500,
     // 채널문자 LED 위치 추가금액 (글자당) - 갈바/갈바오사이/스텐채널
     ch_led_pos_jeon: 0, ch_led_pos_hu: 0, ch_led_pos_jeonhu: 0,
     // 채널문자 기타
@@ -90,7 +88,8 @@ var DEFAULT_PRICES = {
     silsa_coat_white: 3000, silsa_coat_grey: 3000, silsa_coat_light: 3000, silsa_coat_embo: 3000,
     silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
     // 수성 실사 - 현수막 (세로 구간별 m당 단가 / 가로 3~4m 정액)
-    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat: 7000,
+    // ~900mm 는 3~4m 정액 대신 가로 0~1m / 1~3m 정액
+    soosung_banner_h9_unit: 2000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
     soosung_banner_h11_unit: 3000, soosung_banner_h11_flat: 10000,
     soosung_banner_h127_unit: 4000, soosung_banner_h127_flat: 12000,
     soosung_banner_h150_unit: 5000, soosung_banner_h150_flat: 15000,
@@ -3809,29 +3808,29 @@ function _getChCurrentItemPrice() {
         // 전광 LED (1세트 기준)
         if($("#channel_led_jeon_yes").is(":checked")) {
             var _jU = 0;
-            if($("#channel_led_jeon_white").is(":checked"))       _jU = PRICES.ch_led_white;
-            else if($("#channel_led_jeon_warm").is(":checked"))   _jU = PRICES.ch_led_warm;
-            else if($("#channel_led_jeon_rgb").is(":checked"))    _jU = PRICES.ch_led_rgb;
-            else if($("#channel_led_jeon_panorama").is(":checked"))_jU = PRICES.ch_led_panorama;
-            else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU = PRICES.ch_led_color;
+            if($("#channel_led_jeon_white").is(":checked"))       _jU = PRICES.cm_led_white;
+            else if($("#channel_led_jeon_warm").is(":checked"))   _jU = PRICES.cm_led_warm;
+            else if($("#channel_led_jeon_rgb").is(":checked"))    _jU = PRICES.cm_led_rgb;
+            else if($("#channel_led_jeon_panorama").is(":checked"))_jU = PRICES.cm_led_panorama;
+            else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU = PRICES.cm_led_color;
             led_price += _jU * _jeonCnt + (PRICES.ch_led_pos_jeon || 0);
         }
         // 후광 LED (1세트 기준)
         if($("#channel_led_hu_yes").is(":checked")) {
             var _hU = 0;
-            if($("#channel_led_hu_white").is(":checked"))       _hU = PRICES.ch_led_white;
-            else if($("#channel_led_hu_warm").is(":checked"))   _hU = PRICES.ch_led_warm;
-            else if($("#channel_led_hu_rgb").is(":checked"))    _hU = PRICES.ch_led_rgb;
-            else if($("#channel_led_hu_panorama").is(":checked"))_hU = PRICES.ch_led_panorama;
-            else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU = PRICES.ch_led_color;
+            if($("#channel_led_hu_white").is(":checked"))       _hU = PRICES.cm_led_white;
+            else if($("#channel_led_hu_warm").is(":checked"))   _hU = PRICES.cm_led_warm;
+            else if($("#channel_led_hu_rgb").is(":checked"))    _hU = PRICES.cm_led_rgb;
+            else if($("#channel_led_hu_panorama").is(":checked"))_hU = PRICES.cm_led_panorama;
+            else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU = PRICES.cm_led_color;
             led_price += _hU * _huCnt + (PRICES.ch_led_pos_hu || 0);
         }
     } else {
-        if($("#channel_led_color_white").is(":checked"))         led_price = PRICES.ch_led_white * _ledCnt;
-        else if($("#channel_led_color_wram").is(":checked"))     led_price = PRICES.ch_led_warm  * _ledCnt;
-        else if($("#channel_led_color_rgb").is(":checked"))      led_price = PRICES.ch_led_rgb   * _ledCnt;
-        else if($("#channel_led_color_panorama").is(":checked")) led_price = PRICES.ch_led_panorama * _ledCnt;
-        else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.ch_led_color * _ledCnt;
+        if($("#channel_led_color_white").is(":checked"))         led_price = PRICES.cm_led_white * _ledCnt;
+        else if($("#channel_led_color_wram").is(":checked"))     led_price = PRICES.cm_led_warm  * _ledCnt;
+        else if($("#channel_led_color_rgb").is(":checked"))      led_price = PRICES.cm_led_rgb   * _ledCnt;
+        else if($("#channel_led_color_panorama").is(":checked")) led_price = PRICES.cm_led_panorama * _ledCnt;
+        else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) led_price = PRICES.cm_led_color * _ledCnt;
     }
 
     // 1.3배 적용 — 갈바/스텐(레이저 타공 제외)·티타늄골드에만
@@ -3927,11 +3926,11 @@ function addChannelItem() {
             _jeonLedCntNum = parseInt($("#ch_led_jeon_count").val());
             if(isNaN(_jeonLedCntNum) || _jeonLedCntNum < 0) _jeonLedCntNum = _estCntNum;
             var _jU2 = 0;
-            if($("#channel_led_jeon_white").is(":checked"))        _jU2 = PRICES.ch_led_white;
-            else if($("#channel_led_jeon_warm").is(":checked"))    _jU2 = PRICES.ch_led_warm;
-            else if($("#channel_led_jeon_rgb").is(":checked"))     _jU2 = PRICES.ch_led_rgb;
-            else if($("#channel_led_jeon_panorama").is(":checked"))_jU2 = PRICES.ch_led_panorama;
-            else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU2 = PRICES.ch_led_color;
+            if($("#channel_led_jeon_white").is(":checked"))        _jU2 = PRICES.cm_led_white;
+            else if($("#channel_led_jeon_warm").is(":checked"))    _jU2 = PRICES.cm_led_warm;
+            else if($("#channel_led_jeon_rgb").is(":checked"))     _jU2 = PRICES.cm_led_rgb;
+            else if($("#channel_led_jeon_panorama").is(":checked"))_jU2 = PRICES.cm_led_panorama;
+            else if($("#channel_led_jeon_red,#channel_led_jeon_blue,#channel_led_jeon_green").is(":checked")) _jU2 = PRICES.cm_led_color;
             _jeonLedPrice = _jU2 * _jeonLedCntNum + (PRICES.ch_led_pos_jeon || 0);
         }
         if($("#channel_led_hu_yes").is(":checked")){
@@ -3939,21 +3938,21 @@ function addChannelItem() {
             _huLedCntNum = parseInt($("#ch_led_hu_count").val());
             if(isNaN(_huLedCntNum) || _huLedCntNum < 0) _huLedCntNum = _estCntNum;
             var _hU2 = 0;
-            if($("#channel_led_hu_white").is(":checked"))        _hU2 = PRICES.ch_led_white;
-            else if($("#channel_led_hu_warm").is(":checked"))    _hU2 = PRICES.ch_led_warm;
-            else if($("#channel_led_hu_rgb").is(":checked"))     _hU2 = PRICES.ch_led_rgb;
-            else if($("#channel_led_hu_panorama").is(":checked"))_hU2 = PRICES.ch_led_panorama;
-            else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU2 = PRICES.ch_led_color;
+            if($("#channel_led_hu_white").is(":checked"))        _hU2 = PRICES.cm_led_white;
+            else if($("#channel_led_hu_warm").is(":checked"))    _hU2 = PRICES.cm_led_warm;
+            else if($("#channel_led_hu_rgb").is(":checked"))     _hU2 = PRICES.cm_led_rgb;
+            else if($("#channel_led_hu_panorama").is(":checked"))_hU2 = PRICES.cm_led_panorama;
+            else if($("#channel_led_hu_red,#channel_led_hu_blue,#channel_led_hu_green").is(":checked")) _hU2 = PRICES.cm_led_color;
             _huLedPrice = _hU2 * _huLedCntNum + (PRICES.ch_led_pos_hu || 0);
         }
     } else {
         if(!$("#channel_led_color_none").is(":checked")){
             _ledColorText = $("input[name='channel_led_color']:checked").parent("label").text();
-            if($("#channel_led_color_white").is(":checked"))        _ledUnitP = PRICES.ch_led_white;
-            else if($("#channel_led_color_wram").is(":checked"))    _ledUnitP = PRICES.ch_led_warm;
-            else if($("#channel_led_color_rgb").is(":checked"))     _ledUnitP = PRICES.ch_led_rgb;
-            else if($("#channel_led_color_panorama").is(":checked"))_ledUnitP = PRICES.ch_led_panorama;
-            else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) _ledUnitP = PRICES.ch_led_color;
+            if($("#channel_led_color_white").is(":checked"))        _ledUnitP = PRICES.cm_led_white;
+            else if($("#channel_led_color_wram").is(":checked"))    _ledUnitP = PRICES.cm_led_warm;
+            else if($("#channel_led_color_rgb").is(":checked"))     _ledUnitP = PRICES.cm_led_rgb;
+            else if($("#channel_led_color_panorama").is(":checked"))_ledUnitP = PRICES.cm_led_panorama;
+            else if($("#channel_led_color_red,#channel_led_color_blue,#channel_led_color_green").is(":checked")) _ledUnitP = PRICES.cm_led_color;
         }
         _ledPriceNum = _ledUnitP * _ledCntNum;
     }
@@ -4339,11 +4338,27 @@ function soosung_silsa_cal(){ //수성실사 계산
         _ssSet("현수막 (" + tier + ")", calcNum(target_width) + "m × " + calcWon(PRICES[unitKey]) + "원/m");
         return target_width * PRICES[unitKey];
     }
+    // 세로 ~900mm 는 가로 0~1m / 1~3m 정액, 3m 초과는 가로를 1m 단위로 올려 m당 단가
+    // (3~4m → 4m, 4~5m → 5m …)
+    function _ssBannerH9(){
+        var tier = "현수막 (세로 0.9m 이하)";
+        if(target_width <= 1){
+            _ssSet(tier, "가로 0~1m 정액 " + calcWon(PRICES.soosung_banner_h9_flat_1m) + "원");
+            return PRICES.soosung_banner_h9_flat_1m;
+        }
+        if(target_width <= 3){
+            _ssSet(tier, "가로 1~3m 정액 " + calcWon(PRICES.soosung_banner_h9_flat_3m) + "원");
+            return PRICES.soosung_banner_h9_flat_3m;
+        }
+        var w_ceil = Math.ceil(target_width - 1e-9);
+        _ssSet(tier, w_ceil + "m(가로 " + calcNum(target_width) + "m 올림) × " + calcWon(PRICES.soosung_banner_h9_unit) + "원/m");
+        return w_ceil * PRICES.soosung_banner_h9_unit;
+    }
 
 	if(target_width != 0 && target_vertical != 0){
         if($("#actual_material01").is(":checked")){ //현수막
             if(target_vertical <= 0.9){
-                total_price = _ssBanner("세로 0.9m 이하", "soosung_banner_h9_unit", "soosung_banner_h9_flat");
+                total_price = _ssBannerH9();
             }else if(target_vertical <= 1.1){
                 total_price = _ssBanner("세로 1.1m 이하", "soosung_banner_h11_unit", "soosung_banner_h11_flat");
             }else if(target_vertical <= 1.27){

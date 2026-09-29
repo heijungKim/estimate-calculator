@@ -445,8 +445,8 @@
                 </div>
                 </div>
             </div>
-            <!-- 공통 단가: 트러스바 / LED / 기타 -->
-                <div class="ch_type_label" style="margin-top:8px;">공통 단가</div>
+            <!-- 부속품: 트러스바 / LED 위치 / 기타 (LED 단가는 공통자재) -->
+                <div class="ch_type_label" style="margin-top:8px;">부속품</div>
                 <div class="price_cols">
                     <div class="price_col">
                         <div class="price_col_head">트러스바 (m당)</div>
@@ -455,14 +455,6 @@
                         <div class="price_row"><label>250폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_250"><span>원</span></div>
                         <div class="price_row"><label>300폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_300"><span>원</span></div>
                         <div class="price_row"><label>400폭</label><input type="text" inputmode="numeric" id="p_ch_trusbar_400"><span>원</span></div>
-                    </div>
-                    <div class="price_col">
-                        <div class="price_col_head">LED 단가 (개당)</div>
-                        <div class="price_row"><label>백색</label><input type="text" inputmode="numeric" id="p_ch_led_white"><span>원</span></div>
-                        <div class="price_row"><label>웜(전구색)</label><input type="text" inputmode="numeric" id="p_ch_led_warm"><span>원</span></div>
-                        <div class="price_row"><label>RGB</label><input type="text" inputmode="numeric" id="p_ch_led_rgb"><span>원</span></div>
-                        <div class="price_row"><label>파노라마</label><input type="text" inputmode="numeric" id="p_ch_led_panorama"><span>원</span></div>
-                        <div class="price_row"><label>컬러(적/청/녹)</label><input type="text" inputmode="numeric" id="p_ch_led_color"><span>원</span></div>
                     </div>
                     <div class="price_col">
                         <div class="price_col_head">LED 위치 추가금액 (글자당)</div>
@@ -474,6 +466,7 @@
                         <div class="price_col_head">기타</div>
                         <div class="price_row"><label>완조립</label><input type="text" inputmode="numeric" id="p_ch_complete"><span>원</span></div>
                         <div class="price_row_note">까치발 단가는 공통자재 탭으로 이동했습니다.</div>
+                        <div class="price_row_note">LED 단가(개당)는 <a href="#sec_common">공통자재</a> 탭에서 관리합니다.</div>
                     </div>
                 </div>
             </div>
@@ -584,7 +577,8 @@
                     <div class="price_col">
                         <div class="price_col_head">수성 실사 - 소재</div>
                         <div class="price_row"><label>현수막 (~900mm) m당</label><input type="text" inputmode="numeric" id="p_soosung_banner_h9_unit"><span>원</span></div>
-                        <div class="price_row" style="padding-left:12px"><label style="color:#8892a4;font-size:11px">└ 가로 3~4m 정액</label><input type="text" inputmode="numeric" id="p_soosung_banner_h9_flat"><span>원</span></div>
+                        <div class="price_row" style="padding-left:12px"><label style="color:#8892a4;font-size:11px">└ 가로 0~1m 정액</label><input type="text" inputmode="numeric" id="p_soosung_banner_h9_flat_1m"><span>원</span></div>
+                        <div class="price_row" style="padding-left:12px"><label style="color:#8892a4;font-size:11px">└ 가로 1~3m 정액</label><input type="text" inputmode="numeric" id="p_soosung_banner_h9_flat_3m"><span>원</span></div>
                         <div class="price_row"><label>현수막 (~1100mm) m당</label><input type="text" inputmode="numeric" id="p_soosung_banner_h11_unit"><span>원</span></div>
                         <div class="price_row" style="padding-left:12px"><label style="color:#8892a4;font-size:11px">└ 가로 3~4m 정액</label><input type="text" inputmode="numeric" id="p_soosung_banner_h11_flat"><span>원</span></div>
                         <div class="price_row"><label>현수막 (~1270mm) m당</label><input type="text" inputmode="numeric" id="p_soosung_banner_h127_unit"><span>원</span></div>
