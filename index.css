@@ -461,6 +461,26 @@ input::placeholder {
     max-width: 280px;
 }
 
+/* 옆에 입력칸이 하나 더 붙는 행이 있는 넓은 열 (수성 실사 - 소재) */
+.price_col_wide {
+    min-width: min(380px, 100%);
+    max-width: 440px;
+}
+.price_col_wide .price_row {
+    grid-template-columns: 1fr 76px 18px 150px;
+}
+.price_row_extra {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 8px;
+}
+.price_row_extra label {
+    white-space: nowrap;
+    color: #8892a4;
+    font-size: 11px;
+}
+
 .price_col_head {
     font-size: 12px;
     font-weight: 700;
