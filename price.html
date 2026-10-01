@@ -608,6 +608,11 @@
                     <div class="price_col">
                         <div class="price_col_head">공통 단가</div>
                         <div class="price_row"><label>재단 (m²)</label><input type="text" inputmode="numeric" id="p_silsa_cut"><span>원</span></div>
+                        <div class="price_col_head" style="margin-top:12px">구성품 (개당)</div>
+                        <div class="price_row"><label>물통거치대(단면)</label><input type="text" inputmode="numeric" class="price_mirror" id="pm_cm_water_stand_single" data-key="cm_water_stand_single"><span>원</span></div>
+                        <div class="price_row"><label>물통거치대(양면)</label><input type="text" inputmode="numeric" class="price_mirror" id="pm_cm_water_stand_double" data-key="cm_water_stand_double"><span>원</span></div>
+                        <div class="price_row"><label>실내거치대</label><input type="text" inputmode="numeric" class="price_mirror" id="pm_cm_indoor_stand" data-key="cm_indoor_stand"><span>원</span></div>
+                        <div class="price_row_note">공통자재 › 기타와 같은 값입니다 (어느 쪽에서 고쳐도 같이 바뀜)</div>
                     </div>
                 </div>
             </div>
@@ -854,7 +859,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="nav.js"></script>
 <script src="auth.js"></script>
-<script src="price.js?v=9"></script>
+<script src="price.js?v=10"></script>
 <script>
     // 품목 네비게이션 스크롤 스파이: 현재 보고 있는 섹션 강조
     (function(){

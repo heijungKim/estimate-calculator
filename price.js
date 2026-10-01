@@ -183,6 +183,14 @@ function _writePriceCache(data) {
     } catch (e) {}
 }
 
+// 같은 단가를 두 곳에 보여주는 입력칸(.price_mirror, data-key)을 원본 #p_<key> 값에 맞춘다.
+// 저장·미리보기·초기화는 원본만 다루므로, 원본을 바꾼 뒤에는 이걸 불러 준다.
+function _syncMirrors() {
+    $('.price_mirror').each(function() {
+        $(this).val($("#p_" + $(this).data('key')).val());
+    });
+}
+
 // src에 있으면 그 값, 없으면 기본값으로 PRICES와 입력칸을 함께 채운다
 function _paintPrices(src) {
     Object.keys(DEFAULT_PRICES).forEach(function(key) {
@@ -191,6 +199,7 @@ function _paintPrices(src) {
         var $el = $("#p_" + key);
         if ($el.length) $el.val(fmtNum(val));
     });
+    _syncMirrors();
 }
 
 // ── 채널문자 자동 1.3배 파생 ──────────────────────────────────
@@ -361,6 +370,7 @@ function previewSnapshot(name, prices) {
         }
         $el.val(fmtNum(newVal));
     });
+    _syncMirrors();
     var $banner = $('#price_diff_banner');
     $banner.html(
         '<div class="diff_banner_info">' +
@@ -384,6 +394,7 @@ function clearDiffPreview(revertInputs) {
             if (!$el.length) return;
             $el.val(fmtNum(PRICES[key] !== undefined ? PRICES[key] : DEFAULT_PRICES[key]));
         });
+        _syncMirrors();
     }
     $('.price_diff_badge').remove();
     $('.price_diff_input').removeClass('price_diff_input');
@@ -436,6 +447,7 @@ function resetPrices() {
         var $el = $("#p_" + key);
         if ($el.length) $el.val(fmtNum(DEFAULT_PRICES[key]));
     });
+    _syncMirrors();
 }
 
 $(function() {
@@ -462,6 +474,9 @@ $(function() {
     $(document).on('input', '.price_panel_body input[type="text"]', function() {
         formatCommaInput(this);
         _chCascadeFrom(this);
+        // 미러 칸 ↔ 원본 칸 양쪽 맞추기
+        if ($(this).hasClass('price_mirror')) $("#p_" + $(this).data('key')).val(this.value);
+        else _syncMirrors();
     });
 
     // 적용하기
@@ -545,12 +560,13 @@ $(function() {
         if (_previewActive) clearDiffPreview(true); // 미리보기 취소 후 초기화
         var $section = $(this).closest('.price_section');
         $section.find('input').each(function() {
-            var key = $(this).attr('id').replace(/^p_/, '');
+            var key = $(this).data('key') || $(this).attr('id').replace(/^p_/, '');
             if (DEFAULT_PRICES.hasOwnProperty(key)) {
-                $(this).val(fmtNum(DEFAULT_PRICES[key]));
+                $("#p_" + key).val(fmtNum(DEFAULT_PRICES[key]));
                 PRICES[key] = DEFAULT_PRICES[key];
             }
         });
+        _syncMirrors();
         savePricesToFirebase(PRICES);
     });
 });
