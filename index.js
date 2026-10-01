@@ -2847,6 +2847,16 @@ function set_actual_top_option_select(){
 				append_html += "<label><input type='radio' name='actual_more_order_mising' id='actual_more_order_mising07'>양면 테이프</label>";
 			append_html += "</td>";
 		append_html += "</tr>";	
+		// 페트 구성품 (공통자재 > 기타 단가)
+		append_html += "<tr class='soosung_component_row add_row'>";
+			append_html += "<th>구성품</th>";
+			append_html += "<td>";
+				append_html += "<label><input type='radio' name='soosung_component' id='soosung_component_none' checked='checked'>없음</label>";
+				append_html += "<label><input type='radio' name='soosung_component' id='soosung_component_water_single' data-key='cm_water_stand_single'>물통거치대(단면)</label>";
+				append_html += "<label><input type='radio' name='soosung_component' id='soosung_component_water_double' data-key='cm_water_stand_double'>물통거치대(양면)</label>";
+				append_html += "<label><input type='radio' name='soosung_component' id='soosung_component_indoor' data-key='cm_indoor_stand'>실내거치대</label>";
+			append_html += "</td>";
+		append_html += "</tr>";	
 		append_html += "<tr class='soosung-cut-row'>";
 			append_html += "<th>재단</th>";
 			append_html += "<td><input type='text' inputmode='numeric' class='comma-fmt' id='actual_more_order_price' placeholder='추가 금액을 입력해주세요' disabled='disabled'> 원</td>";
@@ -2895,6 +2905,9 @@ function actual_punch(){
 			$(".woosung_wrap .contents_wrap #option_table .actual_material03").hide();
 		}
 		 if($("#actual_option04").is(":checked")){
+             // 구성품은 페트에서만
+             $("#soosung_component_none").prop("checked", true);
+             $(".woosung_wrap .contents_wrap #option_table .soosung_component_row").toggle($("#actual_material06").is(":checked"));
              if($("#actual_material01").is(":checked") || $("#actual_material06").is(":checked")){
              	$("#actual_more_order03").parent().show();
              }else{
@@ -4310,7 +4323,7 @@ function soosung_silsa(){ //수성실사
             soosung_silsa_cal();
 
         });
-        $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_material03'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order_mising']").click(function(){
+        $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_material03'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order_mising'],.woosung_wrap .contents_wrap #option_table td label input[name='soosung_component']").click(function(){
             soosung_silsa_cal();
 
         });
@@ -4439,16 +4452,27 @@ function soosung_silsa_cal(){ //수성실사 계산
 
   
     var _aqty = parseInt($("#actual_quantity").val()) || 1;
-    $("#order_price").text(String(_r10((total_price + nv("#actual_more_order_price")) * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+    // 페트 구성품 (개당, 공통자재 > 기타 단가)
+    var _ssComp = 0, _ssCompName = "";
+    if($("#actual_material06").is(":checked")){
+        var $comp = $("input[name='soosung_component']:checked");
+        if($comp.data("key")){
+            _ssComp = PRICES[$comp.data("key")] || 0;
+            _ssCompName = $comp.parent("label").text();
+        }
+    }
+    var _ssPost = nv("#actual_more_order_price");
+    var _ssUnit = total_price + _ssPost + _ssComp;
+    $("#order_price").text(String(_r10(_ssUnit * _aqty + nv("#more_order_price"))).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 
     // ── 계산식 표시
     if(_ssLabel) calcAdd(_ssLabel, _ssExpr, total_price);
-    var _ssPost = nv("#actual_more_order_price");
     if(_ssPost) calcAdd("후가공", "면적 기준 자동 계산", _ssPost);
-    if(_aqty > 1) calcAdd("수량", calcWon(total_price + _ssPost) + "원 × " + _aqty + "개", (total_price + _ssPost) * _aqty);
+    if(_ssComp) calcAdd("구성품", _ssCompName, _ssComp);
+    if(_aqty > 1) calcAdd("수량", calcWon(_ssUnit) + "원 × " + _aqty + "개", _ssUnit * _aqty);
     var _ssExtra = nv("#more_order_price");
     if(_ssExtra) calcAdd("추가 금액", "직접 입력", _ssExtra);
-    calcRender(_r10((total_price + _ssPost) * _aqty + _ssExtra));
+    calcRender(_r10(_ssUnit * _aqty + _ssExtra));
 }
 
 function skasi_gomoo(){ //스카시 고무 계산
@@ -5808,6 +5832,10 @@ $(".save_btn").click(function(){
             total_html +="/ 후가공 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']:checked").parent("label").text();
             if($("#actual_more_order04,#actual_more_order05").is(":checked")){
                 total_html +=" / 마감 작업 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order_mising']:checked").parent("label").text();
+            }
+            if($("#actual_material06").is(":checked") && $("input[name='soosung_component']:checked").data("key")){
+                var $_comp = $("input[name='soosung_component']:checked");
+                total_html +=" / 구성품 : "+$_comp.parent("label").text()+" ("+fmtNum(PRICES[$_comp.data("key")] || 0)+"원)";
             }
            if(nv("#actual_more_order_price") != 0){
                 total_html +=" / 재단 비용 : "+$("#actual_more_order_price").val()+"원";
