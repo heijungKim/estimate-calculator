@@ -113,6 +113,8 @@ var DEFAULT_PRICES = {
     cm_fluorescent_assembled: 0, cm_fluorescent_unassembled: 0,
     cm_led_ctrl_1ch: 0, cm_led_ctrl_2ch: 0, cm_led_ctrl_3ch: 0,
     cm_led_white: 450, cm_led_warm: 500, cm_led_rgb: 800, cm_led_panorama: 3500, cm_led_color: 500,
+    // 공통자재 기타 (개당)
+    cm_water_stand_single: 20000, cm_water_stand_double: 20000, cm_indoor_stand: 15000,
     // 스카시 아크릴 (글자당) [3T영문, 3T한글, 5T영문, 5T한글, 8T영문, 8T한글, 10T영문, 10T한글]
     skasi_acr_3t_eng_30: 300, skasi_acr_3t_kor_30: 400, skasi_acr_5t_eng_30: 500, skasi_acr_5t_kor_30: 600, skasi_acr_8t_eng_30: 700, skasi_acr_8t_kor_30: 900, skasi_acr_10t_eng_30: 1100, skasi_acr_10t_kor_30: 1400,
     skasi_acr_3t_eng_40: 400, skasi_acr_3t_kor_40: 500, skasi_acr_5t_eng_40: 600, skasi_acr_5t_kor_40: 700, skasi_acr_8t_eng_40: 900, skasi_acr_8t_kor_40: 1200, skasi_acr_10t_eng_40: 1500, skasi_acr_10t_kor_40: 1900,
