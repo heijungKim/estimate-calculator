@@ -77,16 +77,16 @@ var DEFAULT_PRICES = {
     uv_clear_mirror: 15000, uv_clear_black: 25000,
     uv_punch_pet: 7000, uv_light_white: 13000, uv_embo: 10000,
     // 솔벤 실사 전용 자재단가 (m²)
-    sol_oneway: 13000, sol_high_reflect: 40000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
+    sol_oneway: 13000, sol_high_reflect: 40000, sol_high_reflect_noprint: 40000, sol_gradient: 31000, sol_gradient_noprint: 16000, sol_banner: 6000, sol_coat: 3000, silsa_cut: 2000,
     // 실사 소재별 재단 단가 (m²)
     silsa_cut_white: 2000, silsa_cut_grey: 2000, silsa_cut_light: 2000, silsa_cut_embo: 2000,
-    silsa_cut_clear: 2000, silsa_cut_oneway: 2000, silsa_cut_reflect: 2000, silsa_cut_banner: 2000,
+    silsa_cut_clear: 2000, silsa_cut_oneway: 2000, silsa_cut_reflect: 2000, silsa_cut_banner: 2000, silsa_cut_gradient: 2000,
     // 실사 소재별 시트돔보 단가 (m²)
     silsa_dombo_white: 3000, silsa_dombo_grey: 3000, silsa_dombo_light: 3000, silsa_dombo_embo: 3000,
-    silsa_dombo_clear: 3000, silsa_dombo_oneway: 3000, silsa_dombo_reflect: 3000, silsa_dombo_banner: 3000,
+    silsa_dombo_clear: 3000, silsa_dombo_oneway: 3000, silsa_dombo_reflect: 3000, silsa_dombo_banner: 3000, silsa_dombo_gradient: 3000,
     // 실사 소재별 코팅 단가 (m²)
     silsa_coat_white: 3000, silsa_coat_grey: 3000, silsa_coat_light: 3000, silsa_coat_embo: 3000,
-    silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000,
+    silsa_coat_clear: 3000, silsa_coat_oneway: 3000, silsa_coat_reflect: 3000, silsa_coat_banner: 3000, silsa_coat_gradient: 3000,
     // 수성 실사 - 현수막 (세로 구간별: m당 / 가로 0~1m·1~3m 정액), M당 펀칭은 m당 단가에 가산
     soosung_banner_punch_add: 1000,
     soosung_banner_h9_unit: 2000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
@@ -2763,7 +2763,16 @@ function set_actual_top_option_select(){
 				// 솔벤 전용
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material13'>원웨이(타공)</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material16'>고휘도반사</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material18'>그라데이션</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material17'>솔벤현수막</label>";
+			append_html += "</td>";
+		append_html += "</tr>";
+		// 고휘도반사·그라데이션은 인쇄 없이 시트만 팔기도 해서 단가가 다르다
+		append_html += "<tr class='actual_print_row add_row'>";
+			append_html += "<th>인쇄</th>";
+			append_html += "<td>";
+				append_html += "<label><input type='radio' name='actual_print' id='actual_print01' checked='checked'>인쇄 있음</label>";
+				append_html += "<label><input type='radio' name='actual_print' id='actual_print02'>인쇄 없음</label>";
 			append_html += "</td>";
 		append_html += "</tr>";
 		append_html += "<tr class='actual_material03 add_row'>";
@@ -4219,7 +4228,8 @@ function uv_sol_silsa(){ //UV / 솔벤 실사 (통합)
 	setTimeout(function(){
         $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']").click(function(){
             $("#frame_product_width,#frame_product_vertical,#actual_more_order_price,#more_order_price,#add_more_text,#actual_punch_count").val("");
-            $("#actual_more_order01,#actual_material03_01").prop("checked",true);
+            $("#actual_more_order01,#actual_material03_01,#actual_print01").prop("checked",true);
+            $(".woosung_wrap .contents_wrap #option_table .actual_print_row").toggle($("#actual_material16,#actual_material18").is(":checked"));
 
             //초기 리셋
             uv_sol_silsa_cal();
@@ -4229,7 +4239,7 @@ function uv_sol_silsa(){ //UV / 솔벤 실사 (통합)
             uv_sol_silsa_cal();
 
         });
-        $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_material03']").click(function(){
+        $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_punch'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_material03'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_print']").click(function(){
             uv_sol_silsa_cal();
 
         });
@@ -4256,7 +4266,9 @@ function _silsaMatKeys() {
     }
     // 솔벤 전용
     if($("#actual_material13").is(":checked")) return { mat: PRICES.sol_oneway||0,       cut: PRICES.silsa_cut_oneway||0,  dombo: PRICES.silsa_dombo_oneway||0,  coat: PRICES.silsa_coat_oneway||0,  isSol:true };
-    if($("#actual_material16").is(":checked")) return { mat: PRICES.sol_high_reflect||0, cut: PRICES.silsa_cut_reflect||0, dombo: PRICES.silsa_dombo_reflect||0, coat: PRICES.silsa_coat_reflect||0, isSol:true };
+    var _noPrint = $("#actual_print02").is(":checked");
+    if($("#actual_material18").is(":checked")) return { mat: (_noPrint ? PRICES.sol_gradient_noprint : PRICES.sol_gradient)||0, cut: PRICES.silsa_cut_gradient||0, dombo: PRICES.silsa_dombo_gradient||0, coat: PRICES.silsa_coat_gradient||0, isSol:true };
+    if($("#actual_material16").is(":checked")) return { mat: (_noPrint ? PRICES.sol_high_reflect_noprint : PRICES.sol_high_reflect)||0, cut: PRICES.silsa_cut_reflect||0, dombo: PRICES.silsa_dombo_reflect||0, coat: PRICES.silsa_coat_reflect||0, isSol:true };
     if($("#actual_material17").is(":checked")) return { mat: PRICES.sol_banner||0,       cut: PRICES.silsa_cut_banner||0,  dombo: PRICES.silsa_dombo_banner||0,  coat: PRICES.silsa_coat_banner||0,  isSol:true };
     return { mat:0, cut:0, dombo:0, coat:0, isSol:false };
 }
@@ -4296,7 +4308,8 @@ function uv_sol_silsa_cal(){ //UV / 솔벤 실사 통합 계산
     // ── 계산식 표시
     calcReset();
     var _uvUnitExpr = calcWon(mat_unit) + "원" + (post_unit ? " + " + calcWon(post_unit) + "원(" + post_name + ")" : "");
-    calcAdd("출력" + (post_name ? " + " + post_name : ""),
+    var _printTag = $("#actual_material16,#actual_material18").is(":checked") ? ($("#actual_print02").is(":checked") ? " (인쇄 없음)" : " (인쇄 있음)") : "";
+    calcAdd("출력" + _printTag + (post_name ? " + " + post_name : ""),
             calcNum(target_width) + "m × " + calcNum(target_height) + "m × (" + _uvUnitExpr + ")", total_price);
     if(_rawW > 0 && _ceil100(_rawW) !== _rawW) calcNote("가로 " + fmtNum(_rawW) + "mm → 100mm 단위 올림 " + fmtNum(_ceil100(_rawW)) + "mm");
     if(_rawH > 0 && _ceil100(_rawH) !== _rawH) calcNote("세로 " + fmtNum(_rawH) + "mm → 100mm 단위 올림 " + fmtNum(_ceil100(_rawH)) + "mm");
@@ -5777,6 +5790,9 @@ $(".save_btn").click(function(){
             total_html +=" / 소재 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']:checked").parent("label").text();
             if($("#actual_material03").is(":checked")){
                 total_html +=" / 레이어 수 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material03']:checked").parent("label").text();
+            }
+            if($("#actual_material16,#actual_material18").is(":checked")){
+                total_html +=" / 인쇄 : "+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_print']:checked").parent("label").text();
             }
             total_html +=" / 가로 : "+$("#frame_product_width").val()+" mm";
             total_html +=" / 세로 : "+$("#frame_product_vertical").val()+" mm";
