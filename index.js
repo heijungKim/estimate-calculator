@@ -2211,9 +2211,11 @@ function hoorex_type(){
 			else               $(".channel_led_count").css("display","table-row");
 		} else if(!$("#channel_led_color_none").is(":checked")){ //LED색상 선택했을때 (기존 옵션)
 			$(".channel_led_pos_row").css("display","table-row");
+			$(".channel_led_count").css("display","table-row");
 			_chLedCountBySize();
-		}else{	//LED색상 선택안했을때
+		}else{	//LED색상 선택안했을때: LED 예상 개수도 숨긴다
 			$(".channel_led_pos_row").hide();
+			$(".channel_led_count").hide();
 			$("#channel_led_count_manual").val('');
 		}
 		// VIP(인): LED 가 들어갈 때만 묻는다
