@@ -5432,7 +5432,9 @@ $(".save_btn").click(function(){
         }
     } else if(_tab.hasClass("child06")) { // 공통자재
         var _hasCmQty = false;
-        $(".cm-qty").each(function(){ if(parseInt($(this).val()) > 0) _hasCmQty = true; });
+        // 개별 품목(.cm-qty)뿐 아니라 타이머/SMPS/컨트롤러/LED 처럼 규격을 고르고 수량을 넣는 칸(.cm-spec-qty)도 센다.
+        // 규격을 '없음'으로 둔 채 수량만 넣은 경우는 아래 견적 금액 0원 검사에서 걸린다.
+        $(".cm-qty, .cm-spec-qty").each(function(){ if(parseInt($(this).val()) > 0) _hasCmQty = true; });
         if(!_hasCmQty && nv("#more_order_price") === 0)
             _errs.push("공통자재 수량 또는 추가 금액을 입력해주세요.");
     }
