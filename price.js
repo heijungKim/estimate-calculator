@@ -77,7 +77,9 @@ var DEFAULT_PRICES = {
     cm_smps_60w: 0, cm_smps_100w: 0, cm_smps_150w: 0, cm_smps_200w: 0, cm_smps_300w: 0, cm_smps_400w: 0, cm_smps_500w: 0,
     cm_fluorescent_assembled: 0, cm_fluorescent_unassembled: 0,
     cm_led_ctrl_1ch: 0, cm_led_ctrl_2ch: 0, cm_led_ctrl_3ch: 0,
+    // LED 개당: 조립시(채널문자 등 제작 품목) / 비조립시(공통자재로 LED 만 팔 때)
     cm_led_white: 450, cm_led_warm: 500, cm_led_rgb: 800, cm_led_panorama: 3500, cm_led_color: 500,
+    cm_led_white_loose: 450, cm_led_warm_loose: 500, cm_led_rgb_loose: 800, cm_led_panorama_loose: 3500, cm_led_color_loose: 500,
     // 공통자재 기타 (개당)
     cm_water_stand_single: 20000, cm_water_stand_double: 20000, cm_indoor_stand: 15000,
     // 스카시 고무 (글자당) n=일반, s=수입금/은색
@@ -272,11 +274,22 @@ function chFillDerived(prices) {
 }
 
 // 저장값 + 기본값을 합치고 빈 파생 항목까지 채운 최종 단가
+// 비조립 LED 단가가 아직 저장된 적 없으면 저장된 조립시 단가로 시작한다
+// (코드 기본값으로 시작하면 쓰던 단가와 달라진다)
+function _fillLooseLed(out, saved) {
+    if (!saved) return;
+    ['white','warm','rgb','panorama','color'].forEach(function(c) {
+        var loose = 'cm_led_' + c + '_loose', base = 'cm_led_' + c;
+        if (saved[loose] === undefined && saved[base] !== undefined) out[loose] = saved[base];
+    });
+}
+
 function _resolvePrices(src) {
     var out = {};
     Object.keys(DEFAULT_PRICES).forEach(function(key) {
         out[key] = (src && src[key] !== undefined) ? src[key] : DEFAULT_PRICES[key];
     });
+    _fillLooseLed(out, src);
     chFillDerived(out);
     return out;
 }
