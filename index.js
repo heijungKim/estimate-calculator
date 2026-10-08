@@ -4,7 +4,7 @@
 var PRICE_VERSION = 4; // DEFAULT_PRICES 변경 시 올림 → Firebase 강제 초기화
 var DEFAULT_PRICES = {
     // 사인탑 비조명 (m²)
-    sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
+    sign01_base: 43000, sign01_flex_print: 33000, sign01_flex_print_tall: 42000, sign01_flex_sheet: 32000, sign01_tension_none: 22000,
     // 사인탑 조명 (m²)
     sign02_base: 33000, sign02_flex_print: 38000, sign02_flex_sheet: 40000, sign02_tension_none: 33000,
     // 사인탑 돌출 (세로 m당)
@@ -3446,6 +3446,10 @@ function sign_top_01(){ //사인탑_비조명
    },1000);
 
 }
+// 비조명 후렉스출력 m² 단가: 세로(높이)가 2,200mm 를 넘으면 큰 사이즈 단가
+function _sign01FlexPrintUnit(heightM){
+    return heightM > 2.2 ? PRICES.sign01_flex_print_tall : PRICES.sign01_flex_print;
+}
 function sign_top_01_cal(){ //사인탑_비조명 계산
     var target_width    = _ceil100(nv("#sigh_row")) / 1000;
     var target_vertical = _ceil100(nv("#sigh_vertical")) / 1000;
@@ -3460,7 +3464,7 @@ function sign_top_01_cal(){ //사인탑_비조명 계산
     var area = target_width * target_vertical;
 
     if($("#sigh_display_01").is(":checked")){
-        total_price = area * PRICES.sign01_flex_print;
+        total_price = area * _sign01FlexPrintUnit(target_vertical);
     }else if($("#sigh_display_02").is(":checked")){
         total_price = area * PRICES.sign01_flex_sheet;
     }else if($("#sigh_display_03").is(":checked")){
@@ -5557,7 +5561,7 @@ $(".save_btn").click(function(){
                     var tw=_ceil100(nv("#sigh_row"))/1000, tv=_ceil100(nv("#sigh_vertical"))/1000;
                     if($("#sigh_option_row").is(":checked")){ if(tw>0&&tw<1.5)tw=1.5; if(tv>0&&tv<1)tv=1; }
                     else { if(tw>0&&tw<1)tw=1; if(tv>0&&tv<1.5)tv=1.5; }
-                    var dUnit=$("#sigh_display_01").is(":checked")?PRICES.sign01_flex_print:$("#sigh_display_02").is(":checked")?PRICES.sign01_flex_sheet:PRICES.sign01_tension_none;
+                    var dUnit=$("#sigh_display_01").is(":checked")?_sign01FlexPrintUnit(tv):$("#sigh_display_02").is(":checked")?PRICES.sign01_flex_sheet:PRICES.sign01_tension_none;
                     var displayP=Math.floor(tw*tv*dUnit);
                     var colorP=0;
                     if($("#sigh_frame_color_custom").is(":checked")) colorP=Math.floor(Math.round(tw*tv)*PRICES.sign_color_paint_nol);
