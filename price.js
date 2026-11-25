@@ -62,6 +62,8 @@ var DEFAULT_PRICES = {
     // 수성 실사 - 현수막 (세로 구간별: m당 / 가로 0~1m·1~3m 정액), M당 펀칭은 m당 단가에 가산
     soosung_banner_punch_add: 1000,
     // 현수막 장폭 (m²): 후가공 없음 / 후가공 있음
+    // 장폭현수막 (m²): 일반 / 장폭, 각각 기본 / 후가공 선택 시
+    soosung_banner_wide_normal_sqm: 4000, soosung_banner_wide_normal_post_sqm: 5000,
     soosung_banner_wide_sqm: 4000, soosung_banner_wide_post_sqm: 5000,
     soosung_banner_h9_unit: 2000, soosung_banner_h9_flat_1m: 6000, soosung_banner_h9_flat_3m: 7000,
     soosung_banner_h11_unit: 3000, soosung_banner_h11_flat_1m: 9000, soosung_banner_h11_flat_3m: 10000,
@@ -283,6 +285,10 @@ function _fillLooseLed(out, saved) {
     ['white','warm','rgb','panorama','color'].forEach(function(c) {
         var loose = 'cm_led_' + c + '_loose', base = 'cm_led_' + c;
         if (saved[loose] === undefined && saved[base] !== undefined) out[loose] = saved[base];
+    });
+    // 장폭현수막 '일반' 단가도 처음엔 저장돼 있던 장폭현수막 단가로 시작
+    [['soosung_banner_wide_normal_sqm','soosung_banner_wide_sqm'],['soosung_banner_wide_normal_post_sqm','soosung_banner_wide_post_sqm']].forEach(function(pr) {
+        if (saved[pr[0]] === undefined && saved[pr[1]] !== undefined) out[pr[0]] = saved[pr[1]];
     });
 }
 
