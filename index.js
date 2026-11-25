@@ -2869,20 +2869,13 @@ function set_actual_top_option_select(){
 			append_html += "<th>소재</th>";
 			append_html += "<td>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material01' checked='checked'>현수막</label>";
+				append_html += "<label><input type='radio' name='actual_material' id='actual_material08'>장폭현수막</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material02'>켈(백색)</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material03'>켈(그레이)</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material04'>유포(백색)</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material05'>유포(그레이)</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material06'>페트</label>";
 				append_html += "<label><input type='radio' name='actual_material' id='actual_material07'>백릿</label>";
-			append_html += "</td>";
-		append_html += "</tr>";
-		// 현수막 종류: 일반(세로 구간별) / 장폭(m² 단가)
-		append_html += "<tr class='soosung_banner_type_row'>";
-			append_html += "<th>현수막 종류</th>";
-			append_html += "<td>";
-				append_html += "<label><input type='radio' name='soosung_banner_type' id='soosung_banner_normal' checked='checked'>일반</label>";
-				append_html += "<label><input type='radio' name='soosung_banner_type' id='soosung_banner_wide'>장폭</label>";
 			append_html += "</td>";
 		append_html += "</tr>";
 		append_html += "<tr>";
@@ -2963,7 +2956,7 @@ function actual_punch(){
 	});
 
 	$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']").click(function(){
-        if($("#actual_material01").is(":checked")){
+        if($("#actual_material01,#actual_material08").is(":checked")){
 			$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']").parent().show();
 		}else{
 			$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order']").parent().hide();
@@ -2979,7 +2972,7 @@ function actual_punch(){
              // 구성품은 페트에서만
              $("#soosung_component_none").prop("checked", true);
              $(".woosung_wrap .contents_wrap #option_table .soosung_component_row").toggle($("#actual_material06").is(":checked"));
-             if($("#actual_material01").is(":checked") || $("#actual_material06").is(":checked")){
+             if($("#actual_material01,#actual_material08").is(":checked") || $("#actual_material06").is(":checked")){
              	$("#actual_more_order03").parent().show();
              }else{
              	$("#actual_more_order03").parent().hide();    
@@ -4399,8 +4392,7 @@ function soosung_silsa(){ //수성실사
         }
         $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']").click(function(){
             $("#frame_product_width,#frame_product_vertical,#actual_more_order_price,#more_order_price,#add_more_text").val("");
-            $("#actual_more_order01,#actual_more_order_mising01,#soosung_banner_normal").prop("checked",true);
-            $(".woosung_wrap .contents_wrap #option_table .soosung_banner_type_row").toggle($("#actual_material01").is(":checked"));
+            $("#actual_more_order01,#actual_more_order_mising01").prop("checked",true);
             _soosungToggleCutRow();
             soosung_silsa_cal();
         });
@@ -4408,7 +4400,7 @@ function soosung_silsa(){ //수성실사
             soosung_silsa_cal();
 
         });
-        $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_material03'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order_mising'],.woosung_wrap .contents_wrap #option_table td label input[name='soosung_component'],.woosung_wrap .contents_wrap #option_table td label input[name='soosung_banner_type']").click(function(){
+        $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_material03'],.woosung_wrap .contents_wrap #option_table td label input[name='actual_more_order_mising'],.woosung_wrap .contents_wrap #option_table td label input[name='soosung_component']").click(function(){
             soosung_silsa_cal();
 
         });
@@ -4455,12 +4447,11 @@ function soosung_silsa_cal(){ //수성실사 계산
     }
 
 	if(target_width != 0 && target_vertical != 0){
-        var _isWide = $("#actual_material01").is(":checked") && $("#soosung_banner_wide").is(":checked");
-        if(_isWide){ //현수막 장폭: 가로 × 세로 × m² 단가 (후가공을 고르면 후가공 포함 단가)
+        if($("#actual_material08").is(":checked")){ //장폭현수막: 가로 × 세로 × m² 단가 (후가공을 고르면 후가공 포함 단가)
             var _wideHasPost = !$("#actual_more_order01").is(":checked");
             var _wideUnit = _wideHasPost ? PRICES.soosung_banner_wide_post_sqm : PRICES.soosung_banner_wide_sqm;
             total_price = target_width * target_vertical * _wideUnit;
-            _ssSet("현수막 장폭" + (_wideHasPost ? " (후가공 포함)" : ""), calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(_wideUnit) + "원/m²");
+            _ssSet("장폭현수막" + (_wideHasPost ? " (후가공 포함)" : ""), calcNum(target_width) + "m × " + calcNum(target_vertical) + "m × " + calcWon(_wideUnit) + "원/m²");
         }else if($("#actual_material01").is(":checked")){ //현수막
             if(target_vertical <= 0.9){
                 total_price = _ssBanner("세로 0.9m 이하", "h9");
@@ -4511,8 +4502,8 @@ function soosung_silsa_cal(){ //수성실사 계산
         }
  	}
     	console.log(total_price);
-    if($("#actual_material01").is(":checked") && $("#soosung_banner_wide").is(":checked")){
-        $("#actual_more_order_price").val(0); //장폭: 후가공비는 m² 단가(5,000원)에 포함
+    if($("#actual_material08").is(":checked")){
+        $("#actual_more_order_price").val(0); //장폭현수막: 후가공비는 m² 단가(5,000원)에 포함
     }else if($("#actual_material01").is(":checked")){
         if(target_vertical >= 1.8){
              if($("#actual_more_order_mising06").is(":checked") || $("#actual_more_order_mising07").is(":checked")){
@@ -5920,9 +5911,6 @@ $(".save_btn").click(function(){
             total_html += "<li><span class='number'></span>";
             total_html += $(".woosung_wrap .contents_wrap #option_table td label input[name='actual_option']:checked").parent("label").text();
             total_html +=" / 소재 :"+$(".woosung_wrap .contents_wrap #option_table td label input[name='actual_material']:checked").parent("label").text();
-            if($("#actual_material01").is(":checked")){
-                total_html +=" / 종류 : "+($("#soosung_banner_wide").is(":checked") ? "장폭" : "일반");
-            }
             if($("#actual_material02,#actual_material03").is(":checked")){
                 total_html +=" / 출력비 : 10,000 원";
                 if($("#actual_more_order02").is(":checked")){
